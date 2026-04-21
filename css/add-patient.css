@@ -1,0 +1,159 @@
+/* ==================== ADD PATIENT VIBRANT STYLES ==================== */
+
+.add-patient-container {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    animation: fadeIn 0.5s ease;
+    border: 1px solid rgba(0, 0, 0, 0.02);
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.add-patient-container .module-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    border-bottom: 2px solid #f0f2f5;
+    padding-bottom: 15px;
+}
+
+.add-patient-container .module-header h2 {
+    color: #2d3436;
+    font-size: 26px;
+    font-weight: 800;
+    margin: 0;
+    position: relative;
+    padding-left: 15px;
+}
+
+.add-patient-container .module-header h2::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 80%;
+    width: 5px;
+    background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%);
+    border-radius: 10px;
+}
+
+.patient-form {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.form-section {
+    background: #fdfdfd;
+    border: 1px solid #f0f2f5;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-section:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.04);
+}
+
+.form-section h3 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 18px;
+    color: #2d3748;
+    margin-bottom: 25px;
+    padding-bottom: 12px;
+    border-bottom: 2px dashed #e2e8f0;
+}
+
+.form-section h3 i {
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    font-size: 16px;
+}
+
+/* Specific Section Icons coloring */
+.form-section:nth-child(1) h3 i {
+    background: rgba(102, 126, 234, 0.1);
+    color: #667eea;
+}
+
+.form-section:nth-child(2) h3 i {
+    background: rgba(46, 213, 115, 0.1);
+    color: #2ed573;
+}
+
+.form-section:nth-child(3) h3 i {
+    background: rgba(255, 71, 87, 0.1);
+    color: #ff4757;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #4a5568;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    background: #ffffff;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 15px;
+    color: #2d3748;
+    transition: all 0.3s ease;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: #667eea;
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+    background: #fcfcfc;
+}
+
+.form-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.form-actions button {
+    padding: 16px 30px;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    border-radius: 12px;
+}

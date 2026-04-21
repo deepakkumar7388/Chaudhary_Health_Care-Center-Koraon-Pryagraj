@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Management System</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google Fonts - Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/patient.css">
+    <link rel="stylesheet" href="css/add-patient.css">
+    <link rel="stylesheet" href="css/daily-notes.css">
+    <link rel="stylesheet" href="css/billing.css">
+    <link rel="stylesheet" href="css/discharge.css">
+</head>
+
+<body>
+    <!-- ==================== AUTH SCREEN ==================== -->
+    <div id="auth-container">
+        <div class="auth-box">
+            <!-- Left Overlay Panel -->
+            <div class="auth-overlay-panel" id="auth-overlay">
+                <div class="auth-overlay-content">
+                    <h2 id="overlay-title">Welcome Back!</h2>
+                    <p id="overlay-text">To keep connected with us please login with your personal info</p>
+                    <button class="overlay-switch-btn" id="overlay-btn" onclick="toggleAuthPanel('signup')">Sign
+                        Up</button>
+                </div>
+            </div>
+
+            <!-- Right Form Panel -->
+            <div class="auth-form-panel">
+                <div class="auth-form-container">
+                    <!-- Login Form -->
+                    <div id="login-panel" class="auth-panel active">
+                        <h2>Sign In</h2>
+                        <form id="login-form" onsubmit="event.preventDefault(); login();">
+                            <div class="input-group">
+                                <input type="text" id="username" placeholder="Username" required>
+                            </div>
+                            <div class="input-group">
+                                <input type="password" id="password" placeholder="Password" required>
+                            </div>
+
+                            <button type="submit" class="login-btn">Sign In</button>
+                            <div id="login-error" class="error-message"></div>
+                        </form>
+
+                    </div>
+
+                    <!-- Signup Form -->
+                    <div id="signup-panel" class="auth-panel">
+                        <h2>Create Account</h2>
+                        <form id="signup-form" onsubmit="event.preventDefault(); signup();">
+                            <div class="input-group">
+                                <input type="text" id="signup-name" placeholder="Full Name" required>
+                            </div>
+                            <div class="input-group">
+                                <input type="email" id="signup-email" placeholder="Email" required>
+                            </div>
+                            <div class="input-group">
+                                <input type="tel" id="signup-mobile" placeholder="Mobile Number" required>
+                            </div>
+                            <div class="input-group">
+                                <input type="text" id="signup-username" placeholder="Username" required>
+                            </div>
+                            <div class="input-group">
+                                <input type="password" id="signup-password" placeholder="Password" required>
+                            </div>
+                            <div class="input-group">
+                                <input type="password" id="signup-confirm" placeholder="Confirm Password" required>
+                            </div>
+                            <div class="input-group">
+                                <select id="signup-role" required>
+                                    <option value="">Select role</option>
+                                    <option value="doctor">Doctor</option>
+                                    <option value="staff">Staff/Nurse</option>
+                                    <option value="receptionist">Receptionist</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="login-btn signup-btn">Sign Up</button>
+                            <div id="signup-error" class="error-message"></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MAIN APP ==================== -->
+    <div id="app-container" class="app-container" style="display:none;">
+        <!-- Sidebar -->
+        <div class="sidebar" style="display: flex; flex-direction: column; padding: 0; height: 100vh; overflow: hidden; background: #fff; box-shadow: 2px 0 15px rgba(0,0,0,0.05);">
+            <!-- Top Section -->
+            <div class="sidebar-header" style="flex: 0 0 auto; display:flex; flex-direction:column; align-items:center; padding: 25px 20px 15px; border-bottom: 1px solid #f1f5f9; margin-bottom: 0;">
+                <img src="hlogo.png" alt="CHC Logo" style="max-height: 80px; width: auto; object-fit: contain; margin-bottom: 15px;">
+                <h2 style="font-size: 14px; font-weight: 700; text-align: center; line-height: 1.3; margin: 0; color: #1e293b; letter-spacing: 0.5px; text-transform: uppercase;">Chaudhary Health Care Center</h2>
+                
+                <p id="current-time" class="time-display" style="margin-top: 15px; font-size: 13px; color: #64748b; text-align: center; margin-bottom: 0; background: white; padding: 10px 15px; border-radius: 12px; width: 100%; border: 1px solid #edf2f7; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);">
+                    <i class="far fa-clock" style="color: #c951db;"></i> <span id="time" style="font-weight: bold; color: #0f172a;">00:00:00</span><br>
+                    <small id="date" style="font-size: 11px;">Loading...</small>
+                </p>
+            </div>
+
+            <!-- Navigation Section -->
+            <div class="menu" style="flex: 1 1 auto; overflow-y: auto; padding: 15px 10px; margin: 0;">
+                <div class="menu-item active" onclick="showModule('dashboard')">
+                    <i class="fas fa-tachometer-alt"></i> <span>Dashboard</span>
+                </div>
+                <div class="menu-item" onclick="showModule('patients')">
+                    <i class="fas fa-users"></i> <span>Patients</span>
+                </div>
+                <div class="menu-item" onclick="showModule('add-patient')">
+                    <i class="fas fa-user-plus"></i> <span>Add Patient</span>
+                </div>
+                <div class="menu-item" onclick="showModule('daily-notes')">
+                    <i class="fas fa-notes-medical"></i> <span>Daily Notes</span>
+                </div>
+                <div class="menu-item" onclick="showModule('billing')">
+                    <i class="fas fa-money-bill-wave"></i> <span>Billing</span>
+                </div>
+                <div class="menu-item" onclick="showModule('discharge')">
+                    <i class="fas fa-sign-out-alt"></i> <span>Discharge</span>
+                </div>
+
+                <div id="admin-menu" style="display:none; margin-top: 15px; border-top: 1px solid #f1f5f9; padding-top: 15px;">
+                    <div class="menu-item" onclick="showModule('users')"><i class="fas fa-user-cog"></i>
+                        <span>Users</span>
+                    </div>
+                    <div class="menu-item" onclick="showModule('reports')"><i class="fas fa-chart-bar"></i>
+                        <span>Reports</span>
+                    </div>
+                    <div class="menu-item" onclick="showModule('patient-record')"><i class="fas fa-file-medical"></i>
+                        <span>Patient Records</span>
+                    </div>
+                    <div class="menu-item" onclick="showModule('settings')"><i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </div>
+                </div>
+
+                <!-- Legacy ID Requirement Retention purely structural -->
+                <div class="system-stats" style="display:none;">
+                    <div class="stat-item"><span id="stat-patients">0</span></div>
+                    <div class="stat-item"><span id="stat-doctors">0</span></div>
+                    <div class="stat-item"><span id="stat-revenue">0</span></div>
+                </div>
+            </div>
+
+            <!-- Bottom User Section -->
+            <div class="user-profile-section" style="flex: 0 0 auto; position: relative; padding: 15px; border-top: 1px solid #e2e8f0; cursor: pointer; transition: background 0.2s; user-select: none;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'" onclick="toggleUserDropdown(event)">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div id="sidebar-avatar" class="initials-avatar" style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: bold; box-shadow: 0 4px 10px rgba(118, 75, 162, 0.3);">
+                        <i class="fas fa-user" style="font-size: 14px;"></i>
+                    </div>
+                    <div style="flex: 1; overflow: hidden; text-align: left;">
+                        <h3 id="current-user" style="margin: 0; font-size: 14px; color: #0f172a; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Loading...</h3>
+                        <p id="current-user-role" class="role-badge" style="margin: 2px 0 0; font-size: 11px; padding: 2px 6px; display: inline-block;">Role</p>
+                    </div>
+                    <i class="fas fa-ellipsis-h" style="color: #94a3b8; font-size: 16px;"></i>
+                </div>
+                
+                <!-- Dropdown Menu -->
+                <div id="user-dropdown-menu" style="display: none; position: absolute; bottom: calc(100% + 5px); left: 15px; right: 15px; background: white; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; padding: 8px; z-index: 1000; animation: fadeUpDropdown 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
+                    <div class="menu-item" style="padding: 10px 15px; border-radius: 6px; margin: 0; margin-bottom: 2px; display: flex; align-items: center; gap: 15px;" onclick="showModule('settings')">
+                        <i class="fas fa-cog" style="color: #64748b; font-size: 15px;"></i> <span style="font-size: 14px; font-weight: 500; color: #1e293b;">Profile Settings</span>
+                    </div>
+                    <div style="height: 1px; background: #f1f5f9; margin: 4px 0;"></div>
+                    <div class="menu-item" style="padding: 10px 15px; border-radius: 6px; margin: 0; display: flex; align-items: center; gap: 15px;" onclick="logout()">
+                        <i class="fas fa-sign-out-alt" style="color: #ef4444; font-size: 15px;"></i> <span style="font-size: 14px; font-weight: 500; color: #ef4444;">Log out</span>
+                    </div>
+                </div>
+            </div>
+            
+            <style>
+                @keyframes fadeUpDropdown {
+                    from { opacity: 0; transform: translateY(10px) scale(0.98); }
+                    to { opacity: 1; transform: translateY(0) scale(1); }
+                }
+                .menu-item {
+                    margin-bottom: 5px;
+                    border-radius: 8px;
+                    transition: all 0.2s ease;
+                }
+                .menu-item:hover {
+                    background: #f1f5f9;
+                    transform: translateX(3px);
+                }
+                .menu-item.active {
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: #ffffff;
+                    font-weight: 600;
+                    border-left: none;
+                    box-shadow: 0 4px 15px rgba(118, 75, 162, 0.3);
+                }
+                .menu-item.active i {
+                    color: #ffffff !important;
+                }
+                .sidebar::-webkit-scrollbar { width: 5px; }
+                .sidebar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 5px; }
+                .sidebar::-webkit-scrollbar-track { background: transparent; }
+            </style>
+
+            <script>
+                function toggleUserDropdown(e) {
+                    if (e) e.stopPropagation();
+                    const menu = document.getElementById('user-dropdown-menu');
+                    if (menu.style.display === 'none') {
+                        menu.style.display = 'block';
+                    } else {
+                        menu.style.display = 'none';
+                    }
+                }
+                document.addEventListener('click', function(e) {
+                    const menu = document.getElementById('user-dropdown-menu');
+                    const section = document.querySelector('.user-profile-section');
+                    if (menu && menu.style.display === 'block' && section && !section.contains(e.target)) {
+                        menu.style.display = 'none';
+                    }
+                });
+            </script>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="content-header">
+                <h1 id="page-title">Dashboard</h1>
+                <div class="header-actions" id="header-actions"></div>
+            </div>
+
+            <div id="module-content">
+                <div id="module-dashboard" class="module-content active"></div>
+                <div id="module-patients" class="module-content"></div>
+                <div id="module-add-patient" class="module-content"></div>
+                <div id="module-daily-notes" class="module-content"></div>
+                <div id="module-billing" class="module-content"></div>
+                <div id="module-discharge" class="module-content"></div>
+                <div id="module-users" class="module-content"></div>
+                <div id="module-reports" class="module-content"></div>
+                <div id="module-patient-record" class="module-content"></div>
+                <div id="module-settings" class="module-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== LOADING & NOTIFICATION ==================== -->
+    <div id="loading-overlay">
+        <div class="loader"></div>
+        <div class="loading-text" id="loading-text">Loading...</div>
+    </div>
+
+    <div id="notification" class="notification">
+        <div class="notification-icon"><i class="fas fa-info-circle"></i></div>
+        <div class="notification-content">
+            <div id="notification-title" style="font-weight:bold;">Notification</div>
+            <div id="notification-message">Message will appear here</div>
+        </div>
+        <button class="notification-close" onclick="hideNotification()"><i class="fas fa-times"></i></button>
+    </div>
+
+    <!-- Logout Confirmation Modal -->
+    <div id="logout-modal" class="logout-modal">
+        <div class="logout-modal-content">
+            <div class="logout-modal-icon">
+                <i class="fas fa-sign-out-alt"></i>
+            </div>
+            <h2>Logout</h2>
+            <p class="logout-message">
+                Hi <span id="logout-user-name">User</span>,<br>
+                Are you sure you want to log out from Hospital Management System?
+            </p>
+            <div class="logout-modal-actions">
+                <button class="logout-btn-no" onclick="cancelLogout()">No</button>
+                <button class="logout-btn-yes" onclick="confirmLogout()">Yes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Files -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/patients.js"></script>
+    <script src="js/add-patient.js"></script>
+    <script src="js/daily-notes.js"></script>
+    <script src="js/billing.js"></script>
+    <script src="js/discharge.js"></script>
+    <script src="js/reports.js"></script>
+    <script src="js/patient-record.js"></script>
+    <script src="js/settings.js"></script>
+    <script src="js/users.js"></script>
+</body>
+
+</html>

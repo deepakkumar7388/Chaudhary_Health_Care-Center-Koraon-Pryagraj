@@ -1,0 +1,403 @@
+/* ==================== DISCHARGE & REPORT VIBRANT STYLES ==================== */
+
+.discharge-container {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    animation: fadeIn 0.5s ease;
+    border: 1px solid rgba(0, 0, 0, 0.02);
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.discharge-container .module-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    border-bottom: 2px solid #f0f2f5;
+    padding-bottom: 15px;
+}
+
+.discharge-container .module-header h2 {
+    color: #2d3436;
+    font-size: 26px;
+    font-weight: 800;
+    margin: 0;
+    position: relative;
+    padding-left: 15px;
+}
+
+.discharge-container .module-header h2::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 80%;
+    width: 5px;
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    border-radius: 10px;
+}
+
+/* Discharge Form Styling */
+.discharge-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.discharge-form .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.discharge-form label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #4a5568;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.discharge-form input,
+.discharge-form select,
+.discharge-form textarea {
+    background: #ffffff;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 15px;
+    color: #2d3748;
+    transition: all 0.3s ease;
+}
+
+.discharge-form input[readonly] {
+    background: #f8fafc;
+    color: #718096;
+    font-weight: 600;
+    border-color: #edf2f7;
+    cursor: not-allowed;
+}
+
+.discharge-form textarea {
+    resize: vertical;
+}
+
+.discharge-form input:focus:not([readonly]),
+.discharge-form select:focus,
+.discharge-form textarea:focus {
+    border-color: #38ef7d;
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(56, 239, 125, 0.15);
+    background: #fcfcfc;
+}
+
+#discharge-info {
+    background: #f8fafc;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px dashed #cbd5e0;
+    margin-bottom: 10px;
+    animation: fadeIn 0.3s;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.discharge-form .form-actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.discharge-form .form-actions button {
+    padding: 15px 30px;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    border-radius: 12px;
+}
+
+/* ================== A4 PRINTABLE REPORT UI ================== */
+.report-container {
+    background: white;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e2e8f0;
+    color: #1a202c;
+}
+
+.hospital-header {
+    text-align: center;
+    border-bottom: 3px solid #1a202c;
+    padding-bottom: 20px;
+    margin-bottom: 30px;
+}
+
+.hospital-logo i {
+    font-size: 40px;
+    color: #e53e3e;
+    margin-bottom: 10px;
+}
+
+.hospital-name {
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    color: #1a202c;
+    margin-bottom: 5px;
+}
+
+.hospital-address {
+    font-size: 14px;
+    color: #4a5568;
+}
+
+.report-title {
+    text-align: center;
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 30px;
+    text-decoration: underline;
+    text-underline-offset: 5px;
+}
+
+.section-title {
+    font-size: 15px;
+    font-weight: 800;
+    background: #edf2f7;
+    padding: 8px 15px;
+    margin-bottom: 15px;
+    border-left: 4px solid #3182ce;
+}
+
+.info-table {
+    width: 100%;
+    margin-bottom: 30px;
+    border-collapse: collapse;
+}
+
+.info-table td {
+    padding: 10px;
+    border: 1px solid #e2e8f0;
+    font-size: 14px;
+}
+
+.info-table td:nth-child(odd) {
+    font-weight: 700;
+    background: #f7fafc;
+    width: 20%;
+}
+
+.info-table td:nth-child(even) {
+    width: 30%;
+    color: #2d3748;
+}
+
+.content-box {
+    border: 1px solid #e2e8f0;
+    padding: 15px;
+    min-height: 80px;
+    margin-bottom: 30px;
+    font-size: 14.5px;
+    line-height: 1.6;
+    color: #2d3748;
+    background: #fdfdfd;
+}
+
+.signature-section {
+    margin-top: 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.signature-line {
+    width: 200px;
+    border-top: 1px solid #1a202c;
+    margin-bottom: 10px;
+}
+
+.doctor-name {
+    font-weight: 800;
+    font-size: 16px;
+}
+
+.doctor-title,
+.report-date {
+    font-size: 14px;
+    color: #4a5568;
+    margin-top: 5px;
+}
+
+/* Print Specific Rules */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+
+    .main-content {
+        margin-left: 0 !important;
+        padding: 0 !important;
+    }
+
+    #module-discharge,
+    #module-discharge *,
+    #discharge-report-section,
+    #discharge-report-section * {
+        visibility: visible;
+    }
+
+    #discharge-report-section {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+
+    .report-container {
+        box-shadow: none;
+        border: none;
+        padding: 0;
+    }
+
+    .action-buttons {
+        display: none !important;
+    }
+
+    .section-title {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        background: #edf2f7 !important;
+        border-left-color: #3182ce !important;
+    }
+
+    .info-table td:nth-child(odd) {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        background: #f7fafc !important;
+    }
+
+    .report-table td,
+    #rpt-med-table th {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .report-section-title,
+    .label-td,
+    #rpt-med-table th {
+        background: #edf2f7 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}
+
+.autocomplete-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: white;
+    border: 1px solid #cbd5e0;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    max-height: 250px;
+    overflow-y: auto;
+    z-index: 100;
+    margin-top: 5px;
+}
+
+.autocomplete-item {
+    padding: 10px 16px;
+    cursor: pointer;
+    border-bottom: 1px solid #edf2f7;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.autocomplete-item:last-child {
+    border-bottom: none;
+}
+
+.autocomplete-item:hover {
+    background-color: #ebf8ff;
+}
+
+.autocomplete-item.empty {
+    color: #718096;
+    font-style: italic;
+    justify-content: center;
+    cursor: default;
+}
+
+.autocomplete-item .patient-name {
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.autocomplete-item .patient-id {
+    font-size: 13px;
+    color: #718096;
+    background: #edf2f7;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+/* Advised Medicine Table inside Form */
+.adv-med-section {
+    background: #f8fafc;
+    border: 1px dashed #cbd5e0;
+    padding: 20px;
+    border-radius: 12px;
+    margin-top: 10px;
+}
+
+.med-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px;
+}
+
+.med-table th {
+    font-size: 13px;
+    color: #4a5568;
+    text-align: left;
+    padding: 10px 8px;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.med-table td {
+    padding: 8px;
+}
+
+.med-table input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #cbd5e0;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.med-table input:focus {
+    border-color: #38ef7d;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(56, 239, 125, 0.15);
+}
+
+.btn-danger {
+    background: #e53e3e;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #c53030;
+}
