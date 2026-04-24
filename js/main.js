@@ -1,10 +1,10 @@
 // ==================== GLOBAL VARIABLES ====================
 let currentUser = null;
 let currentModule = 'dashboard';
-// Use localhost for development, or update with your Render URL for production
+// Use localhost for development, or the Render URL for production
 const API_BASE = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost' 
     ? 'http://localhost:5000/api/' 
-    : 'https://chaudhary-hms-api.onrender.com/api/'; // Replace with your ACTUAL Render URL after deployment
+    : 'https://chaudhary-hms-api.onrender.com/api/';
 
 // ==================== UTILITY FUNCTIONS ====================
 function showLoading(message = 'Loading...') {
