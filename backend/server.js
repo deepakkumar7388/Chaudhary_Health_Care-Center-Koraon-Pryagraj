@@ -36,6 +36,10 @@ app.get('/', (req, res) => {
     res.send('Hospital Management System API is running...');
 });
 
+app.get('/api/ping', (req, res) => {
+    res.status(200).send('pong');
+});
+
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
