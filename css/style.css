@@ -9,7 +9,12 @@
     font-family: 'Outfit', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
     font-family: 'Outfit', sans-serif;
 }
 
@@ -748,7 +753,8 @@ body {
 .logout-modal-icon i {
     font-size: 32px;
     color: white;
-    transform: translateX(2px); /* Optically center standard exit icons */
+    transform: translateX(2px);
+    /* Optically center standard exit icons */
 }
 
 .logout-modal-content h2 {
@@ -1044,106 +1050,106 @@ body {
     --secondary-color: #388E3C;
 }
 
-/* ==================== RESPONSIVE ==================== */
+/* ==================== FULL MOBILE RESPONSIVENESS ==================== */
 @media (max-width: 1024px) {
-    .sidebar {
-        width: 250px;
-    }
-
-    .main-content {
-        margin-left: 250px;
-    }
+    .sidebar { width: 250px; }
+    .main-content { margin-left: 250px; }
 }
 
 @media (max-width: 768px) {
-    .auth-box {
-        flex-direction: column-reverse;
-        max-width: 90%;
-        min-height: auto;
-        margin: 20px auto;
-    }
-
-    .auth-overlay-panel {
-        padding: 30px 20px;
-    }
-
-    .auth-overlay-content h2 {
-        font-size: 28px;
-    }
-
-    .auth-form-panel {
-        padding: 40px 20px;
-    }
-
+    /* Hide Sidebar on Mobile and show Bottom Nav instead */
     .sidebar {
-        transform: translateX(-100%);
-        transition: transform 0.3s ease;
-        width: 280px;
-        z-index: 1000;
-    }
-
-    .sidebar.active {
-        transform: translateX(0);
+        display: none !important;
     }
 
     .main-content {
-        margin-left: 0;
-        padding: 15px;
+        margin-left: 0 !important;
+        padding: 15px 15px 90px 15px !important; /* Space for bottom nav */
         width: 100%;
     }
 
-    .content-header h1 {
-        font-size: 24px;
+    /* Auth Screen Stacking */
+    .auth-box {
+        flex-direction: column-reverse;
+        max-width: 95% !important;
+        margin: 10px auto !important;
+        min-height: auto !important;
+    }
+    
+    .auth-overlay-panel { padding: 25px 15px !important; }
+    .auth-form-panel { padding: 30px 15px !important; }
+    .auth-overlay-content h2 { font-size: 26px !important; }
+
+    /* Header Adjustments */
+    .content-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        padding-bottom: 15px;
     }
 
     .header-actions {
         width: 100%;
-        justify-content: flex-start;
+        display: flex;
+        overflow-x: auto;
+        padding-bottom: 5px;
+        gap: 10px;
     }
 
-    /* Table Responsiveness */
+    /* Bottom Navigation Bar (App Style) */
+    .bottom-nav {
+        display: flex !important;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: white;
+        height: 70px;
+        box-shadow: 0 -5px 25px rgba(0,0,0,0.1);
+        z-index: 10000;
+        justify-content: space-around;
+        align-items: center;
+        border-top: 1px solid #f1f5f9;
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        color: #64748b;
+        font-size: 10px;
+        font-weight: 700;
+        gap: 5px;
+        text-decoration: none;
+        flex: 1;
+        padding: 10px 0;
+    }
+
+    .nav-item i {
+        font-size: 22px;
+    }
+
+    .nav-item.active {
+        color: #c951db;
+    }
+
+    /* Form & Input Fixes */
+    .input-group input, .input-group select, .input-group textarea {
+        font-size: 16px !important; /* Prevents auto-zoom on iOS */
+    }
+
+    /* Table Fixes */
     .table-container {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
-    }
-    
-    table {
-        min-width: 600px;
+        margin-top: 10px;
     }
 }
 
-/* Mobile Toggle Button */
-#mobile-toggle {
+/* Hide Bottom Nav on Desktop */
+.bottom-nav {
     display: none;
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    z-index: 1001;
-    background: #c951db;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    cursor: pointer;
-}
-
-@media (max-width: 768px) {
-    #mobile-toggle {
-        display: block;
-    }
-    
-    .content-header {
-        padding-left: 60px; /* Space for toggle */
-    }
-}
-
-@media (max-width: 480px) {
-    .notification {
-        min-width: 280px;
-        right: 10px;
-        left: 10px;
-    }
 }
 
 /* ==================== DARK THEME ==================== */
@@ -1204,7 +1210,7 @@ body.dark-theme .content-header {
 
 body.dark-theme .card,
 body.dark-theme .settings-container,
-body.dark-theme .module-content > div {
+body.dark-theme .module-content>div {
     background: #1e1e1e;
     color: #e0e0e0;
     box-shadow: none;

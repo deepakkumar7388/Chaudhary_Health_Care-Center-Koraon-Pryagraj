@@ -100,18 +100,22 @@
 
     <!-- ==================== MAIN APP ==================== -->
     <div id="app-container" class="app-container" style="display:none;">
-        <!-- Mobile Toggle Button -->
-        <button id="mobile-toggle" onclick="toggleSidebar()" style="display:none; position:fixed; top:15px; left:15px; z-index:9999; background:#764ba2; color:white; border:none; padding:10px 15px; border-radius:5px; cursor:pointer;"><i class="fas fa-bars"></i></button>
-
         <!-- Sidebar -->
-        <div class="sidebar" id="sidebar" style="display: flex; flex-direction: column; padding: 0; height: 100vh; overflow: hidden; background: #fff; box-shadow: 2px 0 15px rgba(0,0,0,0.05);">
+        <div class="sidebar"
+            style="display: flex; flex-direction: column; padding: 0; height: 100vh; overflow: hidden; background: #fff; box-shadow: 2px 0 15px rgba(0,0,0,0.05);">
             <!-- Top Section -->
-            <div class="sidebar-header" style="flex: 0 0 auto; display:flex; flex-direction:column; align-items:center; padding: 25px 20px 15px; border-bottom: 1px solid #f1f5f9; margin-bottom: 0;">
-                <img src="hlogo.png" alt="CHC Logo" style="max-height: 80px; width: auto; object-fit: contain; margin-bottom: 15px;">
-                <h2 style="font-size: 14px; font-weight: 700; text-align: center; line-height: 1.3; margin: 0; color: #1e293b; letter-spacing: 0.5px; text-transform: uppercase;">Chaudhary Health Care Center</h2>
-                
-                <p id="current-time" class="time-display" style="margin-top: 15px; font-size: 13px; color: #64748b; text-align: center; margin-bottom: 0; background: white; padding: 10px 15px; border-radius: 12px; width: 100%; border: 1px solid #edf2f7; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);">
-                    <i class="far fa-clock" style="color: #c951db;"></i> <span id="time" style="font-weight: bold; color: #0f172a;">00:00:00</span><br>
+            <div class="sidebar-header"
+                style="flex: 0 0 auto; display:flex; flex-direction:column; align-items:center; padding: 25px 20px 15px; border-bottom: 1px solid #f1f5f9; margin-bottom: 0;">
+                <img src="hlogo.png" alt="CHC Logo"
+                    style="max-height: 80px; width: auto; object-fit: contain; margin-bottom: 15px;">
+                <h2
+                    style="font-size: 14px; font-weight: 700; text-align: center; line-height: 1.3; margin: 0; color: #1e293b; letter-spacing: 0.5px; text-transform: uppercase;">
+                    Chaudhary Health Care Center</h2>
+
+                <p id="current-time" class="time-display"
+                    style="margin-top: 15px; font-size: 13px; color: #64748b; text-align: center; margin-bottom: 0; background: white; padding: 10px 15px; border-radius: 12px; width: 100%; border: 1px solid #edf2f7; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);">
+                    <i class="far fa-clock" style="color: #c951db;"></i> <span id="time"
+                        style="font-weight: bold; color: #0f172a;">00:00:00</span><br>
                     <small id="date" style="font-size: 11px;">Loading...</small>
                 </p>
             </div>
@@ -137,7 +141,8 @@
                     <i class="fas fa-sign-out-alt"></i> <span>Discharge</span>
                 </div>
 
-                <div id="admin-menu" style="display:none; margin-top: 15px; border-top: 1px solid #f1f5f9; padding-top: 15px;">
+                <div id="admin-menu"
+                    style="display:none; margin-top: 15px; border-top: 1px solid #f1f5f9; padding-top: 15px;">
                     <div class="menu-item" onclick="showModule('users')"><i class="fas fa-user-cog"></i>
                         <span>Users</span>
                     </div>
@@ -161,44 +166,93 @@
             </div>
 
             <!-- Bottom User Section -->
-            <div class="user-profile-section" style="flex: 0 0 auto; position: relative; padding: 15px; border-top: 1px solid #e2e8f0; cursor: pointer; transition: background 0.2s; user-select: none;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'" onclick="toggleUserDropdown(event)">
+            <div class="user-profile-section"
+                style="flex: 0 0 auto; position: relative; padding: 15px; border-top: 1px solid #e2e8f0; cursor: pointer; transition: background 0.2s; user-select: none;"
+                onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'"
+                onclick="toggleUserDropdown(event)">
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <div id="sidebar-avatar" class="initials-avatar" style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: bold; box-shadow: 0 4px 10px rgba(118, 75, 162, 0.3);">
+                    <div id="sidebar-avatar" class="initials-avatar"
+                        style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: bold; box-shadow: 0 4px 10px rgba(118, 75, 162, 0.3);">
                         <i class="fas fa-user" style="font-size: 14px;"></i>
                     </div>
                     <div style="flex: 1; overflow: hidden; text-align: left;">
-                        <h3 id="current-user" style="margin: 0; font-size: 14px; color: #0f172a; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Loading...</h3>
-                        <p id="current-user-role" class="role-badge" style="margin: 2px 0 0; font-size: 11px; padding: 2px 6px; display: inline-block;">Role</p>
+                        <h3 id="current-user"
+                            style="margin: 0; font-size: 14px; color: #0f172a; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            Loading...</h3>
+                        <p id="current-user-role" class="role-badge"
+                            style="margin: 2px 0 0; font-size: 11px; padding: 2px 6px; display: inline-block;">Role</p>
                     </div>
                     <i class="fas fa-ellipsis-h" style="color: #94a3b8; font-size: 16px;"></i>
                 </div>
-                
+
                 <!-- Dropdown Menu -->
-                <div id="user-dropdown-menu" style="display: none; position: absolute; bottom: calc(100% + 5px); left: 15px; right: 15px; background: white; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; padding: 8px; z-index: 1000; animation: fadeUpDropdown 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
-                    <div class="menu-item" style="padding: 10px 15px; border-radius: 6px; margin: 0; margin-bottom: 2px; display: flex; align-items: center; gap: 15px;" onclick="showModule('settings')">
-                        <i class="fas fa-cog" style="color: #64748b; font-size: 15px;"></i> <span style="font-size: 14px; font-weight: 500; color: #1e293b;">Profile Settings</span>
+                <div id="user-dropdown-menu"
+                    style="display: none; position: absolute; bottom: calc(100% + 5px); left: 15px; right: 15px; background: white; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; padding: 8px; z-index: 1000; animation: fadeUpDropdown 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
+                    <div class="menu-item"
+                        style="padding: 10px 15px; border-radius: 6px; margin: 0; margin-bottom: 2px; display: flex; align-items: center; gap: 15px;"
+                        onclick="showModule('settings')">
+                        <i class="fas fa-cog" style="color: #64748b; font-size: 15px;"></i> <span
+                            style="font-size: 14px; font-weight: 500; color: #1e293b;">Profile Settings</span>
                     </div>
                     <div style="height: 1px; background: #f1f5f9; margin: 4px 0;"></div>
-                    <div class="menu-item" style="padding: 10px 15px; border-radius: 6px; margin: 0; display: flex; align-items: center; gap: 15px;" onclick="logout()">
-                        <i class="fas fa-sign-out-alt" style="color: #ef4444; font-size: 15px;"></i> <span style="font-size: 14px; font-weight: 500; color: #ef4444;">Log out</span>
+                    <div class="menu-item"
+                        style="padding: 10px 15px; border-radius: 6px; margin: 0; display: flex; align-items: center; gap: 15px;"
+                        onclick="logout()">
+                        <i class="fas fa-sign-out-alt" style="color: #ef4444; font-size: 15px;"></i> <span
+                            style="font-size: 14px; font-weight: 500; color: #ef4444;">Log out</span>
                     </div>
                 </div>
             </div>
-            
+        </div>
+
+        <!-- Mobile Bottom Navigation -->
+        <div class="bottom-nav">
+            <div class="nav-item active" onclick="showModule('dashboard')">
+                <i class="fas fa-th-large"></i>
+                <span>Home</span>
+            </div>
+            <div class="nav-item" onclick="showModule('patients')">
+                <i class="fas fa-user-injured"></i>
+                <span>Patients</span>
+            </div>
+            <div class="nav-item" onclick="showModule('add-patient')">
+                <i class="fas fa-plus-circle" style="color: #c951db; font-size: 28px;"></i>
+                <span>Add</span>
+            </div>
+            <div id="nav-reports" class="nav-item" onclick="showModule('reports')">
+                <i class="fas fa-chart-pie"></i>
+                <span>Reports</span>
+            </div>
+            <div class="nav-item" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </div>
+        </div>
+
             <style>
                 @keyframes fadeUpDropdown {
-                    from { opacity: 0; transform: translateY(10px) scale(0.98); }
-                    to { opacity: 1; transform: translateY(0) scale(1); }
+                    from {
+                        opacity: 0;
+                        transform: translateY(10px) scale(0.98);
+                    }
+
+                    to {
+                        opacity: 1;
+                        transform: translateY(0) scale(1);
+                    }
                 }
+
                 .menu-item {
                     margin-bottom: 5px;
                     border-radius: 8px;
                     transition: all 0.2s ease;
                 }
+
                 .menu-item:hover {
                     background: #f1f5f9;
                     transform: translateX(3px);
                 }
+
                 .menu-item.active {
                     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                     color: #ffffff;
@@ -206,20 +260,32 @@
                     border-left: none;
                     box-shadow: 0 4px 15px rgba(118, 75, 162, 0.3);
                 }
+
                 .menu-item.active i {
                     color: #ffffff !important;
                 }
-                .sidebar::-webkit-scrollbar { width: 5px; }
-                .sidebar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 5px; }
-                .sidebar::-webkit-scrollbar-track { background: transparent; }
-                
+
+                .sidebar::-webkit-scrollbar {
+                    width: 5px;
+                }
+
+                .sidebar::-webkit-scrollbar-thumb {
+                    background: #cbd5e1;
+                    border-radius: 5px;
+                }
+
+                .sidebar::-webkit-scrollbar-track {
+                    background: transparent;
+                }
+
                 /* Force White background for Dashboard cards to fix the Green issue */
                 .stat-card {
                     background: #ffffff !important;
                     color: #1e293b !important;
                 }
+
                 .stat-card i {
-                    background: rgba(0,0,0,0.05) !important;
+                    background: rgba(0, 0, 0, 0.05) !important;
                     padding: 10px;
                     border-radius: 50%;
                 }
@@ -235,7 +301,7 @@
                         menu.style.display = 'none';
                     }
                 }
-                document.addEventListener('click', function(e) {
+                document.addEventListener('click', function (e) {
                     const menu = document.getElementById('user-dropdown-menu');
                     const section = document.querySelector('.user-profile-section');
                     if (menu && menu.style.display === 'block' && section && !section.contains(e.target)) {

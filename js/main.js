@@ -1,9 +1,9 @@
 // ==================== GLOBAL VARIABLES ====================
 let currentUser = null;
 let currentModule = 'dashboard';
-// Use localhost for development, or the Render URL for production
-const API_BASE = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost' 
-    ? 'http://localhost:5000/api/' 
+// Use local IP for same-wifi mobile access, or the Render URL for production
+const API_BASE = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost' || window.location.hostname === '10.123.105.102'
+    ? 'http://10.123.105.102:5000/api/' 
     : 'https://chaudhary-hms-api.onrender.com/api/';
 
 // ==================== UTILITY FUNCTIONS ====================
@@ -40,13 +40,6 @@ function showNotification(message, type = 'info', title = 'Notification') {
 
 function hideNotification() {
     document.getElementById('notification').style.display = 'none';
-}
-
-function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    if (sidebar) {
-        sidebar.classList.toggle('active');
-    }
 }
 
 // ==================== AUTH FUNCTIONS ====================
@@ -320,7 +313,7 @@ function updateUserInfo() {
             }
             item.style.display = isVisible ? 'flex' : 'none';
         });
-        
+
         updateSidebarStats();
     }
 }
@@ -354,7 +347,7 @@ function updateClock() {
 
 function showModule(moduleName) {
     const role = currentUser?.role || 'admin';
-    
+
     // Security check for unauthorized module access via console
     const permissions = {
         'admin': ['dashboard', 'patients', 'add-patient', 'daily-notes', 'billing', 'discharge', 'users', 'reports', 'settings', 'patient-record'],
@@ -436,15 +429,15 @@ function showModule(moduleName) {
 
     currentModule = moduleName;
 
-    // Close sidebar on mobile
-    if (window.innerWidth <= 768) {
-        const sidebar = document.getElementById('sidebar');
-        if (sidebar) sidebar.classList.remove('active');
-    }
-
+    // Update Desktop Sidebar active state
     document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
     const activeItem = document.querySelector(`.menu-item[onclick*="${moduleName}"]`);
     if (activeItem) activeItem.classList.add('active');
+
+    // Update Mobile Bottom Nav active state
+    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+    const activeNavItem = document.querySelector(`.nav-item[onclick*="${moduleName}"]`);
+    if (activeNavItem) activeNavItem.classList.add('active');
 
     loadModule(moduleName);
 }
