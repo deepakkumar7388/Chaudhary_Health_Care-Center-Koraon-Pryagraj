@@ -3,7 +3,7 @@ let currentUser = null;
 let currentModule = 'dashboard';
 // Use local IP for same-wifi mobile access, or the Render URL for production
 const API_BASE = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost' || window.location.hostname === '10.123.105.102'
-    ? 'http://10.123.105.102:5000/api/' 
+    ? 'http://10.123.105.102:5000/api/'
     : 'https://chaudhary-hms-api.onrender.com/api/';
 
 // ==================== UTILITY FUNCTIONS ====================
@@ -429,15 +429,9 @@ function showModule(moduleName) {
 
     currentModule = moduleName;
 
-    // Update Desktop Sidebar active state
     document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
     const activeItem = document.querySelector(`.menu-item[onclick*="${moduleName}"]`);
     if (activeItem) activeItem.classList.add('active');
-
-    // Update Mobile Bottom Nav active state
-    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-    const activeNavItem = document.querySelector(`.nav-item[onclick*="${moduleName}"]`);
-    if (activeNavItem) activeNavItem.classList.add('active');
 
     loadModule(moduleName);
 }
