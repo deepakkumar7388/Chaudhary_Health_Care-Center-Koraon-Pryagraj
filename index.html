@@ -209,6 +209,17 @@
                 .sidebar::-webkit-scrollbar { width: 5px; }
                 .sidebar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 5px; }
                 .sidebar::-webkit-scrollbar-track { background: transparent; }
+                
+                /* Force White background for Dashboard cards to fix the Green issue */
+                .stat-card {
+                    background: #ffffff !important;
+                    color: #1e293b !important;
+                }
+                .stat-card i {
+                    background: rgba(0,0,0,0.05) !important;
+                    padding: 10px;
+                    border-radius: 50%;
+                }
             </style>
 
             <script>
@@ -299,6 +310,7 @@
     <script src="js/patient-record.js"></script>
     <script src="js/settings.js"></script>
     <script src="js/users.js"></script>
+    <script src="js/sync.js"></script>
 </body>
 
 </html>

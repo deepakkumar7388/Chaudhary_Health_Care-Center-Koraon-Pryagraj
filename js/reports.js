@@ -225,7 +225,7 @@ function updateReportsDashboard() {
     const metricsEl = document.getElementById('reports-key-metrics');
     if (metricsEl) {
         metricsEl.innerHTML = `
-            <div class="stat-card" style="padding:20px; border-left:4px solid #3498db; background:white; border-radius:10px; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
+            <div class="stat-card" style="padding:20px; border-left:4px solid #3498db; background:white !important; border-radius:10px; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
                 <i class="fas fa-users" style="color:#3498db; font-size:24px; margin-bottom:10px;"></i>
                 <h3 style="color:#2c3e50; font-size:28px; margin:0;">${metrics.totalPatients}</h3>
                 <p style="margin:0; font-size:13px; font-weight:bold; color:#7f8c8d; text-transform:uppercase;">Total Patients</p>
@@ -233,21 +233,21 @@ function updateReportsDashboard() {
             </div>
             
             ${showFinancials ? `
-            <div class="stat-card" style="padding:20px; border-left:4px solid #2ecc71; background:white; border-radius:10px; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
+            <div class="stat-card" style="padding:20px; border-left:4px solid #2ecc71; background:white !important; border-radius:10px; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
                 <i class="fas fa-money-bill-wave" style="color:#2ecc71; font-size:24px; margin-bottom:10px;"></i>
                 <h3 style="color:#2c3e50; font-size:28px; margin:0;">${currency}${metrics.totalRevenue.toLocaleString()}</h3>
                 <p style="margin:0; font-size:13px; font-weight:bold; color:#7f8c8d; text-transform:uppercase;">Total Revenue</p>
                 <div style="font-size:12px; margin-top:5px; color:#95a5a6;">${metrics.paidBillsCount} Paid Bills</div>
             </div>
             
-            <div class="stat-card" style="padding:20px; border-left:4px solid #e74c3c; background:white; border-radius:10px; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
+            <div class="stat-card" style="padding:20px; border-left:4px solid #e74c3c; background:white !important; border-radius:10px; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
                  <i class="fas fa-file-invoice-dollar" style="color:#e74c3c; font-size:24px; margin-bottom:10px;"></i>
                  <h3 style="color:#2c3e50; font-size:28px; margin:0;">${currency}${metrics.totalPendingAmount.toLocaleString()}</h3>
                  <p style="margin:0; font-size:13px; font-weight:bold; color:#7f8c8d; text-transform:uppercase;">Pending Revenue</p>
                  <div style="font-size:12px; margin-top:5px; color:#95a5a6;">${metrics.pendingBillsCount} Pending Bills</div>
             </div>` : ''}
             
-            <div class="stat-card" style="padding:20px; border-left:4px solid #9b59b6; background:white; border-radius:10px; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
+            <div class="stat-card" style="padding:20px; border-left:4px solid #9b59b6; background:white !important; border-radius:10px; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
                  <i class="fas fa-procedures" style="color:#9b59b6; font-size:24px; margin-bottom:10px;"></i>
                  <h3 style="color:#2c3e50; font-size:28px; margin:0;">${metrics.surgeryPatientsCount}</h3>
                  <p style="margin:0; font-size:13px; font-weight:bold; color:#7f8c8d; text-transform:uppercase;">Surgery Patients</p>

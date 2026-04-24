@@ -11,7 +11,7 @@ function renderDashboard() {
     const showFinancials = (role === 'admin');
     const showQuickAddPatient = true; // all
     const showQuickBilling = (role === 'admin' || role === 'doctor');
-    const showQuickDischarge = (role !== 'receptionist');
+    const showQuickDischarge = (role === 'admin' || role === 'doctor');
 
     moduleEl.innerHTML = `
         <div class="dashboard-container" style="display:flex; flex-direction:column; gap:20px;">
@@ -86,6 +86,7 @@ function renderDashboard() {
     `;
 
     updateDashboardStats();
+    if (typeof renderSyncUI === 'function') renderSyncUI();
 }
 
 let dashCharts = {};
@@ -182,33 +183,33 @@ function updateDashboardStats() {
 
     // 1. Populate Metrics Cards
     document.getElementById('dashboard-metrics').innerHTML = `
-        <div class="stat-card" style="padding:15px; border-left:4px solid #3498db; background:white; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
+        <div class="stat-card" style="padding:15px; border-left:4px solid #3498db; background:white !important; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.05); text-align:left;">
             <i class="fas fa-users" style="font-size:24px; color:#3498db; margin-bottom:10px;"></i>
             <h3 style="font-size:22px; margin:0; color:#2c3e50;">${totalPatients}</h3>
             <p style="margin:0; font-size:12px; font-weight:bold; color:#7f8c8d; text-transform:uppercase;">Total Patients</p>
         </div>
-        <div class="stat-card" style="padding:15px; border-left:4px solid #f39c12; background:white; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
+        <div class="stat-card" style="padding:15px; border-left:4px solid #f39c12; background:white !important; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.05); text-align:left;">
             <i class="fas fa-bed" style="font-size:24px; color:#f39c12; margin-bottom:10px;"></i>
             <h3 style="font-size:22px; margin:0; color:#2c3e50;">${admittedPatients}</h3>
             <p style="margin:0; font-size:12px; font-weight:bold; color:#7f8c8d; text-transform:uppercase;">Admitted</p>
         </div>
-        <div class="stat-card" style="padding:15px; border-left:4px solid #2ecc71; background:white; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
+        <div class="stat-card" style="padding:15px; border-left:4px solid #2ecc71; background:white !important; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.05); text-align:left;">
             <i class="fas fa-walking" style="font-size:24px; color:#2ecc71; margin-bottom:10px;"></i>
             <h3 style="font-size:22px; margin:0; color:#2c3e50;">${dischargedCount}</h3>
             <p style="margin:0; font-size:12px; font-weight:bold; color:#7f8c8d; text-transform:uppercase;">Discharged</p>
         </div>
         ${showFinancials ? `
-        <div class="stat-card" style="padding:15px; border-left:4px solid #27ae60; background:white; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
+        <div class="stat-card" style="padding:15px; border-left:4px solid #27ae60; background:white !important; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.05); text-align:left;">
             <i class="fas fa-coins" style="font-size:24px; color:#27ae60; margin-bottom:10px;"></i>
             <h3 style="font-size:22px; margin:0; color:#2c3e50;">${curr}${totalRevenue.toLocaleString()}</h3>
             <p style="margin:0; font-size:12px; font-weight:bold; color:#7f8c8d; text-transform:uppercase;">Total Revenue</p>
         </div>
-        <div class="stat-card" style="padding:15px; border-left:4px solid #2980b9; background:white; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
+        <div class="stat-card" style="padding:15px; border-left:4px solid #2980b9; background:white !important; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.05); text-align:left;">
             <i class="fas fa-check-circle" style="font-size:24px; color:#2980b9; margin-bottom:10px;"></i>
             <h3 style="font-size:22px; margin:0; color:#2c3e50;">${paidBills}</h3>
             <p style="margin:0; font-size:12px; font-weight:bold; color:#7f8c8d; text-transform:uppercase;">Paid Bills</p>
         </div>
-        <div class="stat-card" style="padding:15px; border-left:4px solid #e74c3c; background:white; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
+        <div class="stat-card" style="padding:15px; border-left:4px solid #e74c3c; background:white !important; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.05); text-align:left;">
             <i class="fas fa-exclamation-circle" style="font-size:24px; color:#e74c3c; margin-bottom:10px;"></i>
             <h3 style="font-size:22px; margin:0; color:#2c3e50;">${pendingBills}</h3>
             <p style="margin:0; font-size:12px; font-weight:bold; color:#7f8c8d; text-transform:uppercase;">Pending Bills</p>

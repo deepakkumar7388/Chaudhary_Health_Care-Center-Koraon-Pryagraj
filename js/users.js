@@ -6,10 +6,10 @@ let localUsers = [];
 
 function renderUsers() {
     const module = document.getElementById('module-users');
-    
+
     // Check if we already rendered the HTML structure
     if (document.getElementById('users-main-card')) return;
-    
+
     module.innerHTML = `
         <style>
             .users-card {
@@ -330,20 +330,21 @@ function renderUsers() {
     `;
 }
 
-function loadUsers() {
-    let storedUsers = JSON.parse(localStorage.getItem('users'));
-    if (!storedUsers || storedUsers.length === 0) {
-        storedUsers = [
-            { id: 1, username: 'admin', password: 'admin123', role: 'admin', name: 'System Admin', email: 'admin@hospital.com', status: 'active' },
-            { id: 2, username: 'doctor', password: '123456', role: 'doctor', name: 'Dr. Sharma', email: 'doctor@hospital.com', status: 'active' },
-            { id: 3, username: 'reception', password: '123456', role: 'receptionist', name: 'Receptionist', email: 'reception@hospital.com', status: 'active' },
-            { id: 4, username: 'nurse', password: '123456', role: 'staff', name: 'Nurse Priya', email: 'nurse@hospital.com', status: 'active' },
-            { id: 5, username: 'deepak', password: '123456', role: 'doctor', name: 'Deepak Kumar', email: 'dk21230621@gmail.com', status: 'pending' }
-        ];
-        localStorage.setItem('users', JSON.stringify(storedUsers));
+async function loadUsers() {
+    try {
+        const response = await fetch(`${API_BASE}auth/users`, {
+            headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('token') }
+        });
+        const result = await response.json();
+        if (result.success) {
+            localUsers = result.users;
+            displayUsers();
+        } else {
+            showNotification(result.message || 'Failed to load users', 'error');
+        }
+    } catch (error) {
+        console.error("Error loading users:", error);
     }
-    localUsers = storedUsers;
-    displayUsers();
 }
 
 function displayUsers() {
@@ -364,7 +365,7 @@ function displayUsers() {
 
         if (matchesSearch && matchesStatus) {
             const tr = document.createElement('tr');
-            
+
             // Current User tag
             let youTag = '';
             if (window.currentUser && window.currentUser.username === user.username) {
@@ -374,19 +375,19 @@ function displayUsers() {
             // Role Badge configuration
             let roleBadgeClass = 'badge-role-staff';
             let roleDisplay = user.role.toUpperCase();
-            
-            if(user.role === 'admin') roleBadgeClass = 'badge-role-admin';
-            else if(user.role === 'doctor') roleBadgeClass = 'badge-role-doctor';
-            else if(user.role === 'receptionist') roleBadgeClass = 'badge-role-receptionist';
-            else if(user.role === 'staff') {
+
+            if (user.role === 'admin') roleBadgeClass = 'badge-role-admin';
+            else if (user.role === 'doctor') roleBadgeClass = 'badge-role-doctor';
+            else if (user.role === 'receptionist') roleBadgeClass = 'badge-role-receptionist';
+            else if (user.role === 'staff') {
                 roleBadgeClass = 'badge-role-staff';
                 roleDisplay = 'STAFF'; // ensuring consistent display
             }
 
             // Status Badge configuration
             let statusBadgeClass = 'badge-status-pending';
-            if(user.status === 'active') statusBadgeClass = 'badge-status-active';
-            
+            if (user.status === 'active') statusBadgeClass = 'badge-status-active';
+
             const statusDisplay = user.status.charAt(0).toUpperCase() + user.status.slice(1);
 
             tr.innerHTML = `
@@ -437,20 +438,20 @@ function editUser(id) {
 
     document.getElementById('userModal').style.display = 'flex';
     document.getElementById('userModalTitle').innerText = 'Edit User';
-    
-    document.getElementById('editUserId').value = user.id;
+
+    document.getElementById('editUserId').value = user._id;
     document.getElementById('userName').value = user.name;
     document.getElementById('userEmail').value = user.email || '';
     document.getElementById('userUsername').value = user.username;
-    
+
     document.getElementById('userPassword').required = false;
     document.getElementById('userPassword').value = '';
-    
+
     document.getElementById('userRole').value = user.role;
     document.getElementById('userStatus').value = user.status;
 }
 
-function saveUser(e) {
+async function saveUser(e) {
     e.preventDefault();
 
     const id = document.getElementById('editUserId').value;
@@ -461,57 +462,58 @@ function saveUser(e) {
     const role = document.getElementById('userRole').value;
     const status = document.getElementById('userStatus').value;
 
-    if (id) {
-        const userIndex = localUsers.findIndex(u => u.id == id);
-        if (userIndex > -1) {
-            localUsers[userIndex].name = name;
-            localUsers[userIndex].email = email;
-            localUsers[userIndex].username = username;
-            localUsers[userIndex].role = role;
-            localUsers[userIndex].status = status;
-            if (password) {
-                localUsers[userIndex].password = password;
-            }
-        }
-        if(typeof showNotification === 'function') showNotification('User updated successfully', 'success');
-    } else {
-        // Prevent duplicate username
-        if (localUsers.some(u => u.username === username)) {
-            if(typeof showNotification === 'function') showNotification('Username already exists!', 'error');
-            return;
-        }
+    const userData = { name, email, username, role, status };
+    if (password) userData.password = password;
 
-        const newId = Date.now();
-        localUsers.push({
-            id: newId,
-            username: username,
-            password: password,
-            role: role,
-            name: name,
-            email: email,
-            status: status
+    showLoading('Saving user...');
+    try {
+        const url = id ? `${API_BASE}auth/users/${id}` : `${API_BASE}auth/signup`;
+        const method = id ? 'PUT' : 'POST';
+
+        const response = await fetch(url, {
+            method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+            },
+            body: JSON.stringify(userData)
         });
-        if(typeof showNotification === 'function') showNotification('User added successfully', 'success');
-    }
 
-    localStorage.setItem('users', JSON.stringify(localUsers));
-    closeUserModal();
-    displayUsers();
-    
-    // Update stats in sidebar if function exists
-    if(typeof updateSidebarStats === 'function') updateSidebarStats();
+        const result = await response.json();
+        hideLoading();
+        if (result.success) {
+            showNotification(id ? 'User updated successfully' : 'User added successfully', 'success');
+            closeUserModal();
+            loadUsers();
+        } else {
+            showNotification(result.message || 'Error saving user', 'error');
+        }
+    } catch (error) {
+        hideLoading();
+        console.error(error);
+        showNotification('Network error', 'error');
+    }
 }
 
-function deleteUser(id) {
+async function deleteUser(id) {
     if (confirm('Are you sure you want to delete this user?')) {
-        localUsers = localUsers.filter(u => u.id !== id);
-        localStorage.setItem('users', JSON.stringify(localUsers));
-        if(typeof showNotification === 'function') {
-            showNotification('User deleted successfully', 'success');
+        showLoading('Deleting user...');
+        try {
+            const response = await fetch(`${API_BASE}auth/users/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('token') }
+            });
+            const result = await response.json();
+            hideLoading();
+            if (result.success) {
+                showNotification('User deleted successfully', 'success');
+                loadUsers();
+            } else {
+                showNotification(result.message || 'Error deleting user', 'error');
+            }
+        } catch (error) {
+            hideLoading();
+            showNotification('Network error', 'error');
         }
-        displayUsers();
-        
-        // Update stats in sidebar if function exists
-        if(typeof updateSidebarStats === 'function') updateSidebarStats();
     }
 }

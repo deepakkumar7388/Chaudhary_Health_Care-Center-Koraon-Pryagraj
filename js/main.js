@@ -1,7 +1,10 @@
 // ==================== GLOBAL VARIABLES ====================
 let currentUser = null;
 let currentModule = 'dashboard';
-const API_BASE = 'backend/api/';
+// Use localhost for development, or update with your Render URL for production
+const API_BASE = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost' 
+    ? 'http://localhost:5000/api/' 
+    : 'https://chaudhary-hms-api.onrender.com/api/'; // Replace with your ACTUAL Render URL after deployment
 
 // ==================== UTILITY FUNCTIONS ====================
 function showLoading(message = 'Loading...') {
@@ -78,10 +81,10 @@ async function login() {
     showLoading('Authenticating...');
 
     try {
-        const response = await fetch(`${API_BASE}login.php`, {
+        const response = await fetch(`${API_BASE}auth/login`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({ username, password })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
         });
 
         const result = await response.json();
@@ -127,7 +130,7 @@ async function login() {
                 let errorMsg = 'Your account is inactive.';
                 if (validUser.status === 'pending') errorMsg = 'Your account is pending administrator approval.';
                 if (validUser.status === 'rejected') errorMsg = 'Your account has been rejected. Please contact the administrator.';
-                
+
                 document.getElementById('login-error').textContent = errorMsg;
                 hideLoading();
                 return;
@@ -182,10 +185,10 @@ async function signup() {
     showLoading('Creating account...');
 
     try {
-        const response = await fetch(`${API_BASE}signup.php`, {
+        const response = await fetch(`${API_BASE}auth/signup`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({ name, email, mobile, username, password, role })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, mobile, username, password, role })
         });
 
         const result = await response.json();
@@ -267,7 +270,14 @@ function updateUserInfo() {
     if (currentUser) {
         document.getElementById('current-user').textContent = currentUser.name;
         const roleEl = document.getElementById('current-user-role');
-        if (roleEl) roleEl.style.display = 'none';
+        if (roleEl) {
+            roleEl.textContent = currentUser.role.toUpperCase();
+            // Optional: style based on role
+            const colors = { 'admin': '#ef4444', 'doctor': '#3b82f6', 'staff': '#9333ea', 'receptionist': '#ca8a04' };
+            roleEl.style.background = colors[currentUser.role] || '#64748b';
+            roleEl.style.color = 'white';
+            roleEl.style.borderRadius = '4px';
+        }
 
         const avatarDiv = document.getElementById('sidebar-avatar');
         if (avatarDiv) {
@@ -281,55 +291,84 @@ function updateUserInfo() {
 
         const role = currentUser.role;
 
-        // Admin menu
-        // Admin menu section container (shows for Admin & Doctor)
-        if (role === 'admin' || role === 'doctor') {
-            document.getElementById('admin-menu').style.display = 'block';
-        } else {
-            document.getElementById('admin-menu').style.display = 'none';
+        // Admin Menu visibility
+        const adminMenu = document.getElementById('admin-menu');
+        if (adminMenu) {
+            adminMenu.style.display = (role === 'admin' || role === 'doctor') ? 'block' : 'none';
         }
 
-        // Hide specific menu items based on roles
-        const menuItems = document.querySelectorAll('.menu-item');
-        menuItems.forEach(item => {
-            const onclick = item.getAttribute('onclick') || '';
+        document.querySelectorAll('.menu-item').forEach(item => {
+            const moduleAttr = item.getAttribute('onclick');
+            if (!moduleAttr) return;
+            const module = moduleAttr.match(/'([^']+)'/)?.[1];
+            if (!module) return;
 
-            // Billing: only Admin & Doctor
-            if (onclick.includes("showModule('billing')")) {
-                item.style.display = (role === 'admin' || role === 'doctor') ? 'flex' : 'none';
+            let isVisible = false;
+            switch (role) {
+                case 'admin': isVisible = true; break;
+                case 'doctor': isVisible = ['dashboard', 'patients', 'daily-notes', 'discharge', 'patient-record', 'billing'].includes(module); break;
+                case 'staff': isVisible = ['dashboard', 'patients', 'daily-notes'].includes(module); break;
+                case 'receptionist': isVisible = ['dashboard', 'patients', 'add-patient'].includes(module); break;
+                default: isVisible = ['dashboard'].includes(module);
             }
-
-            // Daily Notes & Discharge: hide for Receptionist
-            if (onclick.includes("showModule('daily-notes')") || onclick.includes("showModule('discharge')")) {
-                item.style.display = (role === 'receptionist') ? 'none' : 'flex';
-            }
-
-            // Settings & Patient Record & Reports: only Admin & Doctor (Admin only for settings)
-            // Users & Settings: only Admin
-            if (onclick.includes("showModule('settings')") || onclick.includes("showModule('users')")) {
-                item.style.display = (role === 'admin') ? 'flex' : 'none';
-            }
-            if (onclick.includes("showModule('reports')")) {
-                item.style.display = (role === 'admin') ? 'flex' : 'none';
-            }
-            if (onclick.includes("showModule('patient-record')")) {
-                item.style.display = (role === 'admin' || role === 'doctor') ? 'flex' : 'none';
-            }
+            item.style.display = isVisible ? 'flex' : 'none';
         });
+        
+        updateSidebarStats();
     }
+}
+
+async function updateSidebarStats() {
+    try {
+        const pRes = await fetch(`${API_BASE}patients`, { headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('token') } });
+        const pData = await pRes.json();
+        const uRes = await fetch(`${API_BASE}auth/users`, { headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('token') } });
+        const uData = await uRes.json();
+
+        if (pData.success && document.getElementById('stat-patients')) {
+            document.getElementById('stat-patients').textContent = pData.patients.length;
+        }
+        if (uData.success && document.getElementById('stat-doctors')) {
+            const doctors = uData.users.filter(u => u.role === 'doctor').length;
+            document.getElementById('stat-doctors').textContent = doctors;
+        }
+    } catch (err) { console.error("Stats update failed", err); }
 }
 
 function updateClock() {
     const now = new Date();
-    document.getElementById('time').textContent = now.toLocaleTimeString();
-    document.getElementById('date').textContent = now.toLocaleDateString('en-IN', {
+    const timeEl = document.getElementById('time');
+    const dateEl = document.getElementById('date');
+    if (timeEl) timeEl.textContent = now.toLocaleTimeString();
+    if (dateEl) dateEl.textContent = now.toLocaleDateString('en-IN', {
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
     });
+}
 
-    // Automatically check and update Sidebar statistics
-    if (document.getElementById('app-container').style.display !== 'none') {
-        updateSidebarStats();
+function showModule(moduleName) {
+    const role = currentUser?.role || 'admin';
+    
+    // Security check for unauthorized module access via console
+    const permissions = {
+        'admin': ['dashboard', 'patients', 'add-patient', 'daily-notes', 'billing', 'discharge', 'users', 'reports', 'settings', 'patient-record'],
+        'doctor': ['dashboard', 'patients', 'daily-notes', 'discharge', 'patient-record', 'billing'],
+        'staff': ['dashboard', 'patients', 'daily-notes'],
+        'receptionist': ['dashboard', 'patients', 'add-patient']
+    };
+
+    const allowedModules = permissions[role] || ['dashboard'];
+
+    if (!allowedModules.includes(moduleName)) {
+        showNotification('Access Denied: You do not have permission for this module.', 'error', 'Security');
+        return;
     }
+
+    currentModule = moduleName;
+    document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+    const activeItem = document.querySelector(`.menu-item[onclick*="'${moduleName}'"]`);
+    if (activeItem) activeItem.classList.add('active');
+
+    loadModule(moduleName);
 }
 
 function updateSidebarStats() {
@@ -360,7 +399,7 @@ function updateSidebarStats() {
 
         if (elPat) elPat.textContent = patients.length.toLocaleString();
         if (elDoc) elDoc.textContent = doctors.toLocaleString();
-        
+
         const role = currentUser?.role || 'admin';
         if (role === 'admin') {
             if (elRev) elRev.textContent = `${curr}${totalRevenue.toLocaleString()}`;

@@ -103,90 +103,52 @@ async function addPatient() {
 
     showLoading('Admitting patient...');
 
-    // Demo / LocalStorage Logic (Prioritized as requested for no backend)
     try {
-        const patients = JSON.parse(localStorage.getItem('patients') || '[]');
-
-        // Generate a robust unique ID
         const timestamp = Date.now();
-        const now = new Date();
         const patientId = `P-${timestamp.toString().slice(-6)}`;
-        const today = now.toISOString().split('T')[0];
-        const currentTime = now.toTimeString().split(' ')[0].slice(0, 5); // HH:MM
-
-        const settings = JSON.parse(localStorage.getItem('hospitalSettings') || '{}');
+        
+        const settings = window.hospitalSettings || {};
         const isICU = bed.toLowerCase().includes('icu');
         const dailyCharge = isICU ? (parseFloat(settings['icu-charge']) || 5000) : (parseFloat(settings['ward-charge']) || 2000);
         const doctorFee = parseFloat(settings['consultation-fee']) || 500;
-
         const baseTotal = dailyCharge + doctorFee;
 
         const newPatient = {
-            id: String(timestamp),
             patient_id: patientId,
-            name: name,
-            age: parseInt(age),
-            gender: gender,
-            mobile: mobile,
+            name, age: parseInt(age), gender, mobile,
             guardian_name: guardian,
             bed_no: bed,
             wardChargePerDay: dailyCharge,
             doctorFees: doctorFee,
-            surgeonCharges: 0,
             totalBill: baseTotal,
             pending_amount: baseTotal,
-            address: address,
-            problem: problem || 'N/A',
+            address, problem,
             doctor_assigned: doctor || 'Unassigned',
-            admission_date: today,
-            admission_time: currentTime,
-            status: 'Admitted',
-            payment_status: 'Pending',
-            surgeries: [],
-            created_by: (currentUser ? currentUser.id : 'system'),
-            created_at: new Date().toISOString()
+            status: 'Admitted'
         };
 
-        // Also pre-populate the billing record for this patient
-        const billingRecords = JSON.parse(localStorage.getItem('billing_records') || '{}');
-        const bedItemIndex = isICU ? 4 : 11; // Index 4: ICU, Index 11: Bed Charge
-        let items = Array(22).fill(null).map(() => ({ fee: 0, days: 0 }));
-
-        // Apply Dr Fees (Index 0)
-        items[0] = { name: "DR. FEES", fee: doctorFee, days: 1 };
-        // Apply Bed Charge (Indices 4 or 11)
-        items[bedItemIndex] = { name: isICU ? "i C.U CHARAGE" : "BED CHARGE", fee: dailyCharge, days: 1 };
-
-        billingRecords[patientId] = {
-            discount: 0,
-            payments: [],
-            items: items
-        };
-        localStorage.setItem('billing_records', JSON.stringify(billingRecords));
-
-        patients.push(newPatient);
-        localStorage.setItem('patients', JSON.stringify(patients));
-
-        // Attempting API call in background but not blocking
-        fetch(`${API_BASE}patients.php`, {
+        const response = await fetch(`${API_BASE}patients`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + sessionStorage.getItem('token')
             },
             body: JSON.stringify(newPatient)
-        }).catch(err => console.log("Offline mode: saved to local only"));
+        });
 
-        setTimeout(() => {
-            hideLoading();
+        const result = await response.json();
+        hideLoading();
+
+        if (result.success) {
             showNotification(`Patient ${name} admitted successfully! ID: ${patientId}`, 'success');
             document.getElementById('patient-form').reset();
             showModule('patients');
-        }, 1000);
-
+        } else {
+            showNotification(result.message || 'Failed to add patient', 'error');
+        }
     } catch (error) {
         console.error('Error adding patient:', error);
         hideLoading();
-        showNotification('Failed to add patient. Please check local storage space.', 'error');
+        showNotification('Network error', 'error');
     }
-}
+}

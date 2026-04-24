@@ -1,0 +1,22 @@
+hospital-hms/
+│
+├── index.html
+│
+├── js/
+│     main.js
+│     dashboard.js
+│     patients.js
+│     add-patient.js
+│     billing.js
+│     discharge.js
+│     daily-notes.js
+|     reports.js
+│     settings.js
+|     users.js 
+|
+|
+├── css/
+│     style.css
+│
+└── assets/
+      images/

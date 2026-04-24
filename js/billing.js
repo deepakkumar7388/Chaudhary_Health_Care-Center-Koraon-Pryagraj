@@ -265,52 +265,59 @@ function renderBilling() {
 
 async function loadBillingData() {
     try {
-        const patients = JSON.parse(localStorage.getItem('patients') || '[]');
-        const records = JSON.parse(localStorage.getItem('billing_records') || '{}');
-        
+        const patientsResponse = await fetch(`${API_BASE}patients`, {
+            headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('token') }
+        });
+        const patientsData = await patientsResponse.json();
+        const patients = patientsData.patients || [];
+
         let totalPatients = patients.length;
         let totalBills = 0;
         let paidBillsCount = 0;
         let pendingBillsCount = 0;
-        
+
         let pending = [];
         let paid = [];
-        
-        // Match existing billing records to their patients
-        patients.forEach(p => {
-            let rec = records[p.patient_id];
+
+        for (const p of patients) {
+            const billRes = await fetch(`${API_BASE}billing/${p.patient_id}`, {
+                headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('token') }
+            });
+            const billData = await billRes.json();
+            const rec = billData.billing;
+
             if (rec && rec.items && rec.items.length > 0) {
                 totalBills++;
                 let grandTotal = 0;
-                rec.items.forEach(item => { grandTotal += (item.fee * item.days); });
-                
+                rec.items.forEach(item => { grandTotal += (item.fee * (item.days || 1)); });
+
                 let discount = rec.discount || 0;
                 let netPayable = grandTotal - discount;
                 if (netPayable < 0) netPayable = 0;
-                
+
                 let totalPaid = 0;
                 if (rec.payments) {
                     rec.payments.forEach(pay => { totalPaid += pay.amount });
                 }
-                
+
                 let amountLeft = netPayable - totalPaid;
                 let isPaid = (amountLeft <= 0 && netPayable > 0);
                 let status = isPaid ? 'Paid' : 'Pending';
-                
+
                 let recentDate = p.admission_date || new Date().toISOString().split('T')[0];
                 if (rec.payments && rec.payments.length > 0) {
-                    recentDate = rec.payments[rec.payments.length - 1].date;
+                    recentDate = new Date(rec.payments[rec.payments.length - 1].date).toISOString().split('T')[0];
                 }
-                
+
                 let billObj = {
-                    id: p.patient_id, // For tracking bills tied inherently to patients
+                    id: p.patient_id,
                     patient: p.name,
                     amount: netPayable,
                     remaining: amountLeft > 0 ? amountLeft : 0,
                     bill_date: recentDate,
                     status: status
                 };
-                
+
                 if (isPaid) {
                     paid.push(billObj);
                     paidBillsCount++;
@@ -319,9 +326,9 @@ async function loadBillingData() {
                     pendingBillsCount++;
                 }
             }
-        });
-        
-        // Safely update dashboard stats
+        }
+
+        // Update stats
         const tpStats = document.getElementById('stat-total-patients');
         if (tpStats) tpStats.textContent = totalPatients.toLocaleString();
         const tbStats = document.getElementById('stat-total-bills');
@@ -330,21 +337,12 @@ async function loadBillingData() {
         if (paidStats) paidStats.textContent = paidBillsCount.toLocaleString();
         const pendingStats = document.getElementById('stat-pending-bills');
         if (pendingStats) pendingStats.textContent = pendingBillsCount.toLocaleString();
-        
+
         window.currentBillsData = { pending, paid };
-        
-        // Retain the currently viewed tab if it was rendering
-        const currentlyActiveBtn = document.querySelector('.billing-tabs .active');
-        let selectedTab = 'pending';
-        if (currentlyActiveBtn) {
-            if (currentlyActiveBtn.textContent.includes('Paid')) selectedTab = 'paid';
-            if (currentlyActiveBtn.textContent.includes('All')) selectedTab = 'all';
-        }
-        
-        showBillingTab(selectedTab);
-        
+        showBillingTab('pending');
+
     } catch (err) {
-        console.error("Error loading billing module from LocalStorage:", err);
+        console.error("Error loading billing data from backend:", err);
     }
 }
 
@@ -486,27 +484,26 @@ function saveBillDataDebounced() {
 
 function saveBillData() {
     if (!currentBillPatientId) return;
-    
-    // Read current inputs
+
     const discount = parseFloat(document.getElementById('discount-amt').value) || 0;
-    
     let items = [];
     const rows = document.querySelectorAll('#billing-items-body tr');
     rows.forEach(row => {
         let fee = parseFloat(row.querySelector('.fee-input').value) || 0;
         let days = parseFloat(row.querySelector('.days-input').value) || 0;
-        items.push({ fee, days });
+        let name = row.getAttribute('data-item-name') || row.querySelector('td:nth-child(2)').textContent;
+        items.push({ fee, days, name });
     });
-    
-    // Save to local storage
-    const records = JSON.parse(localStorage.getItem('billing_records') || '{}');
-    let billObj = records[currentBillPatientId] || { discount: 0, payments: [], items: [] };
-    
-    billObj.discount = discount;
-    billObj.items = items;
-    
-    records[currentBillPatientId] = billObj;
-    localStorage.setItem('billing_records', JSON.stringify(records));
+
+    fetch(`${API_BASE}billing/${currentBillPatientId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        },
+        body: JSON.stringify({ discount, items })
+    })
+        .catch(err => console.error("Error autosaving bill:", err));
 }
 
 function addPaymentToBill() {
@@ -516,74 +513,104 @@ function addPaymentToBill() {
     }
 
     if (!currentBillPatientId) return;
-    const records = JSON.parse(localStorage.getItem('billing_records') || '{}');
-    let billObj = records[currentBillPatientId] || { discount: 0, payments: [], items: [] };
-    
+
     const amt = parseFloat(document.getElementById('pay-amt').value);
     const dateInput = document.getElementById('pay-date').value || new Date().toISOString().split('T')[0];
     const mode = document.getElementById('pay-mode').value;
     const username = currentUser ? currentUser.name : 'Unknown';
-    
+
     if (!amt || amt <= 0) {
         showNotification("Please enter a valid amount", "error");
         return;
     }
-    
-    billObj.payments.push({ id: Date.now(), amount: amt, date: dateInput, mode: mode, performed_by: username });
-    records[currentBillPatientId] = billObj;
-    localStorage.setItem('billing_records', JSON.stringify(records));
-    
-    document.getElementById('pay-amt').value = '';
-    
-    renderPaymentHistory();
-    calculateBillingTotals();
+
+    const paymentData = { amount: amt, date: dateInput, mode: mode, performed_by: username };
+
+    showLoading('Processing payment...');
+    fetch(`${API_BASE}billing/${currentBillPatientId}/payments`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        },
+        body: JSON.stringify(paymentData)
+    })
+        .then(res => res.json())
+        .then(result => {
+            hideLoading();
+            if (result.success) {
+                showNotification('Payment added successfully', 'success');
+                document.getElementById('pay-amt').value = '';
+                generateBill(currentBillPatientId); // Refresh
+            } else {
+                showNotification(result.message || 'Failed to add payment', 'error');
+            }
+        })
+        .catch(err => {
+            hideLoading();
+            console.error(err);
+        });
 }
 
-function deletePayment(id) {
+async function deletePayment(paymentId) {
     if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'doctor')) {
         showNotification("Only Doctor/Admin can delete payments", "error");
         return;
     }
 
-    if (!currentBillPatientId) return;
-    const records = JSON.parse(localStorage.getItem('billing_records') || '{}');
-    let billObj = records[currentBillPatientId];
-    if (billObj) {
-        billObj.payments = billObj.payments.filter(p => p.id !== id);
-        records[currentBillPatientId] = billObj;
-        localStorage.setItem('billing_records', JSON.stringify(records));
-        renderPaymentHistory();
-        calculateBillingTotals();
+    if (!currentBillPatientId || !paymentId) return;
+
+    if (!confirm('Are you sure you want to delete this payment?')) return;
+
+    showLoading('Deleting payment...');
+    try {
+        const response = await fetch(`${API_BASE}billing/${currentBillPatientId}/payments/${paymentId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('token') }
+        });
+        const result = await response.json();
+        hideLoading();
+
+        if (result.success) {
+            showNotification('Payment deleted successfully', 'success');
+            generateBill(currentBillPatientId); // Refresh all totals and history
+        } else {
+            showNotification(result.message || 'Failed to delete payment', 'error');
+        }
+    } catch (err) {
+        hideLoading();
+        console.error(err);
+        showNotification('Network error while deleting payment', 'error');
     }
 }
 
-function renderPaymentHistory() {
-    if (!currentBillPatientId) return;
-    const records = JSON.parse(localStorage.getItem('billing_records') || '{}');
-    const billObj = records[currentBillPatientId] || {payments: []};
+function renderPaymentHistory(payments = []) {
     const tbody = document.getElementById('payment-history-body');
-    
-    if (!billObj.payments || billObj.payments.length === 0) {
+    if (!tbody) return;
+
+    if (!payments || payments.length === 0) {
         tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 15px; color:#a0aec0; border:1px solid #cbd5e0;">No payments recorded</td></tr>`;
         return;
     }
-    
+
     const isAuthorized = currentUser && (currentUser.role === 'admin' || currentUser.role === 'doctor');
-    
-    tbody.innerHTML = billObj.payments.map(p => `
+
+    tbody.innerHTML = payments.map(p => `
         <tr>
-            <td style="padding: 6px; border:1px solid #cbd5e0;">${p.date}</td>
+            <td style="padding: 6px; border:1px solid #cbd5e0;">${new Date(p.date).toISOString().split('T')[0]}</td>
             <td style="padding: 6px; border:1px solid #cbd5e0;">${p.mode}</td>
             <td style="padding: 6px; border:1px solid #cbd5e0;">${window.currencySymbol || '₹'}${p.amount.toLocaleString()}</td>
             <td style="padding: 6px; border:1px solid #cbd5e0;">${p.performed_by || 'Admin'}</td>
             <td class="no-print" style="padding: 6px; border:1px solid #cbd5e0;">
-                ${isAuthorized ? `<button type="button" class="btn-small" style="background:#e53e3e; color:white; border:none; border-radius:4px; padding:3px 8px; cursor:pointer;" onclick="deletePayment(${p.id})">
+                ${isAuthorized ? `<button type="button" class="btn-small" style="background:#e53e3e; color:white; border:none; border-radius:4px; padding:3px 8px; cursor:pointer;" onclick="deletePayment('${p._id}')">
                     <i class="fas fa-trash"></i>
                 </button>` : `<span style="color:#a0aec0; font-size:12px;">Restricted</span>`}
             </td>
         </tr>
     `).join('');
 }
+
+let currentBillData = null; // Global to store loaded bill for easy access
 
 function calculateBillingTotals() {
     const rows = document.querySelectorAll('#billing-items-body tr');
@@ -599,22 +626,22 @@ function calculateBillingTotals() {
         const rowAmtDisplay = row.querySelector('.row-amount');
         if (rowAmt > 0) {
             rowAmtDisplay.textContent = rowAmt.toFixed(0);
-            
+
             // Format printable inputs by adding span
             let existingPrintFee = row.querySelector('.print-only.fee-print');
-            if(!existingPrintFee) {
+            if (!existingPrintFee) {
                 feeInputDisplay.insertAdjacentHTML('afterend', '<span class="print-only fee-print"></span>');
                 existingPrintFee = row.querySelector('.print-only.fee-print');
             }
             existingPrintFee.textContent = fee;
-            
+
             let existingPrintDays = row.querySelector('.print-only.days-print');
-            if(!existingPrintDays) {
+            if (!existingPrintDays) {
                 daysInputDisplay.insertAdjacentHTML('afterend', '<span class="print-only days-print"></span>');
                 existingPrintDays = row.querySelector('.print-only.days-print');
             }
             existingPrintDays.textContent = days;
-            
+
             grandTotal += rowAmt;
             row.classList.remove('empty-row');
         } else {
@@ -634,25 +661,22 @@ function calculateBillingTotals() {
 
     let totalDue = grandTotal - discount;
     if (totalDue <= 0) totalDue = 0;
-    
+
     document.getElementById('net-payable').textContent = (window.currencySymbol || '₹') + totalDue.toFixed(0);
-    
-    // Calculate Payments
-    const records = JSON.parse(localStorage.getItem('billing_records') || '{}');
-    const billObj = currentBillPatientId ? (records[currentBillPatientId] || {payments: []}) : {payments: []};
-    
+
+    // Calculate Payments from currentBillData
     let totalPaid = 0;
-    if (billObj.payments) {
-         billObj.payments.forEach(p => totalPaid += p.amount);
+    if (currentBillData && currentBillData.payments) {
+        currentBillData.payments.forEach(p => totalPaid += p.amount);
     }
-    
+
     document.getElementById('total-paid').textContent = (window.currencySymbol || '₹') + totalPaid.toFixed(0);
-    
+
     let remaining = totalDue - totalPaid;
     if (remaining < 0) remaining = 0;
-    
+
     document.getElementById('due-amt').textContent = (window.currencySymbol || '₹') + remaining.toFixed(0);
-    
+
     const statusEl = document.getElementById('bill-status');
     if (remaining === 0 && totalDue > 0) {
         statusEl.textContent = 'Paid';
@@ -665,95 +689,79 @@ function calculateBillingTotals() {
         statusEl.style.borderColor = '#e53e3e';
         statusEl.style.background = '#fff5f5';
     }
-    
+
     saveBillDataDebounced();
 }
 
-function generateBill(patientId) {
-    console.log("Selected Patient ID:", patientId);
-    
-    let patients = window.allPatientsData || JSON.parse(localStorage.getItem('patients') || '[]');
-    let patient = patients.find(p => String(p.patient_id) === String(patientId) || String(p.id) === String(patientId));
-    
-    if (patient) {
-        currentBillPatientId = patient.patient_id; // Normalize to always use patient_id (e.g., P100X)
-    } else {
-        currentBillPatientId = patientId; 
-    }
+async function generateBill(patientId) {
+    showLoading('Loading bill details...');
+    try {
+        const pRes = await fetch(`${API_BASE}patients/${patientId}`, {
+            headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('token') }
+        });
+        const pData = await pRes.json();
+        const patient = pData.patient;
 
-    const today = new Date().toISOString().split('T')[0];
-
-    // default or mapped values
-    let patientName = patient?.name || "Unknown Patient";
-    let age = patient?.age ? patient.age + "Y/" + (patient.gender?.charAt(0) || "U") : "N/A";
-    let guardian = patient?.guardian_name || patient?.relative_name || "N/A";
-    let address = patient?.address || "N/A";
-
-    let bedNo = patient?.bed_no || "N/A";
-    if (patient && patient._bed_history && patient._bed_history.length > 0) {
-        let original = patient._bed_history[0].from;
-        let final = patient.bed_no;
-        let lastChange = new Date(patient._bed_history[patient._bed_history.length - 1].date);
-        let dateStr = lastChange.getDate().toString().padStart(2, '0') + '/' + (lastChange.getMonth() + 1).toString().padStart(2, '0');
-        if (original !== final && original !== 'None') {
-            bedNo = `\${original} → \${final} (Changed on \${dateStr})`;
+        if (!patient) {
+            showNotification('Patient not found', 'error');
+            hideLoading();
+            return;
         }
-    }
-    let doa = patient?.admission_date || today;
-    let dod = patient?.discharge_date || today;
-    let doctor = patient?.doctor_assigned || (window.hospitalSettings ? window.hospitalSettings['default-doctor'] : null) || "Dr. Sharma";
 
-    document.getElementById('b-patient-id').textContent = currentBillPatientId;
-    document.getElementById('b-patient-name').textContent = patientName;
-    document.getElementById('b-age').textContent = age;
-    document.getElementById('b-relative').textContent = guardian;
-    document.getElementById('b-address').textContent = address;
-    document.getElementById('b-bed').textContent = bedNo;
-    document.getElementById('b-doa').textContent = doa;
-    document.getElementById('b-dod').textContent = dod;
-    document.getElementById('b-doctor').textContent = doctor;
-
-    showBillingReport();
-
-    // Check local storage for bill state using the normalized ID
-    const records = JSON.parse(localStorage.getItem('billing_records') || '{}');
-    const savedBill = records[currentBillPatientId];
-    
-    // Re-initialize table with ANY extra items found in the record
-    if (savedBill && savedBill.items) {
-        initializeBillingTable(savedBill.items);
-    } else {
-        initializeBillingTable();
-    }
-
-    const tbody = document.getElementById('billing-items-body');
-    const rows = tbody.querySelectorAll('tr');
-    
-    console.log("Filtered Billing Data:", savedBill || "No prior billing data found");
-    
-    if (savedBill && savedBill.items && savedBill.items.length > 0) {
-        document.getElementById('discount-amt').value = savedBill.discount || '0';
-        rows.forEach((row, idx) => {
-            if (savedBill.items[idx]) {
-                const feeInput = row.querySelector('.fee-input');
-                const daysInput = row.querySelector('.days-input');
-                if (feeInput) feeInput.value = savedBill.items[idx].fee || '';
-                if (daysInput) daysInput.value = savedBill.items[idx].days || '';
-            }
+        currentBillPatientId = patient.patient_id;
+        const bRes = await fetch(`${API_BASE}billing/${currentBillPatientId}`, {
+            headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('token') }
         });
-    } else {
-        document.getElementById('discount-amt').value = '0';
-        rows.forEach(row => {
-            const feeInput = row.querySelector('.fee-input');
-            const daysInput = row.querySelector('.days-input');
-            if (feeInput) feeInput.value = '';
-            if (daysInput) daysInput.value = '';
-        });
-        showNotification('No billing data found for this patient', 'warn');
-    }
+        const bData = await bRes.json();
+        currentBillData = bData.billing; // Global store
 
-    renderPaymentHistory();
-    calculateBillingTotals();
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('b-patient-id').textContent = currentBillPatientId;
+        document.getElementById('b-patient-name').textContent = patient.name;
+        document.getElementById('b-age').textContent = patient.age + "Y/" + (patient.gender?.charAt(0) || "U");
+        document.getElementById('b-relative').textContent = patient.guardian_name || "N/A";
+        document.getElementById('b-address').textContent = patient.address || "N/A";
+        document.getElementById('b-bed').textContent = patient.bed_no || "N/A";
+        document.getElementById('b-doa').textContent = patient.admission_date ? new Date(patient.admission_date).toISOString().split('T')[0] : today;
+        document.getElementById('b-dod').textContent = patient.discharge_date ? new Date(patient.discharge_date).toISOString().split('T')[0] : today;
+        document.getElementById('b-doctor').textContent = patient.doctor_assigned || "Dr. Sharma";
+
+        showBillingReport();
+        initializeBillingTable(currentBillData?.items || []);
+
+        const tbody = document.getElementById('billing-items-body');
+        const rows = tbody.querySelectorAll('tr');
+
+        if (currentBillData && currentBillData.items && currentBillData.items.length > 0) {
+            document.getElementById('discount-amt').value = currentBillData.discount || '0';
+            rows.forEach((row, idx) => {
+                if (currentBillData.items[idx]) {
+                    const feeInput = row.querySelector('.fee-input');
+                    const daysInput = row.querySelector('.days-input');
+                    if (feeInput) feeInput.value = currentBillData.items[idx].fee || '';
+                    if (daysInput) daysInput.value = currentBillData.items[idx].days || '';
+                }
+            });
+        } else {
+            // Reset if no data
+             document.getElementById('discount-amt').value = '0';
+             rows.forEach(row => {
+                 const f = row.querySelector('.fee-input');
+                 const d = row.querySelector('.days-input');
+                 if(f) f.value = '';
+                 if(d) d.value = '';
+             });
+        }
+
+        renderPaymentHistory(currentBillData?.payments || []);
+        calculateBillingTotals();
+        hideLoading();
+
+    } catch (err) {
+        console.error(err);
+        hideLoading();
+        showNotification('Error loading bill', 'error');
+    }
 }
 
 function viewBill(patientId) {
@@ -784,9 +792,9 @@ function showBillingReport() {
             adf.textContent = `${dd}/${mm}/${yyyy}`;
             atf.textContent = `${hours}:${minutes} ${ampm}`;
         }
-        
+
         const cRole = currentUser?.role;
-        
+
         // Enforce role-based UI rules for Payment
         if (cRole === 'admin' || cRole === 'doctor') {
             document.getElementById('add-payment-panel').style.display = 'block';
@@ -801,11 +809,11 @@ function showBillingReport() {
             const inputs = document.querySelectorAll('.fee-input, .days-input, #discount-amt');
             const editableSpans = document.querySelectorAll('.editable-span');
             const canEdit = (cRole === 'admin' || cRole === 'doctor');
-            
+
             inputs.forEach(el => el.disabled = !canEdit);
             editableSpans.forEach(el => {
-                 el.contentEditable = canEdit;
-                 el.style.borderBottom = canEdit ? '1px dashed #cbd5e0' : 'none'; 
+                el.contentEditable = canEdit;
+                el.style.borderBottom = canEdit ? '1px dashed #cbd5e0' : 'none';
             });
         }, 300);
     }
@@ -831,7 +839,7 @@ function markBillPaid(patientId, remaining) {
         return;
     }
     if (confirm('Collect remaining amount of ' + (window.currencySymbol || '₹') + remaining + ' for ' + patientId + ' via Cash?')) {
-        
+
         const records = JSON.parse(localStorage.getItem('billing_records') || '{}');
         let billObj = records[patientId];
         if (billObj) {
@@ -840,7 +848,7 @@ function markBillPaid(patientId, remaining) {
             billObj.payments.push({ id: Date.now(), amount: remaining, date: new Date().toISOString().split('T')[0], mode: 'Cash', performed_by: username });
             records[patientId] = billObj;
             localStorage.setItem('billing_records', JSON.stringify(records));
-            
+
             showNotification('Payment added successfully', 'success');
             loadBillingData();
         }

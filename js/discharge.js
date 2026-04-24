@@ -199,13 +199,15 @@ function renderDischarge() {
     }
 }
 
-function loadDischargePatients() {
+async function loadDischargePatients() {
     try {
-        const stored = JSON.parse(localStorage.getItem('patients') || '[]');
-        dischargePatientsList = stored;
+        const response = await fetch(`${API_BASE}patients`, {
+            headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('token') }
+        });
+        const result = await response.json();
+        dischargePatientsList = result.patients || [];
     } catch (e) {
-        console.error("Error reading patients array from localStorage");
-        dischargePatientsList = [];
+        console.error("Error loading patients for discharge:", e);
     }
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('discharge-date').value = today;
@@ -284,7 +286,6 @@ function confirmDischarge() {
     if (confirm('Are you sure you want to generate the discharge summary?')) {
         showLoading('Processing discharge...');
 
-        // Collect Advised Medicines
         const advisedMedicines = [];
         document.querySelectorAll('#advised-med-table tbody tr').forEach(tr => {
             const name = tr.querySelector('.med-name').value.trim();
@@ -306,35 +307,28 @@ function confirmDischarge() {
             advisedMedicines
         };
 
-        // Save to discharge_records
-        let records = JSON.parse(localStorage.getItem('discharge_records') || '[]');
-        records.push(dischargeData);
-        localStorage.setItem('discharge_records', JSON.stringify(records));
-
-        // Update patient status
-        let patients = JSON.parse(localStorage.getItem('patients') || '[]');
-        patients.forEach(p => {
-            if (p.id === patientId || p.patient_id === patientId) {
-                p.status = 'Discharged';
-                p.discharge_date = dischargeDate;
-            }
-        });
-        localStorage.setItem('patients', JSON.stringify(patients));
-
-        if (window.allPatientsData) {
-            window.allPatientsData.forEach(p => {
-                if (p.id === patientId || p.patient_id === patientId) {
-                    p.status = 'Discharged';
-                    p.discharge_date = dischargeDate;
-                }
-            });
-        }
-
-        setTimeout(() => {
+        fetch(`${API_BASE}discharge`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+            },
+            body: JSON.stringify(dischargeData)
+        })
+        .then(res => res.json())
+        .then(result => {
             hideLoading();
-            showNotification('Patient discharged successfully!', 'success');
-            displayDischargeReport(dischargeData);
-        }, 1000);
+            if (result.success) {
+                showNotification('Patient discharged successfully!', 'success');
+                displayDischargeReport(dischargeData);
+            } else {
+                showNotification(result.message || 'Error processing discharge', 'error');
+            }
+        })
+        .catch(err => {
+            hideLoading();
+            console.error(err);
+        });
     }
 }
 

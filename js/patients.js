@@ -80,7 +80,7 @@ async function loadPatients() {
     showLoading('Loading patients...');
 
     try {
-        const response = await fetch(`${API_BASE}patients.php`, {
+        const response = await fetch(`${API_BASE}patients`, {
             headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('token') }
         });
         const result = await response.json();
@@ -153,10 +153,17 @@ function renderPatientsTable(patientsList) {
                 `<br><span style="color:#e67e22;font-size:11px;">${window.currencySymbol || '₹'}${patient.pending_amount} pending</span>` : ''}
             </td>
             <td>
-                <button class="btn-small btn-info" onclick="viewPatient('${patient.id}')"><i class="fas fa-eye"></i></button>
-                <button class="btn-small btn-warning" onclick="editPatient('${patient.id}')"><i class="fas fa-edit"></i></button>
-                ${(currentUser && currentUser.role === 'admin') ? `<button class="btn-small btn-danger" onclick="deletePatient('${patient.id}')" title="Delete Patient"><i class="fas fa-trash"></i></button>` : ''}
-                <button class="btn-small btn-success" onclick="addNoteForPatient('${patient.id}')"><i class="fas fa-notes-medical"></i></button>
+                <button class="btn-small btn-info" onclick="viewPatient('${patient.id}')" title="View Info"><i class="fas fa-eye"></i></button>
+                
+                ${(currentUser && (currentUser.role === 'admin' || currentUser.role === 'doctor')) ? 
+                    `<button class="btn-small btn-warning" onclick="editPatient('${patient.id}')" title="Edit Patient"><i class="fas fa-edit"></i></button>` : ''}
+                
+                ${(currentUser && currentUser.role === 'admin') ? 
+                    `<button class="btn-small btn-danger" onclick="deletePatient('${patient.id}')" title="Delete Patient"><i class="fas fa-trash"></i></button>` : ''}
+                
+                ${(currentUser && currentUser.role !== 'receptionist') ? 
+                    `<button class="btn-small btn-success" onclick="addNoteForPatient('${patient.id}')" title="Daily Notes"><i class="fas fa-notes-medical"></i></button>` : ''}
+                
                 <button class="btn-small btn-primary" style="background-color: #805ad5; border: none; color: white;" onclick="openSurgeryModal('${patient.patient_id}')" title="Add Surgery Event"><i class="fas fa-procedures"></i></button>
             </td>
         </tr>
@@ -480,15 +487,26 @@ function deletePatient(patientId) {
         return;
     }
     if (confirm('Are you certain you want to permanently delete this patient?')) {
-        let patients = JSON.parse(localStorage.getItem('patients') || '[]');
-        patients = patients.filter(p => String(p.id) !== String(patientId) && String(p.patient_id) !== String(patientId));
-        localStorage.setItem('patients', JSON.stringify(patients));
-
-        if (window.allPatientsData) {
-            window.allPatientsData = window.allPatientsData.filter(p => String(p.id) !== String(patientId) && String(p.patient_id) !== String(patientId));
-            filterPatients();
-        }
-        showNotification('Patient successfully deleted from records.', 'success');
+        showLoading('Deleting patient...');
+        fetch(`${API_BASE}patients/${patientId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('token') }
+        })
+        .then(res => res.json())
+        .then(result => {
+            hideLoading();
+            if (result.success) {
+                showNotification('Patient successfully deleted from records.', 'success');
+                loadPatients();
+            } else {
+                showNotification(result.message || 'Failed to delete patient', 'error');
+            }
+        })
+        .catch(err => {
+            hideLoading();
+            console.error(err);
+            showNotification('Network error while deleting patient', 'error');
+        });
     }
 }
 
@@ -578,7 +596,7 @@ function openSurgeryModal(patientId) {
     document.getElementById('surgery-name').focus();
 }
 
-function saveSurgery(patientId, btnEl) {
+async function saveSurgery(patientId, btnEl) {
     const name = document.getElementById('surgery-name').value.trim();
     const surgeon = document.getElementById('surgeon-name').value.trim();
     const date = document.getElementById('surgery-date').value;
@@ -598,124 +616,88 @@ function saveSurgery(patientId, btnEl) {
         paid: false
     };
 
-    // Update patients in localStorage
-    let patients = JSON.parse(localStorage.getItem('patients') || '[]');
-    let found = false;
-
-    patients.forEach(p => {
-        if (String(p.patient_id) === String(patientId) || String(p.id) === String(patientId)) {
-            if (!p.surgeries) p.surgeries = [];
-            p.surgeries.push(surgeryData);
-
-            // Increment billing totals correctly as numbers
-            p.surgeonCharges = (parseFloat(p.surgeonCharges) || 0) + cost;
-            p.totalBill = (parseFloat(p.totalBill) || 0) + cost;
-            p.pending_amount = (parseFloat(p.pending_amount) || 0) + cost;
-
-            found = true;
-        }
-    });
-
-    if (!found) {
-        showNotification('Patient not found in system records!', 'error');
-        return;
-    }
-
-    localStorage.setItem('patients', JSON.stringify(patients));
-
-    // Update active memory
-    if (window.allPatientsData) {
-        window.allPatientsData.forEach(p => {
-            if (String(p.patient_id) === String(patientId) || String(p.id) === String(patientId)) {
-                if (!p.surgeries) p.surgeries = [];
-                p.surgeries.push(surgeryData);
-            }
+    showLoading('Updating surgery details in Cloud...');
+    try {
+        const pRes = await fetch(`${API_BASE}patients/${patientId}`, {
+            headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('token') }
         });
-    }
+        const pData = await pRes.json();
+        const p = pData.patient;
 
-    // Handle mapping to the correct field in the legacy Billing Module
-    if (cost > 0) {
-        const records = JSON.parse(localStorage.getItem('billing_records') || '{}');
-        let billObj = records[patientId] || { discount: 0, payments: [], items: [] };
-
-        // Ensure items array is at least 10 elements long (Surgeon Charge is at Index 8)
-        if (!billObj.items) billObj.items = [];
-        while (billObj.items.length <= 8) {
-            billObj.items.push({ fee: 0, days: 0 });
+        if (!p) {
+            showNotification('Patient not found!', 'error');
+            hideLoading();
+            return;
         }
 
-        // Specifically update Surgeon Charges (Index 8 in the 22-item list)
-        const currentSurgeFee = parseFloat(billObj.items[8]?.fee || 0);
-        billObj.items[8] = { name: "SURGAN CHARGE", fee: currentSurgeFee + cost, days: 1 };
+        const updatedSurgeries = [...(p.surgeries || []), surgeryData];
+        const updatedSurgeonCharges = (parseFloat(p.surgeonCharges) || 0) + cost;
+        const updatedTotalBill = (parseFloat(p.totalBill) || 0) + cost;
+        const updatedPendingAmount = (parseFloat(p.pending_amount) || 0) + cost;
 
-        records[patientId] = billObj;
-        localStorage.setItem('billing_records', JSON.stringify(records));
-    }
+        const updateRes = await fetch(`${API_BASE}patients/${patientId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+            },
+            body: JSON.stringify({
+                surgeries: updatedSurgeries,
+                surgeonCharges: updatedSurgeonCharges,
+                totalBill: updatedTotalBill,
+                pending_amount: updatedPendingAmount
+            })
+        });
 
-    btnEl.closest('.modal').remove();
-    showNotification('Surgery successfully added to patient history!', 'success');
+        const result = await updateRes.json();
+        hideLoading();
 
-    // UI Refresh
-    filterPatients();
-}
-
-function savePatientEdit(patientId) {
-    let patients = JSON.parse(localStorage.getItem('patients') || '[]');
-    const pIdx = patients.findIndex(p => String(p.patient_id) === String(patientId) || String(p.id) === String(patientId));
-
-    if (pIdx === -1) {
-        showNotification('Error saving: Patient record not found.', 'error');
+        if (result.success) {
+            showNotification('Surgery details and bill updated in Cloud!', 'success');
+            btnEl.closest('.modal').remove();
+            loadPatients(); 
+        } else {
+            showNotification(result.message || 'Failed to update surgery', 'error');
+        }
+        return; // Exit here since we handled it
+    } catch (err) {
+        hideLoading();
+        console.error(err);
+        showNotification('Network error while updating surgery', 'error');
         return;
     }
-
-    const name = document.getElementById('edit-p-name').value.trim();
-    const guardian = document.getElementById('edit-p-guardian').value.trim();
-    const age = document.getElementById('edit-p-age').value;
-    const gender = document.getElementById('edit-p-gender').value;
-    const mobile = document.getElementById('edit-p-mobile').value.trim();
-    const address = document.getElementById('edit-p-address').value.trim();
-    const wardType = document.getElementById('edit-p-ward-type').value;
-    const bedNo = document.getElementById('edit-p-bed-no').value.trim();
-
-    if (!name || !bedNo) {
-        showNotification('Name and Bed Number are required.', 'error');
-        return;
-    }
-
-    // Capture old state for shift detection
-    const oldBed = patients[pIdx].bed_no;
-    
-    // Update basic details
-    patients[pIdx].name = name;
-    patients[pIdx].guardian_name = guardian;
-    patients[pIdx].age = parseInt(age);
-    patients[pIdx].gender = gender;
-    patients[pIdx].mobile = mobile;
-    patients[pIdx].address = address;
-    patients[pIdx].bed_no = bedNo;
-
-    // Check if bed has changed to update ward charge
-    if (oldBed !== bedNo) {
-        const settings = JSON.parse(localStorage.getItem('hospitalSettings') || '{}');
-        const dailyCharge = wardType === 'ICU' ? (parseFloat(settings['icu-charge']) || 5000) : (parseFloat(settings['ward-charge']) || 2000);
-        patients[pIdx].wardChargePerDay = dailyCharge;
-        
-        // Record shift in history if array exists
-        if (!patients[pIdx].bedHistory) patients[pIdx].bedHistory = [];
-        patients[pIdx].bedHistory.push({ type: wardType, bedNo: bedNo, days: 1, charge: dailyCharge });
-        
-        showNotification(`Shifted to Bed ${bedNo} successfully!`, 'info');
-    }
-
-    // Save back to local storage
-    localStorage.setItem('patients', JSON.stringify(patients));
-    window.allPatientsData = patients;
-    
-    showNotification('Patient details updated successfully!', 'success');
-    
-    // UI Cleanup
-    document.querySelectorAll('.modal').forEach(m => m.remove());
-    filterPatients();
 }
+
+
+    const editData = {
+        name, guardian_name: guardian, age: parseInt(age),
+        gender, mobile, address, bed_no: bedNo
+    };
+
+    showLoading('Saving changes...');
+    fetch(`${API_BASE}patients/${patientId}`, {
+        method: 'PUT',
+        headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        },
+        body: JSON.stringify(editData)
+    })
+    .then(res => res.json())
+    .then(result => {
+        hideLoading();
+        if (result.success) {
+            showNotification('Patient details updated successfully!', 'success');
+            document.querySelectorAll('.modal').forEach(m => m.remove());
+            loadPatients();
+        } else {
+            showNotification(result.message || 'Failed to update patient', 'error');
+        }
+    })
+    .catch(err => {
+        hideLoading();
+        console.error(err);
+        showNotification('Network error while saving changes', 'error');
+    });
 
 window.savePatientEdit = savePatientEdit;

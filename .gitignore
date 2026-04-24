@@ -1,4 +1,5 @@
-.vscode/
-Thumbs.db
+node_modules/
+.env
 .DS_Store
-file_structuree
+*.log
+backend/node_modules/

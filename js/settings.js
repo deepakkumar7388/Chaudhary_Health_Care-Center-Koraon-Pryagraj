@@ -327,10 +327,8 @@ function loadSettings() {
     });
 }
 
-function saveSettings() {
+async function saveSettings() {
     const settings = {};
-    
-    // Collect all form values
     document.querySelectorAll('#settings-content input, #settings-content select').forEach(element => {
         if (!element.id) return;
         if (element.type === 'checkbox') {
@@ -340,7 +338,6 @@ function saveSettings() {
         }
     });
     
-    // Validate Hospital Name and Currency
     if (!settings['hospital-name'] || !settings['hospital-name'].trim()) {
         showNotification('Hospital Name is required!', 'error');
         return;
@@ -350,13 +347,30 @@ function saveSettings() {
         return;
     }
 
-    // Save to localStorage
-    localStorage.setItem('hospitalSettings', JSON.stringify(settings));
-    window.hospitalSettings = settings;
-
-    // Apply globally
-    applyGlobalSettings();
-    showNotification('Settings saved successfully!', 'success');
+    showLoading('Saving settings...');
+    try {
+        const response = await fetch(`${API_BASE}settings`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+            },
+            body: JSON.stringify(settings)
+        });
+        const result = await response.json();
+        hideLoading();
+        if (result.success) {
+            window.hospitalSettings = settings;
+            applyGlobalSettings();
+            showNotification('Settings saved successfully!', 'success');
+        } else {
+            showNotification(result.message || 'Error saving settings', 'error');
+        }
+    } catch (error) {
+        hideLoading();
+        console.error(error);
+        showNotification('Network error', 'error');
+    }
 }
 
 function resetSettings() {
@@ -395,33 +409,32 @@ function applyTheme(theme, mode) {
     });
 }
 
-function applyGlobalSettings() {
+async function applyGlobalSettings() {
     console.log("Applying global settings...");
-    const savedSettingsStr = localStorage.getItem('hospitalSettings');
-    let settings = {};
+    try {
+        const response = await fetch(`${API_BASE}settings`, {
+            headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('token') }
+        });
+        const result = await response.json();
+        if (result.success) {
+            window.hospitalSettings = result.settings;
+            window.currencySymbol = result.settings['currency-symbol'] || '₹';
+            
+            const hName = result.settings['hospital-name'] || 'City Hospital';
+            document.querySelectorAll('.hospital-name').forEach(el => {
+                el.textContent = hName;
+            });
 
-    if (savedSettingsStr) {
-        settings = JSON.parse(savedSettingsStr);
-    }
-
-    window.hospitalSettings = settings;
-    window.currencySymbol = settings['currency-symbol'] || '₹';
-
-    // Apply Hospital Name
-    const hName = settings['hospital-name'] || 'City Hospital';
-    document.querySelectorAll('.hospital-name').forEach(el => {
-        el.textContent = hName;
-    });
-
-    // Apply Theme and Mode
-    applyTheme(settings['theme-color'] || 'green', settings['theme-mode'] || 'light');
-    
-    // Optional: Try to trigger currency update if functions exist
-    if (typeof calculateBillingTotals === 'function' && document.getElementById('billing-items')) {
-        // Just refresh the entire billing view if open to update currency visually
-        if (typeof renderBilling === 'function' && currentModule === 'billing') {
-            renderBilling();
+            applyTheme(result.settings['theme-color'] || 'green', result.settings['theme-mode'] || 'light');
+            
+            if (typeof calculateBillingTotals === 'function' && document.getElementById('billing-items')) {
+                if (typeof renderBilling === 'function' && currentModule === 'billing') {
+                    renderBilling();
+                }
+            }
         }
+    } catch (e) {
+        console.error("Error applying settings from backend:", e);
     }
 }
 
