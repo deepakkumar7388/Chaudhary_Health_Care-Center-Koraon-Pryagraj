@@ -42,6 +42,13 @@ function hideNotification() {
     document.getElementById('notification').style.display = 'none';
 }
 
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) {
+        sidebar.classList.toggle('active');
+    }
+}
+
 // ==================== AUTH FUNCTIONS ====================
 function toggleAuthPanel(mode) {
     const loginPanel = document.getElementById('login-panel');
@@ -428,6 +435,12 @@ function showModule(moduleName) {
     }
 
     currentModule = moduleName;
+
+    // Close sidebar on mobile
+    if (window.innerWidth <= 768) {
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) sidebar.classList.remove('active');
+    }
 
     document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
     const activeItem = document.querySelector(`.menu-item[onclick*="${moduleName}"]`);

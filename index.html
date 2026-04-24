@@ -100,8 +100,11 @@
 
     <!-- ==================== MAIN APP ==================== -->
     <div id="app-container" class="app-container" style="display:none;">
+        <!-- Mobile Toggle Button -->
+        <button id="mobile-toggle" onclick="toggleSidebar()" style="display:none; position:fixed; top:15px; left:15px; z-index:9999; background:#764ba2; color:white; border:none; padding:10px 15px; border-radius:5px; cursor:pointer;"><i class="fas fa-bars"></i></button>
+
         <!-- Sidebar -->
-        <div class="sidebar" style="display: flex; flex-direction: column; padding: 0; height: 100vh; overflow: hidden; background: #fff; box-shadow: 2px 0 15px rgba(0,0,0,0.05);">
+        <div class="sidebar" id="sidebar" style="display: flex; flex-direction: column; padding: 0; height: 100vh; overflow: hidden; background: #fff; box-shadow: 2px 0 15px rgba(0,0,0,0.05);">
             <!-- Top Section -->
             <div class="sidebar-header" style="flex: 0 0 auto; display:flex; flex-direction:column; align-items:center; padding: 25px 20px 15px; border-bottom: 1px solid #f1f5f9; margin-bottom: 0;">
                 <img src="hlogo.png" alt="CHC Logo" style="max-height: 80px; width: auto; object-fit: contain; margin-bottom: 15px;">

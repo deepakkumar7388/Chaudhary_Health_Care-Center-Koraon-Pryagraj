@@ -336,3 +336,26 @@
     font-family: 'Font Awesome 6 Free';
     font-weight: 400;
 }
+
+/* Dashboard Mobile Responsiveness */
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .reports-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .action-buttons {
+        grid-template-columns: 1fr 1fr !important;
+    }
+    
+    .welcome-card h2 {
+        font-size: 22px;
+    }
+    
+    .stat-card h3 {
+        font-size: 24px;
+    }
+}
