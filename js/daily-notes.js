@@ -349,29 +349,54 @@ async function loadPatientHistory(patientId) {
     }
 }
 
-// ... (renderVitalsTable remains same)
+function renderVitalsTable(vitals) {
+    const tbody = document.getElementById('vitals-list');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    if (vitals.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center empty-message">No observations recorded yet.</td></tr>';
+        return;
+    }
+    vitals.sort((a, b) => new Date(b.date + ' ' + b.time) - new Date(a.date + ' ' + a.time));
+    vitals.forEach(v => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${v.date}</td>
+            <td>${v.time}</td>
+            <td style="font-weight:bold;">${v.pulse || '-'}</td>
+            <td>${v.bp || '-'}</td>
+            <td>${v.temp || '-'}</td>
+            <td>${v.spo2 || '-'}</td>
+            <td>${v.rbs || '-'}</td>
+            <td><span class="added-by-text">${v.addedBy}</span></td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
 
 function renderMedicationTable(meds) {
     const tbody = document.getElementById('medication-list');
+    if (!tbody) return;
     tbody.innerHTML = '';
     if (meds.length === 0) {
         tbody.innerHTML = '<tr><td colspan="8" class="text-center empty-message">No medications prescribed yet.</td></tr>';
         return;
     }
+    meds.sort((a, b) => new Date(b.date + ' ' + b.time) - new Date(a.date + ' ' + a.time));
     meds.forEach(m => {
         const tr = document.createElement('tr');
         const isPending = m.status === 'Pending';
         const statusBadgeClass = isPending ? 'badge-pending' : 'badge-given';
         const actButton = isPending
             ? `<button class="btn-mark-done" onclick="promptMarkDose('${m._id}')"><i class="fas fa-check-circle"></i> Mark Given</button>`
-            : `<span class="text-success"><i class="fas fa-check-double"></i> Done</span>`;
-        const doneDetails = isPending ? '-' : `<small>${m.doneBy}<br>${m.doneTime}</small>`;
+            : `<span class="text-success" style="font-weight:700;"><i class="fas fa-check-double"></i> Done</span>`;
+        const doneDetails = isPending ? '-' : `<small style="font-size:11px; color:var(--text-muted);">${m.doneBy}<br>${m.doneTime}</small>`;
         tr.innerHTML = `
             <td>${m.date}</td>
             <td>${m.time}</td>
-            <td><span style="font-weight:bold; color:#2d3748;">${m.drugName}</span><br><small style="color:#718096; font-style:italic;">(${m.medType || 'Medicine'})</small></td>
+            <td><span style="font-weight:bold; color:var(--text-main);">${m.drugName}</span><br><small style="color:var(--text-muted); font-style:italic;">(${m.medType || 'Medicine'})</small></td>
             <td>${m.dose}</td>
-            <td><span class="staff-badge doc-badge">${m.addedBy}</span></td>
+            <td><span class="doc-badge">${m.addedBy}</span></td>
             <td><span class="status-badge ${statusBadgeClass}">${m.status}</span></td>
             <td>${actButton}</td>
             <td>${doneDetails}</td>
@@ -380,7 +405,102 @@ function renderMedicationTable(meds) {
     });
 }
 
-// ... (vitals and medication add functions remain same)
+async function addVitalsEntry() {
+    const patientId = document.getElementById('register-patient').value;
+    const date = document.getElementById('vitals-date').value;
+    const time = document.getElementById('vitals-time').value;
+    const pulse = document.getElementById('vitals-pulse').value;
+    const bp = document.getElementById('vitals-bp').value;
+    const temp = document.getElementById('vitals-temp').value;
+    const spo2 = document.getElementById('vitals-spo2').value;
+    const rbs = document.getElementById('vitals-rbs').value;
+
+    if (!patientId || !date || !time) return;
+
+    showLoading('Recording observation...');
+    try {
+        const response = await fetch(`${API_BASE}notes/${patientId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+            },
+            body: JSON.stringify({
+                patient_id: patientId,
+                type: 'vitals',
+                date, time, pulse, bp, temp, spo2, rbs,
+                addedBy: currentUser ? currentUser.name : 'Staff'
+            })
+        });
+        const result = await response.json();
+        if (result.success) {
+            showNotification("Observation added successfully.", "success");
+            closeVitalsModal();
+            loadPatientHistory(patientId);
+            document.getElementById('vitals-form').reset();
+        } else {
+            showNotification("Error: " + (result.message || result.error || "Unknown error"), "error");
+        }
+    } catch (err) {
+        console.error(err);
+        showNotification("Connection Error: " + err.message, "error");
+    } finally {
+        hideLoading();
+    }
+}
+
+async function addMedicationEntry() {
+    const patientId = document.getElementById('register-patient').value;
+    const date = document.getElementById('med-date').value;
+    const time = document.getElementById('med-time').value;
+    const drugName = document.getElementById('med-name').value;
+    const medType = document.getElementById('med-type').value;
+    const dose = document.getElementById('med-dose').value;
+
+    if (!patientId || !date || !time || !drugName) return;
+
+    showLoading('Prescribing medication...');
+    try {
+        const response = await fetch(`${API_BASE}notes/${patientId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+            },
+            body: JSON.stringify({
+                patient_id: patientId,
+                type: 'medication',
+                date, time, drugName, medType, dose,
+                status: 'Pending',
+                addedBy: currentUser ? currentUser.name : 'Doctor'
+            })
+        });
+        const result = await response.json();
+        if (result.success) {
+            showNotification("Medication prescribed successfully.", "success");
+            loadPatientHistory(patientId);
+            document.getElementById('medication-form').reset();
+            setDefaultDateTimes();
+        } else {
+            showNotification("Error: " + (result.message || result.error || "Unknown error"), "error");
+        }
+    } catch (err) {
+        console.error(err);
+        showNotification("Connection Error: " + err.message, "error");
+    } finally {
+        hideLoading();
+    }
+}
+
+function openVitalsModal() {
+    document.getElementById('vitals-modal').style.display = 'flex';
+    setDefaultDateTimes();
+}
+
+function closeVitalsModal() {
+    document.getElementById('vitals-modal').style.display = 'none';
+}
+
 
 let doseToConfirm = null;
 

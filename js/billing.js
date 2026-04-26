@@ -14,95 +14,64 @@ function renderBilling() {
 
     moduleEl.innerHTML = `
         <div class="billing-container">
-            <div class="module-header" style="margin-bottom: 20px;">
-                <h2 style="font-size: 22px; color: #2d3748; margin-top: 0; margin-bottom: 10px;">Billing & Payments Dashboard</h2>
-                <style>
-                    .dashboard-cards {
-                        display: grid;
-                        grid-template-columns: repeat(4, 1fr);
-                        gap: 20px;
-                        margin-top: 15px;
-                        width: 100%;
-                    }
-                    .dash-card {
-                        background: #ffffff;
-                        padding: 20px;
-                        border-radius: 8px;
-                        box-shadow: 0 2px 6px rgba(0,0,0,0.05); /* subtle shadow */
-                        transition: transform 0.2s ease, box-shadow 0.2s ease;
-                        display: flex;
-                        align-items: center;
-                        justify-content: space-between;
-                        height: 100%;
-                    }
-                    .dash-card:hover {
-                        transform: translateY(-3px);
-                        box-shadow: 0 6px 12px rgba(0,0,0,0.1);
-                    }
-                    @media (max-width: 1024px) {
-                        .dashboard-cards {
-                            grid-template-columns: repeat(2, 1fr);
-                        }
-                    }
-                    @media (max-width: 600px) {
-                        .dashboard-cards {
-                            grid-template-columns: 1fr;
-                        }
-                    }
-                </style>
+            <div class="module-header">
+                <div class="header-main-info">
+                    <h2 class="module-title">Financial Control Center</h2>
+                    <p class="module-subtitle">Oversee patient billing, revenue tracking, and account settlements.</p>
+                </div>
                 <div class="dashboard-cards">
-                    <div class="dash-card" style="border-left: 4px solid #3182ce;">
-                        <div>
-                            <p style="margin: 0; color: #718096; font-size: 14px; text-transform: uppercase; font-weight: 600;">Total Patients</p>
-                            <h3 id="stat-total-patients" style="margin: 5px 0 0; font-size: 26px; color: #2d3748;">0</h3>
+                    <div class="dash-card pro-card-blue">
+                        <div class="card-info">
+                            <span class="label">Total Patients</span>
+                            <h3 id="stat-total-patients" class="value">0</h3>
                         </div>
-                        <div style="width: 44px; height: 44px; border-radius: 50%; background: #ebf8ff; display: flex; align-items: center; justify-content: center; color: #3182ce; font-size: 20px;">
-                            <i class="fas fa-users"></i>
-                        </div>
+                        <div class="card-icon"><i class="fas fa-users-cog"></i></div>
                     </div>
                     
-                    <div class="dash-card" style="border-left: 4px solid #805ad5;">
-                        <div>
-                            <p style="margin: 0; color: #718096; font-size: 14px; text-transform: uppercase; font-weight: 600;">Total Bills</p>
-                            <h3 id="stat-total-bills" style="margin: 5px 0 0; font-size: 26px; color: #2d3748;">0</h3>
+                    <div class="dash-card pro-card-purple">
+                        <div class="card-info">
+                            <span class="label">Invoices Issued</span>
+                            <h3 id="stat-total-bills" class="value">0</h3>
                         </div>
-                        <div style="width: 44px; height: 44px; border-radius: 50%; background: #faf5ff; display: flex; align-items: center; justify-content: center; color: #805ad5; font-size: 20px;">
-                            <i class="fas fa-file-invoice-dollar"></i>
-                        </div>
+                        <div class="card-icon"><i class="fas fa-file-invoice"></i></div>
                     </div>
                     
-                    <div class="dash-card" style="border-left: 4px solid #38a169;">
-                        <div>
-                            <p style="margin: 0; color: #718096; font-size: 14px; text-transform: uppercase; font-weight: 600;">Paid Bills</p>
-                            <h3 id="stat-paid-bills" style="margin: 5px 0 0; font-size: 26px; color: #2d3748;">0</h3>
+                    <div class="dash-card pro-card-green">
+                        <div class="card-info">
+                            <span class="label">Accounts Settled</span>
+                            <h3 id="stat-paid-bills" class="value">0</h3>
                         </div>
-                        <div style="width: 44px; height: 44px; border-radius: 50%; background: #f0fff4; display: flex; align-items: center; justify-content: center; color: #38a169; font-size: 20px;">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
+                        <div class="card-icon"><i class="fas fa-hand-holding-usd"></i></div>
                     </div>
                     
-                    <div class="dash-card" style="border-left: 4px solid #e53e3e;">
-                        <div>
-                            <p style="margin: 0; color: #718096; font-size: 14px; text-transform: uppercase; font-weight: 600;">Pending Bills</p>
-                            <h3 id="stat-pending-bills" style="margin: 5px 0 0; font-size: 26px; color: #2d3748;">0</h3>
+                    <div class="dash-card pro-card-red">
+                        <div class="card-info">
+                            <span class="label">Outstanding Actions</span>
+                            <h3 id="stat-pending-bills" class="value">0</h3>
                         </div>
-                        <div style="width: 44px; height: 44px; border-radius: 50%; background: #fff5f5; display: flex; align-items: center; justify-content: center; color: #e53e3e; font-size: 20px;">
-                            <i class="fas fa-clock"></i>
-                        </div>
+                        <div class="card-icon"><i class="fas fa-exclamation-circle"></i></div>
                     </div>
                 </div>
             </div>
             
-            <div class="billing-search-section">
-                <h3><i class="fas fa-search"></i> Find Patient for Billing</h3>
-                <div style="display:flex; gap:10px; margin-bottom:15px;">
-                    <input type="text" id="billing-patient-search" class="search-input" 
-                           placeholder="Search by Patient ID, Name, Mobile..." style="flex:1;"
-                           onkeyup="searchBillingPatients()">
-                    <button class="btn-primary" onclick="searchBillingPatients()"><i class="fas fa-search"></i> Search</button>
-                    <button class="btn" onclick="clearBillingSearch()"><i class="fas fa-times"></i> Clear</button>
+            <div class="billing-search-panel">
+                <div class="search-header">
+                    <i class="fas fa-search-plus"></i>
+                    <span>Search Patient Records</span>
                 </div>
-                <div id="billing-search-results" style="display:none;"></div>
+                <div class="search-bar-container">
+                    <div class="search-input-group">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="billing-patient-search" class="professional-search-input" 
+                               placeholder="Enter Patient ID, Name, or Mobile Number..."
+                               oninput="searchBillingPatients()">
+                    </div>
+                    <div class="search-buttons">
+                        <button class="p-btn p-btn-primary" onclick="searchBillingPatients()">Find Account</button>
+                        <button class="p-btn p-btn-outline" onclick="clearBillingSearch()">Clear</button>
+                    </div>
+                </div>
+                <div id="billing-search-results" class="pro-results-container" style="display:none;"></div>
             </div>
             
             <div class="billing-tabs">
@@ -138,33 +107,34 @@ function renderBilling() {
                     }
                     .print-only { display: none; }
                 </style>
-                <div class="chk-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: nowrap; border-bottom: 2px solid #2b6cb0; padding-bottom: 10px; margin-bottom: 15px; font-family: Arial, sans-serif;">
-                    <div class="hospital-logo" style="flex: 0 0 auto; text-align: left; display: flex; align-items: center; margin-right: 15px;">
-                        <img src="hlogo.png" alt="CHC Logo" style="height: 70px; width: auto; max-width: none; object-fit: contain;">
+                <div class="chk-header">
+                    <div class="hospital-logo">
+                        <img src="hlogo.png" alt="CHC Logo">
                     </div>
-                    <div class="hospital-info" style="flex: 1 1 auto; text-align: center; white-space: nowrap;">
-                        <h1 class="hospital-title" style="margin: 0; font-size: 20px; font-weight: 900; color: #2b6cb0; letter-spacing: 0.5px;">CHAUDHARY HEALTH CARE CENTER</h1>
-                        <h3 class="hospital-subtitle" style="margin: 2px 0 0; font-size: 11px; color: #e53e3e; text-transform: uppercase;">GANDHI CHAURAHA, MEJA WALI ROAD, KORAON-PRAYAGRAJ 212306</h3>
-                        <p style="margin: 2px 0 0; font-size: 11px; font-weight: bold; color: #2d3748;">Phone: (0542) 123456</p>
+                    <div class="hospital-info">
+                        <h1 class="hospital-title">CHAUDHARY HEALTH CARE CENTER</h1>
+                        <h3 class="hospital-subtitle">GANDHI CHAURAHA, MEJA WALI ROAD, KORAON-PRAYAGRAJ 212306</h3>
+                        <p class="hospital-contact">Phone: (0542) 123456</p>
                     </div>
-                    <div style="flex: 0 0 auto; text-align: right; color: #718096; font-size: 12px; font-weight: bold; white-space: nowrap; margin-left: 15px;">
-                        <div style="margin-bottom: 4px; color: #2d3748;">Date: <span id="auto-date-field-bill" style="border-bottom: 1px dashed #ccc; padding-bottom: 1px; min-width:70px; display:inline-block; text-align: center;"></span></div>
-                        <div style="color: #2d3748;">Time: <span id="auto-time-field-bill" style="border-bottom: 1px dashed #ccc; padding-bottom: 1px; min-width:70px; display:inline-block; text-align: center;"></span></div>
+                    <div class="report-meta">
+                        <div class="meta-item">Date: <span id="auto-date-field-bill"></span></div>
+                        <div class="meta-item">Time: <span id="auto-time-field-bill"></span></div>
                     </div>
                 </div>
-                <div class="patient-info-grid" style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 13px;">
-                    <div style="width: 48%;">
-                        <p style="margin: 2px 0;"><strong>Patient ID:</strong> <span id="b-patient-id" contenteditable="true" spellcheck="false" class="editable-span" style="font-weight:bold; color:#2c3e50;"></span></p>
-                        <p style="margin: 2px 0;"><strong>Patient Name:</strong> <span id="b-patient-name" contenteditable="true" spellcheck="false" class="editable-span"></span></p>
-                        <p style="margin: 2px 0;"><strong>Guardian:</strong> <span id="b-relative" contenteditable="true" spellcheck="false" class="editable-span"></span></p>
-                        <p style="margin: 2px 0;"><strong>Address:</strong> <span id="b-address" contenteditable="true" spellcheck="false" class="editable-span"></span></p>
+                
+                <div class="patient-info-summary">
+                    <div class="info-column">
+                        <p><strong>Patient ID:</strong> <span id="b-patient-id" contenteditable="true" spellcheck="false" class="editable-span"></span></p>
+                        <p><strong>Patient Name:</strong> <span id="b-patient-name" contenteditable="true" spellcheck="false" class="editable-span"></span></p>
+                        <p><strong>Guardian:</strong> <span id="b-relative" contenteditable="true" spellcheck="false" class="editable-span"></span></p>
+                        <p><strong>Address:</strong> <span id="b-address" contenteditable="true" spellcheck="false" class="editable-span"></span></p>
                     </div>
-                    <div style="width: 48%; text-align: right;">
-                        <p style="margin: 2px 0;"><strong>Age:</strong> <span id="b-age" contenteditable="true" spellcheck="false" class="editable-span"></span></p>
-                        <p style="margin: 2px 0;"><strong>Bed No:</strong> <span id="b-bed" contenteditable="true" spellcheck="false" class="editable-span"></span></p>
-                        <p style="margin: 2px 0;"><strong>DOA:</strong> <span id="b-doa" contenteditable="true" spellcheck="false" class="editable-span"></span></p>
-                        <p style="margin: 2px 0;"><strong>DOD:</strong> <span id="b-dod" contenteditable="true" spellcheck="false" class="editable-span"></span></p>
-                        <p style="margin: 2px 0;"><strong>Doctor:</strong> <span id="b-doctor" contenteditable="true" spellcheck="false" class="editable-span"></span></p>
+                    <div class="info-column text-right-md">
+                        <p><strong>Age:</strong> <span id="b-age" contenteditable="true" spellcheck="false" class="editable-span"></span></p>
+                        <p><strong>Bed No:</strong> <span id="b-bed" contenteditable="true" spellcheck="false" class="editable-span"></span></p>
+                        <p><strong>DOA:</strong> <span id="b-doa" contenteditable="true" spellcheck="false" class="editable-span"></span></p>
+                        <p><strong>DOD:</strong> <span id="b-dod" contenteditable="true" spellcheck="false" class="editable-span"></span></p>
+                        <p><strong>Doctor:</strong> <span id="b-doctor" contenteditable="true" spellcheck="false" class="editable-span"></span></p>
                     </div>
                 </div>
                 
@@ -183,72 +153,75 @@ function renderBilling() {
                     </tbody>
                 </table>
                 
-                <div style="display: flex; justify-content: space-between; margin-bottom: 40px; margin-top: 20px;">
-                    <div class="payment-history-wrap" style="width: 48%;">
-                        <div class="no-print" id="add-payment-panel" style="margin-bottom: 15px; padding: 15px; background: #f8fafc; border: 1px solid #cbd5e0; border-radius: 8px;">
-                            <h4 style="margin-top:0; margin-bottom: 10px; font-size: 15px; color: #2d3748;">Add Payment</h4>
-                            <div style="display:flex; gap: 8px;">
-                                <input type="number" id="pay-amt" class="calc-input" placeholder="Amount (${window.currencySymbol || '₹'})" style="width: 100px; padding:6px; border-radius:4px; border:1px solid #cbd5e0;">
-                                <input type="date" id="pay-date" class="calc-input" style="width: 130px; padding:6px; border-radius:4px; border:1px solid #cbd5e0;">
-                                <select id="pay-mode" class="calc-input" style="padding:6px; border-radius:4px; border:1px solid #cbd5e0;">
+                <div class="bill-footer-section">
+                    <div class="payment-history-wrap">
+                        <div class="no-print" id="add-payment-panel">
+                            <h4>Add Payment</h4>
+                            <div class="payment-controls">
+                                <input type="number" id="pay-amt" class="calc-input" placeholder="Amt">
+                                <input type="date" id="pay-date" class="calc-input">
+                                <select id="pay-mode" class="calc-input">
                                     <option value="Cash">Cash</option>
                                     <option value="UPI">UPI</option>
                                     <option value="Card">Card</option>
                                 </select>
-                                <button type="button" class="btn btn-primary btn-small" onclick="addPaymentToBill()" style="padding: 6px 14px;"><i class="fas fa-plus"></i> Add</button>
+                                <button type="button" class="btn btn-primary btn-small" onclick="addPaymentToBill()">Add</button>
                             </div>
                         </div>
-                        <div id="payment-restricted-msg" class="no-print" style="display:none; padding:10px; background:#fff5f5; color:#e53e3e; border:1px solid #feb2b2; border-radius:6px; margin-bottom:15px; font-size:13px; font-weight:600;">
-                            <i class="fas fa-lock"></i> Only Doctor/Admin can perform payment.
+                        <div id="payment-restricted-msg" class="no-print">
+                            <i class="fas fa-lock"></i> Restricted access.
                         </div>
                         
-                        <h4 style="margin-top:0; margin-bottom: 8px; font-size: 15px; color: #4a5568;">Payment History</h4>
-                        <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align:left;" border="1">
-                            <thead>
-                                <tr style="background: #edf2f7; color: #2d3748;">
-                                    <th style="padding: 6px; border:1px solid #cbd5e0;">Date</th>
-                                    <th style="padding: 6px; border:1px solid #cbd5e0;">Mode</th>
-                                    <th style="padding: 6px; border:1px solid #cbd5e0;">Amount</th>
-                                    <th style="padding: 6px; border:1px solid #cbd5e0;">By User</th>
-                                    <th class="no-print" style="padding: 6px; border:1px solid #cbd5e0;">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="payment-history-body">
-                                <!-- dynamic payments -->
-                            </tbody>
-                        </table>
+                        <h4 class="history-title">Payment History</h4>
+                        <div class="table-responsive">
+                            <table class="history-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Mode</th>
+                                        <th>Amount</th>
+                                        <th class="no-mobile">By User</th>
+                                        <th class="no-print">Act</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="payment-history-body">
+                                    <!-- dynamic payments -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 
-                    <div class="totals-wrapper" style="width: 48%;">
-                        <table class="totals-table" style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                    <div class="totals-wrapper">
+                        <table class="totals-table">
                             <tr>
-                                <td style="border: none !important; padding: 4px 10px;"><strong>TOTAL SERVICES</strong></td>
-                                <td class="amt-field" style="border: none !important; padding: 4px 10px;"><span id="grand-total">${window.currencySymbol || '₹'}0</span></td>
+                                <td><strong>TOTAL SERVICES</strong></td>
+                                <td class="amt-field"><span id="grand-total">₹0</span></td>
                             </tr>
                             <tr>
-                                <td style="border: none !important; padding: 4px 10px;"><strong>DISCOUNT <span class="no-print" style="font-weight:normal; font-size:12px;">(Enter ${window.currencySymbol || '₹'})</span></strong></td>
-                                <td class="amt-field" style="border: none !important; padding: 4px 10px;">
-                                    <div style="display:flex; align-items:center; justify-content:flex-end;">
-                                        <span class="no-print">${window.currencySymbol || '₹'}</span> <input type="number" id="discount-amt" class="calc-input" value="0" oninput="calculateBillingTotals()" onkeydown="saveBillDataDebounced()" onfocus="this.select()" style="width: 60px; text-align:right; margin-left:2px; border:1px solid #cbd5e0; border-radius:3px;">
-                                        <span class="print-only" id="discount-amt-print" style="display:none;">${window.currencySymbol || '₹'}0</span>
+                                <td><strong>DISCOUNT</strong></td>
+                                <td class="amt-field">
+                                    <div class="discount-input-wrap">
+                                        <span class="no-print">${window.currencySymbol || '₹'}</span>
+                                        <input type="number" id="discount-amt" class="calc-input no-print" value="0" oninput="calculateBillingTotals()" onkeydown="saveBillDataDebounced()" onfocus="this.select()">
+                                        <span class="print-only" id="discount-amt-print">₹0</span>
                                     </div>
                                 </td>
                             </tr>
-                            <tr style="border-top: 1px dashed #000;">
-                                <td style="border: none !important; padding: 6px 10px;"><strong>NET PAYABLE</strong></td>
-                                <td class="amt-field" style="border: none !important; padding: 6px 10px;"><span id="net-payable">${window.currencySymbol || '₹'}0</span></td>
+                            <tr class="net-row">
+                                <td><strong>NET PAYABLE</strong></td>
+                                <td class="amt-field"><span id="net-payable">₹0</span></td>
                             </tr>
                             <tr>
-                                <td style="border: none !important; padding: 6px 10px;"><strong>TOTAL PAID</strong></td>
-                                <td class="amt-field" style="border: none !important; padding: 6px 10px;"><span id="total-paid">${window.currencySymbol || '₹'}0</span></td>
+                                <td><strong>TOTAL PAID</strong></td>
+                                <td class="amt-field"><span id="total-paid">₹0</span></td>
                             </tr>
-                            <tr style="border-top: 1px solid #000; border-bottom: 2px solid #000; background: #fff5f5;">
-                                <td style="border: none !important; padding: 8px 10px; color: #e53e3e; font-size: 16px;"><strong>REMAINING AMOUNT</strong></td>
-                                <td class="amt-field" style="border: none !important; padding: 8px 10px; color: #e53e3e; font-size: 16px;"><strong><span id="due-amt">${window.currencySymbol || '₹'}0</span></strong></td>
+                            <tr class="due-row">
+                                <td><strong>BALANCE DUE</strong></td>
+                                <td class="amt-field"><strong><span id="due-amt">₹0</span></strong></td>
                             </tr>
-                            <tr>
-                                <td style="border: none !important; padding: 8px 10px;"><strong>STATUS</strong></td>
-                                <td class="amt-field" style="border: none !important; padding: 8px 10px;"><strong><span id="bill-status" style="padding: 4px 8px; border-radius: 4px; border: 1px solid currentColor;">Pending</span></strong></td>
+                            <tr class="status-row">
+                                <td><strong>STATUS</strong></td>
+                                <td class="amt-field"><strong><span id="bill-status">Pending</span></strong></td>
                             </tr>
                         </table>
                     </div>
@@ -270,6 +243,9 @@ async function loadBillingData() {
         });
         const patientsData = await patientsResponse.json();
         const patients = patientsData.patients || [];
+
+        // Ensure patients are globally accessible for search
+        window.allPatientsData = patients;
 
         let totalPatients = patients.length;
         let totalBills = 0;
@@ -390,10 +366,14 @@ function showBillingTab(tab) {
 }
 
 function searchBillingPatients() {
-    const term = document.getElementById('billing-patient-search').value.toLowerCase().trim();
-    const resultsContainer = document.getElementById('billing-search-results');
+    const input = document.getElementById('billing-patient-search');
+    if (!input) return;
 
-    if (term.length < 2) {
+    const term = input.value.toLowerCase().trim();
+    const resultsContainer = document.getElementById('billing-search-results');
+    if (!resultsContainer) return;
+
+    if (term.length < 1) {
         resultsContainer.style.display = 'none';
         return;
     }
@@ -409,20 +389,34 @@ function searchBillingPatients() {
         resultsContainer.innerHTML = `<div style="padding:15px; text-align:center;">No patients found</div>`;
     } else {
         resultsContainer.innerHTML = filtered.map(p => `
-            <div style="padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between;">
-                <div>
-                    <strong>${p.name}</strong> (${p.patient_id})<br>
-                    <small>Age: ${p.age} • Payment: ${p.payment_status || 'Pending'}</small>
+            <div class="pro-search-item">
+                <div class="patient-core-info">
+                    <div class="patient-icon-circle">
+                        <i class="fas ${p.gender?.toLowerCase() === 'female' ? 'fa-female' : 'fa-male'}"></i>
+                    </div>
+                    <div class="patient-text-block">
+                        <div class="name-row">
+                            <span class="p-name">${p.name}</span>
+                            <span class="p-id">${p.patient_id}</span>
+                        </div>
+                        <div class="meta-row">
+                            <span><i class="fas fa-user-clock"></i> ${p.age}y / ${p.gender}</span>
+                            <span><i class="fas fa-mobile-alt"></i> ${p.mobile || 'No Mobile'}</span>
+                            <span class="p-status ${p.payment_status?.toLowerCase() || 'pending'}">${p.payment_status || 'Pending'}</span>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <button class="btn-small btn-primary" onclick="generateBill('${p.patient_id}')">
-                        <i class="fas fa-file-invoice"></i> Bill
+                <div class="patient-action-block">
+                    <button class="p-action-btn" onclick="generateBill('${p.patient_id}')">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                        <span>Generate Invoice</span>
                     </button>
                 </div>
             </div>
         `).join('');
     }
     resultsContainer.style.display = 'block';
+    resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 function clearBillingSearch() {
@@ -597,14 +591,14 @@ function renderPaymentHistory(payments = []) {
 
     tbody.innerHTML = payments.map(p => `
         <tr>
-            <td style="padding: 6px; border:1px solid #cbd5e0;">${new Date(p.date).toISOString().split('T')[0]}</td>
-            <td style="padding: 6px; border:1px solid #cbd5e0;">${p.mode}</td>
-            <td style="padding: 6px; border:1px solid #cbd5e0;">${window.currencySymbol || '₹'}${p.amount.toLocaleString()}</td>
-            <td style="padding: 6px; border:1px solid #cbd5e0;">${p.performed_by || 'Admin'}</td>
-            <td class="no-print" style="padding: 6px; border:1px solid #cbd5e0;">
-                ${isAuthorized ? `<button type="button" class="btn-small" style="background:#e53e3e; color:white; border:none; border-radius:4px; padding:3px 8px; cursor:pointer;" onclick="deletePayment('${p._id}')">
+            <td>${new Date(p.date).toISOString().split('T')[0]}</td>
+            <td>${p.mode}</td>
+            <td><strong>${window.currencySymbol || '₹'}${p.amount.toLocaleString()}</strong></td>
+            <td class="no-mobile">${p.performed_by || 'Admin'}</td>
+            <td class="no-print">
+                ${isAuthorized ? `<button type="button" class="btn-delete-payment" onclick="deletePayment('${p._id}')">
                     <i class="fas fa-trash"></i>
-                </button>` : `<span style="color:#a0aec0; font-size:12px;">Restricted</span>`}
+                </button>` : `<i class="fas fa-lock" style="color:#cbd5e0;"></i>`}
             </td>
         </tr>
     `).join('');
@@ -744,13 +738,13 @@ async function generateBill(patientId) {
             });
         } else {
             // Reset if no data
-             document.getElementById('discount-amt').value = '0';
-             rows.forEach(row => {
-                 const f = row.querySelector('.fee-input');
-                 const d = row.querySelector('.days-input');
-                 if(f) f.value = '';
-                 if(d) d.value = '';
-             });
+            document.getElementById('discount-amt').value = '0';
+            rows.forEach(row => {
+                const f = row.querySelector('.fee-input');
+                const d = row.querySelector('.days-input');
+                if (f) f.value = '';
+                if (d) d.value = '';
+            });
         }
 
         renderPaymentHistory(currentBillData?.payments || []);

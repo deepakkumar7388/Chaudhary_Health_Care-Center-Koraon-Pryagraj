@@ -13,7 +13,7 @@ async function migrateLocalData() {
         if (Object.keys(settings).length > 0) {
             await fetch(`${API_BASE}settings`, {
                 method: 'POST',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json',
                     'Authorization': 'Bearer ' + sessionStorage.getItem('token')
                 },
@@ -27,7 +27,7 @@ async function migrateLocalData() {
             // Or just call patients API
             await fetch(`${API_BASE}patients`, {
                 method: 'POST',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json',
                     'Authorization': 'Bearer ' + sessionStorage.getItem('token')
                 },
@@ -39,7 +39,7 @@ async function migrateLocalData() {
             if (pBilling) {
                 await fetch(`${API_BASE}billing/${p.patient_id}`, {
                     method: 'PUT',
-                    headers: { 
+                    headers: {
                         'Content-Type': 'application/json',
                         'Authorization': 'Bearer ' + sessionStorage.getItem('token')
                     },
@@ -52,7 +52,7 @@ async function migrateLocalData() {
         for (const n of notes) {
             await fetch(`${API_BASE}notes/${n.patientId}`, {
                 method: 'POST',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json',
                     'Authorization': 'Bearer ' + sessionStorage.getItem('token')
                 },
@@ -64,7 +64,7 @@ async function migrateLocalData() {
         for (const m of meds) {
             await fetch(`${API_BASE}notes/${m.patientId}`, {
                 method: 'POST',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json',
                     'Authorization': 'Bearer ' + sessionStorage.getItem('token')
                 },
@@ -76,7 +76,7 @@ async function migrateLocalData() {
         for (const d of discharges) {
             await fetch(`${API_BASE}discharge`, {
                 method: 'POST',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json',
                     'Authorization': 'Bearer ' + sessionStorage.getItem('token')
                 },
@@ -86,10 +86,10 @@ async function migrateLocalData() {
 
         hideLoading();
         showNotification('Migration successful! All data moved to MongoDB Atlas.', 'success');
-        
+
         // Optional: Clear localStorage to avoid confusion
         // localStorage.clear(); 
-        
+
     } catch (err) {
         hideLoading();
         showNotification('Migration failed. Some data might not have moved.', 'error');

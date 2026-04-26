@@ -153,16 +153,16 @@ function renderPatientsTable(patientsList) {
                 `<br><span style="color:#e67e22;font-size:11px;">${window.currencySymbol || '₹'}${patient.pending_amount} pending</span>` : ''}
             </td>
             <td>
-                <button class="btn-small btn-info" onclick="viewPatient('${patient.id}')" title="View Info"><i class="fas fa-eye"></i></button>
+                <button class="btn-small btn-info" onclick="viewPatient('${patient.patient_id}')" title="View Info"><i class="fas fa-eye"></i></button>
                 
                 ${(currentUser && (currentUser.role === 'admin' || currentUser.role === 'doctor')) ? 
-                    `<button class="btn-small btn-warning" onclick="editPatient('${patient.id}')" title="Edit Patient"><i class="fas fa-edit"></i></button>` : ''}
+                    `<button class="btn-small btn-warning" onclick="editPatient('${patient.patient_id}')" title="Edit Patient"><i class="fas fa-edit"></i></button>` : ''}
                 
                 ${(currentUser && currentUser.role === 'admin') ? 
-                    `<button class="btn-small btn-danger" onclick="deletePatient('${patient.id}')" title="Delete Patient"><i class="fas fa-trash"></i></button>` : ''}
+                    `<button class="btn-small btn-danger" onclick="deletePatient('${patient.patient_id}')" title="Delete Patient"><i class="fas fa-trash"></i></button>` : ''}
                 
                 ${(currentUser && currentUser.role !== 'receptionist') ? 
-                    `<button class="btn-small btn-success" onclick="addNoteForPatient('${patient.id}')" title="Daily Notes"><i class="fas fa-notes-medical"></i></button>` : ''}
+                    `<button class="btn-small btn-success" onclick="addNoteForPatient('${patient.patient_id}')" title="Daily Notes"><i class="fas fa-notes-medical"></i></button>` : ''}
                 
                 <button class="btn-small btn-primary" style="background-color: #805ad5; border: none; color: white;" onclick="openSurgeryModal('${patient.patient_id}')" title="Add Surgery Event"><i class="fas fa-procedures"></i></button>
             </td>
@@ -392,7 +392,7 @@ function editPatient(patientId) {
         return;
     }
 
-    if (patient.status === 'Discharged') {
+    if ((patient.status || '').toLowerCase() === 'discharged') {
         showNotification('Cannot edit a discharged patient.', 'warning');
         return;
     }
@@ -660,6 +660,7 @@ async function saveSurgery(patientId, btnEl) {
             showNotification(result.message || 'Failed to update surgery', 'error');
         }
         return; // Exit here since we handled it
+        return; 
     } catch (err) {
         hideLoading();
         console.error(err);
@@ -668,6 +669,20 @@ async function saveSurgery(patientId, btnEl) {
     }
 }
 
+async function savePatientEdit(patientId) {
+    const name = document.getElementById('edit-p-name').value.trim();
+    const guardian = document.getElementById('edit-p-guardian').value.trim();
+    const age = document.getElementById('edit-p-age').value;
+    const gender = document.getElementById('edit-p-gender').value;
+    const mobile = document.getElementById('edit-p-mobile').value.trim();
+    const address = document.getElementById('edit-p-address').value.trim();
+    const wardType = document.getElementById('edit-p-ward-type').value;
+    const bedNo = document.getElementById('edit-p-bed-no').value.trim();
+
+    if (!name) {
+        showNotification('Patient name is required.', 'error');
+        return;
+    }
 
     const editData = {
         name, guardian_name: guardian, age: parseInt(age),
@@ -675,16 +690,16 @@ async function saveSurgery(patientId, btnEl) {
     };
 
     showLoading('Saving changes...');
-    fetch(`${API_BASE}patients/${patientId}`, {
-        method: 'PUT',
-        headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + sessionStorage.getItem('token')
-        },
-        body: JSON.stringify(editData)
-    })
-    .then(res => res.json())
-    .then(result => {
+    try {
+        const response = await fetch(`${API_BASE}patients/${patientId}`, {
+            method: 'PUT',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+            },
+            body: JSON.stringify(editData)
+        });
+        const result = await response.json();
         hideLoading();
         if (result.success) {
             showNotification('Patient details updated successfully!', 'success');
@@ -693,11 +708,11 @@ async function saveSurgery(patientId, btnEl) {
         } else {
             showNotification(result.message || 'Failed to update patient', 'error');
         }
-    })
-    .catch(err => {
+    } catch (err) {
         hideLoading();
         console.error(err);
         showNotification('Network error while saving changes', 'error');
-    });
+    }
+}
 
 window.savePatientEdit = savePatientEdit;

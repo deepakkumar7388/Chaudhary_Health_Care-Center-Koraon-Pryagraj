@@ -14,18 +14,18 @@ function renderDashboard() {
     const showQuickDischarge = (role === 'admin' || role === 'doctor');
 
     moduleEl.innerHTML = `
-        <div class="dashboard-container" style="display:flex; flex-direction:column; gap:20px;">
-            <div class="welcome-card" style="margin-bottom: 0;">
+        <div class="dashboard-container">
+            <div class="welcome-card">
                 <h2>Welcome, ${currentUser?.name || 'User'}!</h2>
 
             </div>
             
-            <div class="stats-grid" id="dashboard-metrics" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px;">
+            <div class="stats-grid" id="dashboard-metrics">
                 <!-- Filled dynamically via updateDashboardStats -->
             </div>
             
             ${showCharts ? `
-            <div id="admin-charts-section" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+            <div id="admin-charts-section" class="charts-grid">
                 <div class="report-card card" style="background:white; padding:15px; border-radius:10px; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
                     <h3 style="margin-bottom:10px; font-size:16px;"><i class="fas fa-chart-line" style="color:#3498db;"></i> Patient Growth</h3>
                     <div style="height:220px; position:relative;">
@@ -46,8 +46,8 @@ function renderDashboard() {
                 </div>
             </div>` : ''}
             
-            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
-                <div class="recent-activity" style="background:white; padding:20px; border-radius:10px; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
+            <div class="dashboard-lower">
+                <div class="recent-activity">
                     <h3 style="margin-bottom:15px; font-size:16px; border-bottom:1px solid #eee; padding-bottom:10px;">
                         <i class="fas fa-history" style="color:#e67e22;"></i> ${role === "doctor" ? "Today's Activity" : "Recent Activity"}
                     </h3>
@@ -56,28 +56,28 @@ function renderDashboard() {
                     </div>
                 </div>
                 
-                <div class="quick-actions" style="background:white; padding:20px; border-radius:10px; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
+                <div class="quick-actions">
                     <h3 style="margin-bottom:15px; font-size:16px; border-bottom:1px solid #eee; padding-bottom:10px;">
                         <i class="fas fa-bolt" style="color:#f1c40f;"></i> Quick Actions
                     </h3>
-                    <div class="action-buttons" style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="action-buttons">
                         ${showQuickAddPatient ? `
-                        <button class="action-btn" onclick="showModule('add-patient')" style="padding:15px; border-radius:8px; border:1px solid #eee; background:#f9f9f9; cursor:pointer;">
-                            <i class="fas fa-user-plus" style="font-size:24px; color:#3498db; margin-bottom:5px;"></i><br>Add Patient
+                        <button class="action-btn" onclick="showModule('add-patient')">
+                            <i class="fas fa-user-plus"></i><br>Add Patient
                         </button>` : ''}
                         
                         ${showQuickBilling ? `
-                        <button class="action-btn" onclick="showModule('billing')" style="padding:15px; border-radius:8px; border:1px solid #eee; background:#f9f9f9; cursor:pointer;">
-                            <i class="fas fa-file-invoice" style="font-size:24px; color:#2ecc71; margin-bottom:5px;"></i><br>Billing
+                        <button class="action-btn" onclick="showModule('billing')">
+                            <i class="fas fa-file-invoice"></i><br>Billing
                         </button>` : ''}
                         
                         ${showQuickDischarge ? `
-                        <button class="action-btn" onclick="showModule('discharge')" style="padding:15px; border-radius:8px; border:1px solid #eee; background:#f9f9f9; cursor:pointer;">
-                            <i class="fas fa-sign-out-alt" style="font-size:24px; color:#e74c3c; margin-bottom:5px;"></i><br>Discharge
+                        <button class="action-btn" onclick="showModule('discharge')">
+                            <i class="fas fa-sign-out-alt"></i><br>Discharge
                         </button>` : ''}
                         
-                        <button class="action-btn" onclick="showModule('patients')" style="padding:15px; border-radius:8px; border:1px solid #eee; background:#f9f9f9; cursor:pointer;">
-                            <i class="fas fa-users" style="font-size:24px; color:#9b59b6; margin-bottom:5px;"></i><br>Patients
+                        <button class="action-btn" onclick="showModule('patients')">
+                            <i class="fas fa-users"></i><br>Patients
                         </button>
                     </div>
                 </div>
@@ -183,33 +183,33 @@ function updateDashboardStats() {
 
     // 1. Populate Metrics Cards
     document.getElementById('dashboard-metrics').innerHTML = `
-        <div class="stat-card" style="padding:15px; border-left:4px solid #3498db; background:white !important; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.05); text-align:left;">
+        <div class="stat-card" style="border-left:4px solid #3498db;">
             <i class="fas fa-users" style="font-size:24px; color:#3498db; margin-bottom:10px;"></i>
             <h3 style="font-size:22px; margin:0; color:#2c3e50;">${totalPatients}</h3>
             <p style="margin:0; font-size:12px; font-weight:bold; color:#7f8c8d; text-transform:uppercase;">Total Patients</p>
         </div>
-        <div class="stat-card" style="padding:15px; border-left:4px solid #f39c12; background:white !important; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.05); text-align:left;">
+        <div class="stat-card" style="border-left:4px solid #f39c12;">
             <i class="fas fa-bed" style="font-size:24px; color:#f39c12; margin-bottom:10px;"></i>
             <h3 style="font-size:22px; margin:0; color:#2c3e50;">${admittedPatients}</h3>
             <p style="margin:0; font-size:12px; font-weight:bold; color:#7f8c8d; text-transform:uppercase;">Admitted</p>
         </div>
-        <div class="stat-card" style="padding:15px; border-left:4px solid #2ecc71; background:white !important; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.05); text-align:left;">
+        <div class="stat-card" style="border-left:4px solid #2ecc71;">
             <i class="fas fa-walking" style="font-size:24px; color:#2ecc71; margin-bottom:10px;"></i>
             <h3 style="font-size:22px; margin:0; color:#2c3e50;">${dischargedCount}</h3>
             <p style="margin:0; font-size:12px; font-weight:bold; color:#7f8c8d; text-transform:uppercase;">Discharged</p>
         </div>
         ${showFinancials ? `
-        <div class="stat-card" style="padding:15px; border-left:4px solid #27ae60; background:white !important; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.05); text-align:left;">
+        <div class="stat-card" style="border-left:4px solid #27ae60;">
             <i class="fas fa-coins" style="font-size:24px; color:#27ae60; margin-bottom:10px;"></i>
             <h3 style="font-size:22px; margin:0; color:#2c3e50;">${curr}${totalRevenue.toLocaleString()}</h3>
             <p style="margin:0; font-size:12px; font-weight:bold; color:#7f8c8d; text-transform:uppercase;">Total Revenue</p>
         </div>
-        <div class="stat-card" style="padding:15px; border-left:4px solid #2980b9; background:white !important; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.05); text-align:left;">
+        <div class="stat-card" style="border-left:4px solid #2980b9;">
             <i class="fas fa-check-circle" style="font-size:24px; color:#2980b9; margin-bottom:10px;"></i>
             <h3 style="font-size:22px; margin:0; color:#2c3e50;">${paidBills}</h3>
             <p style="margin:0; font-size:12px; font-weight:bold; color:#7f8c8d; text-transform:uppercase;">Paid Bills</p>
         </div>
-        <div class="stat-card" style="padding:15px; border-left:4px solid #e74c3c; background:white !important; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.05); text-align:left;">
+        <div class="stat-card" style="border-left:4px solid #e74c3c;">
             <i class="fas fa-exclamation-circle" style="font-size:24px; color:#e74c3c; margin-bottom:10px;"></i>
             <h3 style="font-size:22px; margin:0; color:#2c3e50;">${pendingBills}</h3>
             <p style="margin:0; font-size:12px; font-weight:bold; color:#7f8c8d; text-transform:uppercase;">Pending Bills</p>
@@ -233,13 +233,13 @@ function updateDashboardStats() {
         actList.innerHTML = '<div style="text-align:center; padding:20px; color:#888;">No recent activity</div>';
     } else {
         actList.innerHTML = allActivities.slice(0, 6).map(act => `
-            <div class="activity-item" style="display:flex; align-items:flex-start; margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid #f0f0f0;">
-                <div style="width:32px; height:32px; border-radius:50%; background:${act.color}22; color:${act.color}; display:flex; align-items:center; justify-content:center; margin-right:12px; flex-shrink:0;">
+            <div class="activity-item">
+                <div class="activity-icon" style="background:${act.color}15; color:${act.color};">
                     <i class="fas ${act.icon}"></i>
                 </div>
-                <div style="flex:1;">
-                    <div style="font-size:13px; color:#333; line-height:1.4;">${act.text}</div>
-                    <div style="font-size:11px; color:#999; margin-top:3px;">${new Date(act.time).toLocaleString()}</div>
+                <div class="activity-info">
+                    <div class="activity-text">${act.text}</div>
+                    <div class="activity-time">${new Date(act.time).toLocaleString()}</div>
                 </div>
             </div>
         `).join('');

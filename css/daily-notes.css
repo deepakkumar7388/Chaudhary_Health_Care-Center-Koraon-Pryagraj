@@ -3,12 +3,13 @@
 .register-container {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 24px;
     animation: fadeIn 0.4s ease-out;
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-    padding: 24px;
+    background: var(--card-bg);
+    border-radius: 24px;
+    box-shadow: var(--shadow);
+    padding: 32px;
+    border: 1px solid var(--border);
 }
 
 /* Header & Search */
@@ -24,7 +25,7 @@
 }
 
 .header-left h2 {
-    color: #2d3748;
+    color: var(--text-main);
     margin: 0;
     font-size: 22px;
     display: flex;
@@ -33,7 +34,7 @@
 }
 
 .header-left h2 i {
-    color: #3182ce;
+    color: var(--primary);
 }
 
 .header-controls {
@@ -148,7 +149,7 @@
 
 .compact-title h3 {
     font-size: 18px;
-    color: #4a5568;
+    color: var(--text-main);
     margin-bottom: 12px;
     display: flex;
     align-items: center;
@@ -156,15 +157,14 @@
 }
 
 .compact-title h3 i {
-    color: #805ad5;
+    color: var(--primary);
 }
 
 .register-table-container {
     max-height: 400px;
     overflow-y: auto;
-    border: 1px solid #e2e8f0;
-    border-radius: 0 !important;
-    box-shadow: none !important;
+    border: 1px solid var(--border);
+    border-radius: 12px;
 }
 
 /* Custom scrollbar for table container */
@@ -211,7 +211,7 @@
 }
 
 .register-table tbody tr:hover {
-    background: #ebf8ff;
+    background: var(--primary-light);
 }
 
 .register-table tbody tr:last-child td {
@@ -248,9 +248,10 @@
 /* Modals & Forms */
 .vitals-modal-content {
     max-width: 600px;
-    border-radius: 0 !important;
-    padding: 24px;
-    background: #ffffff;
+    border-radius: 24px;
+    padding: 32px;
+    background: var(--card-bg);
+    box-shadow: var(--shadow-lg);
 }
 
 .compact-modal-header {
@@ -285,20 +286,19 @@
 
 .compact-input {
     width: 100%;
-    padding: 8px 12px;
-    border: 1px solid #cbd5e0;
-    border-radius: 0 !important;
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
     font-size: 14px;
-    background: #ffffff !important;
-    transition: border-color 0.2s;
-    color: #2d3748;
+    background: var(--card-bg);
+    transition: all 0.2s ease;
+    color: var(--text-main);
 }
 
 .compact-input:focus {
-    border-color: #3182ce;
+    border-color: var(--primary);
     outline: none;
-    background: #fff;
-    box-shadow: 0 0 0 2px rgba(49, 130, 206, 0.1);
+    box-shadow: 0 0 0 4px var(--primary-light);
 }
 
 .form-grid-2 {
@@ -453,4 +453,46 @@
     color: #718096;
     font-style: italic;
     background: #fdfdfd;
+}
+
+/* ==================== RESPONSIVE DAILY NOTES ==================== */
+@media (max-width: 992px) {
+    .register-container {
+        padding: 15px;
+    }
+    
+    .register-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .header-controls {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .patient-selector {
+        width: 100%;
+    }
+    
+    .btn-add-observation {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .form-grid-2 {
+        grid-template-columns: 1fr;
+    }
+    
+    .compact-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .compact-row .input-group {
+        width: 100%;
+    }
 }

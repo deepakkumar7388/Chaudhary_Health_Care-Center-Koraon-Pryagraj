@@ -100,20 +100,28 @@
 
     <!-- ==================== MAIN APP ==================== -->
     <div id="app-container" class="app-container" style="display:none;">
-        <!-- Sidebar -->
-        <div class="sidebar"
-            style="display: flex; flex-direction: column; padding: 0; height: 100vh; overflow: hidden; background: #fff; box-shadow: 2px 0 15px rgba(0,0,0,0.05);">
-            <!-- Top Section -->
-            <div class="sidebar-header"
-                style="flex: 0 0 auto; display:flex; flex-direction:column; align-items:center; padding: 25px 20px 15px; border-bottom: 1px solid #f1f5f9; margin-bottom: 0;">
-                <img src="hlogo.png" alt="CHC Logo"
-                    style="max-height: 80px; width: auto; object-fit: contain; margin-bottom: 15px;">
-                <h2
-                    style="font-size: 14px; font-weight: 700; text-align: center; line-height: 1.3; margin: 0; color: #1e293b; letter-spacing: 0.5px; text-transform: uppercase;">
-                    Chaudhary Health Care Center</h2>
+        <!-- Mobile Header -->
+        <div class="mobile-header">
+            <button id="sidebar-toggle" class="sidebar-toggle" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="mobile-logo">
+                <img src="hlogo.png" alt="Logo">
+                <span>CHC Center</span>
+            </div>
+            <div class="mobile-actions"></div>
+        </div>
 
-                <p id="current-time" class="time-display"
-                    style="margin-top: 15px; font-size: 13px; color: #64748b; text-align: center; margin-bottom: 0; background: white; padding: 10px 15px; border-radius: 12px; width: 100%; border: 1px solid #edf2f7; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);">
+        <!-- Sidebar -->
+        <div class="sidebar">
+
+
+            <!-- Top Section -->
+            <div class="sidebar-header">
+                <img src="hlogo.png" alt="CHC Logo" class="sidebar-logo">
+                <h2 class="sidebar-title">Chaudhary Health Care Center</h2>
+
+                <p id="current-time" class="time-display">
                     <i class="far fa-clock" style="color: #c951db;"></i> <span id="time"
                         style="font-weight: bold; color: #0f172a;">00:00:00</span><br>
                     <small id="date" style="font-size: 11px;">Loading...</small>
@@ -121,7 +129,7 @@
             </div>
 
             <!-- Navigation Section -->
-            <div class="menu" style="flex: 1 1 auto; overflow-y: auto; padding: 15px 10px; margin: 0;">
+            <div class="menu">
                 <div class="menu-item active" onclick="showModule('dashboard')">
                     <i class="fas fa-tachometer-alt"></i> <span>Dashboard</span>
                 </div>
@@ -141,8 +149,7 @@
                     <i class="fas fa-sign-out-alt"></i> <span>Discharge</span>
                 </div>
 
-                <div id="admin-menu"
-                    style="display:none; margin-top: 15px; border-top: 1px solid #f1f5f9; padding-top: 15px;">
+                <div id="admin-menu" class="admin-menu">
                     <div class="menu-item" onclick="showModule('users')"><i class="fas fa-user-cog"></i>
                         <span>Users</span>
                     </div>
@@ -166,10 +173,7 @@
             </div>
 
             <!-- Bottom User Section -->
-            <div class="user-profile-section"
-                style="flex: 0 0 auto; position: relative; padding: 15px; border-top: 1px solid #e2e8f0; cursor: pointer; transition: background 0.2s; user-select: none;"
-                onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'"
-                onclick="toggleUserDropdown(event)">
+            <div class="user-profile-section" onclick="toggleUserDropdown(event)">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div id="sidebar-avatar" class="initials-avatar"
                         style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: bold; box-shadow: 0 4px 10px rgba(118, 75, 162, 0.3);">
@@ -285,6 +289,10 @@
                 });
             </script>
         </div>
+
+        <!-- Sidebar Overlay -->
+        <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
 
         <!-- Main Content -->
         <div class="main-content">

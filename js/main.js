@@ -2,9 +2,10 @@
 let currentUser = null;
 let currentModule = 'dashboard';
 // Use local IP for same-wifi mobile access, or the Render URL for production
-const API_BASE = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost' || window.location.hostname === '10.123.105.102'
-    ? 'http://10.123.105.102:5000/api/'
+const API_BASE = (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost' || window.location.hostname.startsWith('192.168.') || window.location.hostname.startsWith('10.'))
+    ? `http://${window.location.hostname}:5000/api/`
     : 'https://chaudhary-hms-api.onrender.com/api/';
+
 
 // ==================== UTILITY FUNCTIONS ====================
 function showLoading(message = 'Loading...') {
@@ -368,6 +369,11 @@ function showModule(moduleName) {
     const activeItem = document.querySelector(`.menu-item[onclick*="'${moduleName}'"]`);
     if (activeItem) activeItem.classList.add('active');
 
+    // Close sidebar on mobile after selecting a module
+    if (window.innerWidth <= 992) {
+        document.querySelector('.sidebar').classList.remove('active');
+    }
+
     loadModule(moduleName);
 }
 
@@ -432,6 +438,11 @@ function showModule(moduleName) {
     document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
     const activeItem = document.querySelector(`.menu-item[onclick*="${moduleName}"]`);
     if (activeItem) activeItem.classList.add('active');
+
+    // Close sidebar on mobile after selecting a module
+    if (window.innerWidth <= 992) {
+        document.querySelector('.sidebar').classList.remove('active');
+    }
 
     loadModule(moduleName);
 }
@@ -601,3 +612,25 @@ function migratePatientIds() {
         console.error("Migration failed:", e);
     }
 }
+
+// ==================== MOBILE UI FUNCTIONS ====================
+function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    sidebar.classList.toggle('active');
+}
+
+// Close sidebar when clicking menu items on mobile
+document.addEventListener('click', function (e) {
+    if (window.innerWidth <= 992) {
+        const sidebar = document.querySelector('.sidebar');
+        const toggleBtn = document.getElementById('sidebar-toggle');
+
+        if (sidebar && sidebar.classList.contains('active') &&
+            !sidebar.contains(e.target) &&
+            !toggleBtn.contains(e.target)) {
+            sidebar.classList.remove('active');
+        }
+    }
+});
+
+window.toggleSidebar = toggleSidebar;
