@@ -104,11 +104,8 @@ function renderSyncUI() {
         const btn = document.createElement('button');
         btn.id = 'btn-migrate';
         btn.className = 'btn';
-        btn.style.background = '#10b981';
-        btn.style.color = 'white';
-        btn.style.marginLeft = '10px';
-        btn.style.boxShadow = '0 4px 10px rgba(16, 185, 129, 0.2)';
-        btn.innerHTML = '<i class="fas fa-sync-alt"></i> Sync Cloud';
+        btn.style.cssText = 'background:#10b981; color:white; padding:6px 14px; font-size:12px; border-radius:6px; box-shadow:0 2px 6px rgba(16,185,129,0.2); margin-left:8px;';
+        btn.innerHTML = '<i class="fas fa-sync-alt" style="font-size:11px;"></i> Sync';
         btn.onclick = migrateLocalData;
         container.appendChild(btn);
     }

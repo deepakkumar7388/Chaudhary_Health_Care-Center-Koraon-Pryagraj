@@ -29,6 +29,9 @@ const patientSchema = new mongoose.Schema({
     doctorFees: Number,
     totalBill: Number,
     bedHistory: [mongoose.Schema.Types.Mixed],
+    guardianSignature: { type: String, default: null },
+    documents: [{ type: String }],
+    isDeleted: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now }
 });
 

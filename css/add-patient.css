@@ -1,13 +1,13 @@
-/* ==================== ADD PATIENT VIBRANT STYLES ==================== */
+/* ==================== ADD PATIENT — PROFESSIONAL COMPACT FORM ==================== */
 
 .add-patient-container {
     background: #ffffff;
-    border-radius: 20px;
-    padding: 30px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-    animation: fadeIn 0.5s ease;
-    border: 1px solid rgba(0, 0, 0, 0.02);
-    max-width: 900px;
+    border-radius: 12px;
+    padding: 20px 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    border: 1px solid #e2e8f0;
+    animation: fadeIn 0.3s ease;
+    max-width: 720px;
     margin: 0 auto;
 }
 
@@ -15,18 +15,18 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 25px;
-    border-bottom: 2px solid #f0f2f5;
-    padding-bottom: 15px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 12px;
 }
 
 .add-patient-container .module-header h2 {
-    color: #2d3436;
-    font-size: 26px;
-    font-weight: 800;
+    color: #1e293b;
+    font-size: 18px;
+    font-weight: 700;
     margin: 0;
     position: relative;
-    padding-left: 15px;
+    padding-left: 12px;
 }
 
 .add-patient-container .module-header h2::before {
@@ -35,125 +35,167 @@
     left: 0;
     top: 50%;
     transform: translateY(-50%);
-    height: 80%;
-    width: 5px;
-    background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%);
-    border-radius: 10px;
+    height: 70%;
+    width: 3px;
+    background: var(--primary, #4f46e5);
+    border-radius: 4px;
 }
 
+.add-patient-container .module-header .btn {
+    padding: 6px 14px;
+    font-size: 12px;
+    border-radius: 6px;
+}
+
+/* Form Layout */
 .patient-form {
     display: flex;
     flex-direction: column;
-    gap: 30px;
+    gap: 14px;
 }
 
 .form-section {
-    background: #fdfdfd;
-    border: 1px solid #f0f2f5;
-    border-radius: 15px;
-    padding: 25px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background: #f8fafc;
+    border: 1px solid #eef2f7;
+    border-radius: 10px;
+    padding: 14px 16px;
+    box-shadow: none;
+    transition: border-color 0.2s ease;
 }
 
 .form-section:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.04);
+    border-color: #cbd5e1;
+    transform: none;
+    box-shadow: none;
 }
 
 .form-section h3 {
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 18px;
-    color: #2d3748;
-    margin-bottom: 25px;
-    padding-bottom: 12px;
-    border-bottom: 2px dashed #e2e8f0;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed #e2e8f0;
 }
 
 .form-section h3 i {
-    width: 35px;
-    height: 35px;
+    width: 28px;
+    height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 10px;
-    font-size: 16px;
+    border-radius: 6px;
+    font-size: 12px;
 }
 
-/* Specific Section Icons coloring */
-.form-section:nth-child(1) h3 i {
-    background: rgba(102, 126, 234, 0.1);
-    color: #667eea;
-}
+/* Section icon colors */
+.form-section:nth-child(1) h3 i { background: #eef2ff; color: #6366f1; }
+.form-section:nth-child(2) h3 i { background: #ecfdf5; color: #10b981; }
+.form-section:nth-child(3) h3 i { background: #fef2f2; color: #ef4444; }
 
-.form-section:nth-child(2) h3 i {
-    background: rgba(46, 213, 115, 0.1);
-    color: #2ed573;
-}
-
-.form-section:nth-child(3) h3 i {
-    background: rgba(255, 71, 87, 0.1);
-    color: #ff4757;
-}
-
+/* Form Grid */
 .form-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
 }
 
 .form-group {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
 }
 
 .form-group label {
-    font-size: 13px;
-    font-weight: 700;
-    color: #4a5568;
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
 }
 
+/* Inputs */
 .form-group input,
 .form-group select,
 .form-group textarea {
     background: #ffffff;
-    border: 2px solid #e2e8f0;
-    border-radius: 10px;
-    padding: 14px 16px;
-    font-size: 15px;
-    color: #2d3748;
-    transition: all 0.3s ease;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 13px;
+    color: #1e293b;
+    transition: border-color 0.2s ease;
+    font-family: inherit;
 }
 
 .form-group textarea {
     resize: vertical;
-    min-height: 80px;
+    min-height: 50px;
 }
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
-    border-color: #667eea;
+    border-color: #6366f1;
     outline: none;
-    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
-    background: #fcfcfc;
+    box-shadow: 0 0 0 2px rgba(99,102,241,0.1);
 }
 
+/* Action Buttons */
 .form-actions {
     display: flex;
-    gap: 15px;
-    margin-top: 10px;
+    gap: 10px;
+    margin-top: 4px;
 }
 
 .form-actions button {
-    padding: 16px 30px;
-    font-size: 16px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    border-radius: 12px;
+    padding: 9px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 8px;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+    .add-patient-container {
+        padding: 16px;
+        border-radius: 10px;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .form-section {
+        padding: 12px 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .add-patient-container {
+        padding: 12px;
+    }
+
+    .add-patient-container .module-header h2 {
+        font-size: 16px;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .form-actions button {
+        width: 100%;
+    }
 }

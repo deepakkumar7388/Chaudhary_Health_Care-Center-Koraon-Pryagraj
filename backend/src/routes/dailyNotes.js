@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const dailyNoteController = require('../controllers/dailyNoteController');
-const auth = require('../middleware/auth');
+const { authenticate } = require('../middleware/auth');
 
-router.get('/:patientId', auth, dailyNoteController.getNotesByPatient);
-router.post('/:patientId', auth, dailyNoteController.addNote);
-router.put('/:id', auth, dailyNoteController.updateNote);
+router.get('/:patientId', authenticate, dailyNoteController.getNotesByPatient);
+router.post('/:patientId', authenticate, dailyNoteController.addNote);
+router.put('/:id', authenticate, dailyNoteController.updateNote);
 
 module.exports = router;

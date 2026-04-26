@@ -307,8 +307,8 @@ function updateUserInfo() {
             let isVisible = false;
             switch (role) {
                 case 'admin': isVisible = true; break;
-                case 'doctor': isVisible = ['dashboard', 'patients', 'daily-notes', 'discharge', 'patient-record', 'billing'].includes(module); break;
-                case 'staff': isVisible = ['dashboard', 'patients', 'daily-notes'].includes(module); break;
+                case 'doctor': isVisible = ['dashboard', 'patients', 'add-patient', 'daily-notes', 'discharge', 'patient-record', 'billing'].includes(module); break;
+                case 'staff': isVisible = ['dashboard', 'patients', 'add-patient', 'daily-notes'].includes(module); break;
                 case 'receptionist': isVisible = ['dashboard', 'patients', 'add-patient'].includes(module); break;
                 default: isVisible = ['dashboard'].includes(module);
             }
@@ -352,8 +352,8 @@ function showModule(moduleName) {
     // Security check for unauthorized module access via console
     const permissions = {
         'admin': ['dashboard', 'patients', 'add-patient', 'daily-notes', 'billing', 'discharge', 'users', 'reports', 'settings', 'patient-record'],
-        'doctor': ['dashboard', 'patients', 'daily-notes', 'discharge', 'patient-record', 'billing'],
-        'staff': ['dashboard', 'patients', 'daily-notes'],
+        'doctor': ['dashboard', 'patients', 'add-patient', 'daily-notes', 'discharge', 'patient-record', 'billing'],
+        'staff': ['dashboard', 'patients', 'add-patient', 'daily-notes'],
         'receptionist': ['dashboard', 'patients', 'add-patient']
     };
 

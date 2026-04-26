@@ -66,6 +66,11 @@ function renderSettings() {
                                 <label>Registration Number</label>
                                 <input type="text" id="hospital-reg" class="search-input" value="HOSP/2024/001">
                             </div>
+                            <div class="form-group" style="grid-column: span 2;">
+                                <label>Hospital Beds (Comma separated list)</label>
+                                <textarea id="hospital-beds" class="search-input" style="height: 80px; width: 100%; padding: 10px;" placeholder="ICU-1, ICU-2, ICU-3, Ward-1, Ward-2, Ward-3, Ward-4, Ward-5"></textarea>
+                                <small style="color: #64748b; margin-top: 5px; display: block;">Enter all available bed IDs/Numbers separated by commas.</small>
+                            </div>
                         </div>
                     </div>
                     

@@ -80,8 +80,13 @@ async function loadPatients() {
     showLoading('Loading patients...');
 
     try {
-        const response = await fetch(`${API_BASE}patients`, {
-            headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('token') }
+        const response = await fetch(`${API_BASE}patients?_t=${Date.now()}`, {
+            headers: { 
+                'Authorization': 'Bearer ' + sessionStorage.getItem('token'),
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache'
+            },
+            cache: 'no-store'
         });
         const result = await response.json();
 
@@ -92,25 +97,7 @@ async function loadPatients() {
         }
     } catch (error) {
         console.log('Loading from LocalStorage...');
-        const storedPatients = JSON.parse(localStorage.getItem('patients') || '[]');
-
-        // Demo data if total is 0
-        if (storedPatients.length === 0) {
-            const demoPatients = [
-                {
-                    id: '1001', patient_id: 'P-1001', name: 'Rajesh Kumar', age: 45, gender: 'Male', guardian_name: 'S/o Ram Lal', bed_no: 'ICU-2',
-                    admission_date: '2024-03-10', status: 'Admitted', payment_status: 'Pending', pending_amount: 8500, problem: 'Blood Pressure', doctor_assigned: 'Dr. Bhoopendra Chaudhary'
-                },
-                {
-                    id: '1002', patient_id: 'P-1002', name: 'Sunita Sharma', age: 32, gender: 'Female', guardian_name: 'W/o V. Sharma', bed_no: 'Ward-3',
-                    admission_date: '2024-03-12', status: 'Admitted', payment_status: 'Pending', pending_amount: 3200, problem: 'Fever', doctor_assigned: 'Dr. Bhoopendra Chaudhary'
-                }
-            ];
-            window.allPatientsData = demoPatients;
-            localStorage.setItem('patients', JSON.stringify(demoPatients));
-        } else {
-            window.allPatientsData = storedPatients;
-        }
+        window.allPatientsData = JSON.parse(localStorage.getItem('patients') || '[]');
     }
 
     renderPatientsTable(window.allPatientsData);
@@ -144,7 +131,7 @@ function renderPatientsTable(patientsList) {
             </td>
             <td>${patient.age}/${patient.gender?.charAt(0) || ''}</td>
             <td>${bedDisplay}</td>
-            <td>${patient.admission_date}</td>
+            <td>${new Date(patient.admission_date).toLocaleDateString()}</td>
             <td><span class="status-badge ${(patient.status || '').toLowerCase() === 'discharged' ? 'payment-pending' : 'payment-paid'}">${(patient.status || 'Admitted').toUpperCase()}</span></td>
 
             <td>
@@ -429,7 +416,7 @@ function editPatient(patientId) {
                         </div>
                         <div>
                             <label style="display:block; font-size:11px; font-weight:700; color:#a0aec0; text-transform:uppercase; margin-bottom:5px;">Gender</label>
-                            <select id="edit-p-gender" class="filter-select" style="width:100%;">
+                            <select id="edit-p-gender" class="filter-select" style="width:100%;" onchange="loadAvailableBedsForEdit('${patient.bed_no}', this.value)">
                                 <option value="Male" ${patient.gender === 'Male' ? 'selected' : ''}>Male</option>
                                 <option value="Female" ${patient.gender === 'Female' ? 'selected' : ''}>Female</option>
                                 <option value="Other" ${patient.gender === 'Other' ? 'selected' : ''}>Other</option>
@@ -463,7 +450,9 @@ function editPatient(patientId) {
                             </div>
                             <div>
                                 <label style="display:block; font-size:10px; color:#718096; margin-bottom:3px;">Bed Number</label>
-                                <input type="text" id="edit-p-bed-no" value="${patient.bed_no || ''}" class="search-input" style="width:100%; height: 35px;" placeholder="e.g. ICU-05">
+                                <select id="edit-p-bed-no" class="filter-select" style="width:100%; height: 35px;">
+                                    <option value="${patient.bed_no || ''}">${patient.bed_no || 'Select Bed'}</option>
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -479,6 +468,69 @@ function editPatient(patientId) {
         </div>
     `;
     document.body.appendChild(modal);
+    loadAvailableBedsForEdit(patient.bed_no, patient.gender);
+}
+
+async function loadAvailableBedsForEdit(currentBed, gender) {
+    const bedSelect = document.getElementById('edit-p-bed-no');
+    if (!bedSelect) return;
+
+    try {
+        const response = await fetch(`${API_BASE}patients/available-beds`, {
+            headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('token') }
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+            const allBeds = result.beds || [];
+            if (currentBed && !allBeds.includes(currentBed)) {
+                allBeds.unshift(currentBed);
+            }
+            
+            bedSelect.innerHTML = '';
+            if (allBeds.length === 0 && !currentBed) {
+                bedSelect.innerHTML = '<option value="" disabled>No beds available</option>';
+                return;
+            }
+
+            const groups = {
+                'General Ward (Male)': [],
+                'General Ward (Female)': [],
+                'ICU Ward': [],
+                'Private Room': [],
+                'Others': []
+            };
+
+            allBeds.forEach(bed => {
+                if (bed.startsWith('Male-G')) {
+                    if (gender === 'Male' || bed === currentBed) groups['General Ward (Male)'].push(bed);
+                }
+                else if (bed.startsWith('Female-G')) {
+                    if (gender === 'Female' || bed === currentBed) groups['General Ward (Female)'].push(bed);
+                }
+                else if (bed.startsWith('ICU-')) groups['ICU Ward'].push(bed);
+                else if (bed.startsWith('Private-')) groups['Private Room'].push(bed);
+                else groups['Others'].push(bed);
+            });
+
+            for (const [groupName, beds] of Object.entries(groups)) {
+                if (beds.length > 0) {
+                    const optgroup = document.createElement('optgroup');
+                    optgroup.label = groupName;
+                    beds.forEach(bed => {
+                        const option = document.createElement('option');
+                        option.value = bed;
+                        option.textContent = bed;
+                        if (bed === currentBed) option.selected = true;
+                        optgroup.appendChild(option);
+                    });
+                    bedSelect.appendChild(optgroup);
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error loading available beds:', error);
+    }
 }
 
 function deletePatient(patientId) {
@@ -486,7 +538,214 @@ function deletePatient(patientId) {
         showNotification('Access Denied. Only Admin can delete patients.', 'error');
         return;
     }
-    if (confirm('Are you certain you want to permanently delete this patient?')) {
+
+    const patient = window.allPatientsData?.find(p => String(p.patient_id) === String(patientId) || String(p.id) === String(patientId));
+    const patientName = patient?.name || patientId;
+
+    // Remove any existing delete modal
+    document.getElementById('delete-confirm-modal')?.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'delete-confirm-modal';
+    modal.innerHTML = `
+        <style>
+            .delete-modal-overlay {
+                position: fixed; inset: 0; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px);
+                display: flex; align-items: center; justify-content: center; z-index: 10000;
+                animation: deleteModalFadeIn 0.25s ease;
+            }
+            @keyframes deleteModalFadeIn { from { opacity: 0; } to { opacity: 1; } }
+            @keyframes deleteModalSlideUp { from { opacity: 0; transform: translateY(30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+            @keyframes deleteShake { 0%,100% { transform: translateX(0); } 20%,60% { transform: translateX(-6px); } 40%,80% { transform: translateX(6px); } }
+            .delete-modal-box {
+                background: #fff; border-radius: 16px; width: 420px; max-width: 92vw;
+                box-shadow: 0 25px 60px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.05);
+                animation: deleteModalSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+                overflow: hidden; position: relative; z-index: 10001;
+            }
+            .delete-modal-header {
+                background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+                padding: 28px 28px 20px; text-align: center;
+                border-bottom: 1px solid #fecaca;
+            }
+            .delete-modal-icon {
+                width: 64px; height: 64px; border-radius: 50%;
+                background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+                display: flex; align-items: center; justify-content: center;
+                margin: 0 auto 16px; box-shadow: 0 8px 20px rgba(239,68,68,0.35);
+                animation: deleteShake 0.5s ease 0.3s;
+            }
+            .delete-modal-icon i { font-size: 28px; color: #fff; }
+            .delete-modal-header h3 { margin: 0 0 6px; font-size: 20px; color: #991b1b; font-weight: 700; }
+            .delete-modal-header p { margin: 0; font-size: 13px; color: #b91c1c; opacity: 0.8; }
+            .delete-modal-body { padding: 24px 28px; }
+            .delete-patient-info {
+                background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;
+                padding: 14px 16px; margin-bottom: 18px; display: flex; align-items: center; gap: 12px;
+            }
+            .del-avatar {
+                width: 42px !important; height: 42px !important; border-radius: 50% !important;
+                background: linear-gradient(135deg, #e0e7ff, #c7d2fe) !important; color: #4f46e5 !important;
+                display: flex !important; align-items: center !important; justify-content: center !important;
+                font-weight: 700 !important; font-size: 16px !important; flex-shrink: 0 !important;
+                border: none !important; padding: 0 !important; margin: 0 !important;
+                box-shadow: none !important;
+            }
+            .delete-patient-info .details { flex: 1; }
+            .delete-patient-info .details .name { font-weight: 600; color: #1e293b; font-size: 14px; }
+            .delete-patient-info .details .id { font-size: 12px; color: #64748b; margin-top: 2px; }
+            .delete-warning-text {
+                font-size: 13px; color: #64748b; line-height: 1.6; margin-bottom: 18px;
+            }
+            .delete-warning-text strong { color: #dc2626; }
+            .delete-step2-area { display: none; }
+            #delete-confirm-input {
+                width: 100% !important; padding: 12px 14px !important; border: 2px solid #e2e8f0 !important;
+                border-radius: 10px !important; font-size: 14px !important; font-weight: 600 !important;
+                text-align: center !important; letter-spacing: 3px !important;
+                color: #1e293b !important; outline: none !important;
+                transition: border-color 0.2s !important;
+                font-family: 'Courier New', monospace !important;
+                box-sizing: border-box !important; pointer-events: auto !important;
+                position: relative !important; z-index: 10002 !important;
+                -webkit-user-select: text !important; user-select: text !important;
+                background: #fff !important; cursor: text !important;
+            }
+            #delete-confirm-input:focus { border-color: #ef4444 !important; }
+            #delete-confirm-input.matched { border-color: #ef4444 !important; background: #fef2f2 !important; }
+            .delete-type-label {
+                font-size: 12px; color: #64748b; text-align: center;
+                margin-bottom: 10px; font-weight: 500;
+            }
+            .delete-type-label code {
+                background: #fee2e2; color: #dc2626; padding: 2px 8px;
+                border-radius: 4px; font-weight: 700; font-size: 13px;
+            }
+            .delete-modal-footer {
+                padding: 0 28px 24px; display: flex; gap: 10px;
+            }
+            .delete-btn-cancel {
+                flex: 1; padding: 12px; border: 1px solid #e2e8f0; background: #f8fafc;
+                border-radius: 10px; font-size: 14px; font-weight: 600; color: #475569;
+                cursor: pointer; transition: all 0.2s;
+            }
+            .delete-btn-cancel:hover { background: #e2e8f0; }
+            .delete-btn-proceed {
+                flex: 1; padding: 12px; border: none;
+                background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+                border-radius: 10px; font-size: 14px; font-weight: 600; color: #fff;
+                cursor: pointer; transition: all 0.2s;
+                box-shadow: 0 4px 12px rgba(239,68,68,0.3);
+            }
+            .delete-btn-proceed:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(239,68,68,0.4); }
+            .delete-btn-proceed:disabled {
+                opacity: 0.4; cursor: not-allowed; transform: none;
+                box-shadow: none;
+            }
+            .delete-step-indicator {
+                display: flex; justify-content: center; gap: 8px; margin-bottom: 16px;
+            }
+            .delete-step-dot {
+                width: 8px; height: 8px; border-radius: 50%; background: #e2e8f0; transition: all 0.3s;
+            }
+            .delete-step-dot.active { background: #ef4444; width: 24px; border-radius: 4px; }
+        </style>
+
+        <div class="delete-modal-overlay" id="delete-overlay-bg">
+            <div class="delete-modal-box" onclick="event.stopPropagation()">
+                <div class="delete-modal-header">
+                    <div class="delete-modal-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                    <h3 id="delete-modal-title">Delete Patient Record</h3>
+                    <p id="delete-modal-subtitle">This action cannot be undone</p>
+                </div>
+
+                <div class="delete-modal-body">
+                    <div class="delete-step-indicator">
+                        <div class="delete-step-dot active" id="del-dot-1"></div>
+                        <div class="delete-step-dot" id="del-dot-2"></div>
+                    </div>
+
+                    <!-- STEP 1 -->
+                    <div id="delete-step1">
+                        <div class="delete-patient-info">
+                            <div class="del-avatar">${(patientName.charAt(0) || 'P').toUpperCase()}</div>
+                            <div class="details">
+                                <div class="name">${patientName}</div>
+                                <div class="id">ID: ${patientId}</div>
+                            </div>
+                        </div>
+                        <div class="delete-warning-text">
+                            You are about to <strong>permanently delete</strong> this patient and all associated records including billing, notes, and medical history.
+                            <br><br>
+                            Are you sure you want to proceed?
+                        </div>
+                    </div>
+
+                    <!-- STEP 2 -->
+                    <div id="delete-step2" class="delete-step2-area">
+                        <div class="delete-warning-text" style="text-align:center; margin-bottom:14px;">
+                            ⚠️ <strong>Final Confirmation Required</strong><br>
+                            Type <code style="background:#fee2e2; color:#dc2626; padding:2px 6px; border-radius:4px; font-weight:700;">DELETE</code> below to confirm permanent deletion.
+                        </div>
+                        <div class="delete-type-label">Type <code>DELETE</code> to confirm</div>
+                        <input type="text" id="delete-confirm-input" placeholder="Type here..." autocomplete="off" spellcheck="false">
+                    </div>
+                </div>
+
+                <div class="delete-modal-footer">
+                    <button class="delete-btn-cancel" onclick="document.getElementById('delete-confirm-modal').remove(); window._deleteStep=1;">
+                        <i class="fas fa-times" style="margin-right:6px;"></i>Cancel
+                    </button>
+                    <button class="delete-btn-proceed" id="delete-proceed-btn" onclick="handleDeleteStep('${patientId}')">
+                        <i class="fas fa-arrow-right" style="margin-right:6px;"></i>Yes, Proceed
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    // Close on overlay background click only
+    document.getElementById('delete-overlay-bg').addEventListener('mousedown', function(e) {
+        if (e.target === this) {
+            window._deleteStep = 1;
+            document.getElementById('delete-confirm-modal')?.remove();
+        }
+    });
+}
+
+// Track delete step state
+window._deleteStep = 1;
+
+function handleDeleteStep(patientId) {
+    if (window._deleteStep === 1) {
+        // Move to step 2
+        window._deleteStep = 2;
+        document.getElementById('delete-step1').style.display = 'none';
+        document.getElementById('delete-step2').style.display = 'block';
+        document.getElementById('del-dot-1').classList.remove('active');
+        document.getElementById('del-dot-2').classList.add('active');
+        document.getElementById('delete-modal-title').textContent = 'Final Confirmation';
+        document.getElementById('delete-modal-subtitle').textContent = 'Type DELETE to permanently remove this record';
+
+        const proceedBtn = document.getElementById('delete-proceed-btn');
+        proceedBtn.disabled = true;
+        proceedBtn.innerHTML = '<i class="fas fa-trash" style="margin-right:6px;"></i>Delete Permanently';
+
+        const input = document.getElementById('delete-confirm-input');
+        input.focus();
+        input.addEventListener('input', function() {
+            const match = this.value.trim().toUpperCase() === 'DELETE';
+            proceedBtn.disabled = !match;
+            this.classList.toggle('matched', match);
+        });
+
+        window._deleteStep = 2;
+    } else if (window._deleteStep === 2) {
+        // Actually delete
+        window._deleteStep = 1;
+        document.getElementById('delete-confirm-modal')?.remove();
+
         showLoading('Deleting patient...');
         fetch(`${API_BASE}patients/${patientId}`, {
             method: 'DELETE',
@@ -582,7 +841,7 @@ function openSurgeryModal(patientId) {
                 </div>
                 <div class="form-group" style="margin-bottom: 25px;">
                     <label>Surgery Base Charges (${window.currencySymbol || '₹'}) *</label>
-                    <input type="number" id="surgery-cost" value="0" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px;">
+                    <input type="number" id="surgery-cost" placeholder="Enter amount" min="0" onfocus="this.select()" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px;">
                     <small style="color:#718096; display:block; margin-top:5px;"><i class="fas fa-info-circle"></i> This will be automatically added to the Billing Module.</small>
                 </div>
                 <div style="display:flex; justify-content:flex-end; gap:10px;">

@@ -1,5 +1,15 @@
 const Billing = require('../models/Billing');
 
+// Get all billing records (for dashboard analytics)
+exports.getAllBillings = async (req, res) => {
+    try {
+        const billings = await Billing.find({});
+        res.status(200).json({ success: true, billings });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
 exports.getBillingByPatient = async (req, res) => {
     try {
         const billing = await Billing.findOne({ patient_id: req.params.patientId });
