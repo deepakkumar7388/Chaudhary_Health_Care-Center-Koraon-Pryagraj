@@ -23,6 +23,7 @@
     <link rel="stylesheet" href="css/daily-notes.css">
     <link rel="stylesheet" href="css/billing.css">
     <link rel="stylesheet" href="css/discharge.css">
+    <link rel="stylesheet" href="css/users.css">
 </head>
 
 <body>
@@ -54,6 +55,9 @@
                             </div>
 
                             <button type="submit" class="login-btn">Sign In</button>
+                            <div class="forgot-pass-link">
+                                <a href="javascript:void(0)" onclick="openForgotModal()">Forgot Password?</a>
+                            </div>
                             <div id="login-error" class="error-message"></div>
                         </form>
 
@@ -176,7 +180,7 @@
             <div class="user-profile-section" onclick="toggleUserDropdown(event)">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div id="sidebar-avatar" class="initials-avatar"
-                        style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: bold; box-shadow: 0 4px 10px rgba(118, 75, 162, 0.3);">
+                        style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: bold; box-shadow: 0 4px 10px rgba(118, 75, 162, 0.3); overflow: hidden; position: relative;">
                         <i class="fas fa-user" style="font-size: 14px;"></i>
                     </div>
                     <div style="flex: 1; overflow: hidden; text-align: left;">
@@ -194,9 +198,9 @@
                     style="display: none; position: absolute; bottom: calc(100% + 5px); left: 15px; right: 15px; background: white; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; padding: 8px; z-index: 1000; animation: fadeUpDropdown 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
                     <div class="menu-item"
                         style="padding: 10px 15px; border-radius: 6px; margin: 0; margin-bottom: 2px; display: flex; align-items: center; gap: 15px;"
-                        onclick="showModule('settings')">
-                        <i class="fas fa-cog" style="color: #64748b; font-size: 15px;"></i> <span
-                            style="font-size: 14px; font-weight: 500; color: #1e293b;">Profile Settings</span>
+                        onclick="openProfileModal()">
+                        <i class="fas fa-user-circle" style="color: #64748b; font-size: 15px;"></i> <span
+                            style="font-size: 14px; font-weight: 500; color: #1e293b;">My Profile</span>
                     </div>
                     <div style="height: 1px; background: #f1f5f9; margin: 4px 0;"></div>
                     <div class="menu-item"
@@ -335,6 +339,145 @@
             <div class="logout-modal-actions">
                 <button class="logout-btn-no" onclick="cancelLogout()">No</button>
                 <button class="logout-btn-yes" onclick="confirmLogout()">Yes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Forgot Password Modal (Enter Email) -->
+    <div id="forgot-modal" class="modal" style="display:none;">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3>Recover Password</h3>
+                <button class="modal-close" onclick="closeForgotModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 13px; color: #64748b; margin-bottom: 20px;">Enter your registered email address to receive a 6-digit verification code.</p>
+                <form id="forgot-form" onsubmit="event.preventDefault(); handleForgotSubmit();">
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="forgot-email" required placeholder="yourname@hospital.com">
+                    </div>
+                    <div class="modal-footer" style="padding: 10px 0 0 0; background: none; border: none;">
+                        <button type="submit" class="btn-primary" style="width: 100%;">Send Verification Code</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reset Password Modal (Step 2: Enter OTP) -->
+    <div id="otp-modal" class="modal" style="display:none;">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3>Verify OTP</h3>
+                <button class="modal-close" onclick="closeOtpModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 13px; color: #64748b; margin-bottom: 20px;">Enter the 6-digit code sent to your email to verify your identity.</p>
+                <form id="otp-form" onsubmit="event.preventDefault(); handleOtpVerify();">
+                    <div class="form-group">
+                        <label>6-Digit Code (OTP)</label>
+                        <input type="text" id="verify-otp-input" required maxlength="6" style="letter-spacing: 5px; text-align: center; font-weight: bold; font-size: 18px;">
+                    </div>
+                    <div class="modal-footer" style="padding: 10px 0 0 0; background: none; border: none;">
+                        <button type="submit" class="btn-primary" style="width: 100%;">Verify & Continue</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Password Modal (Step 3: Set Password) -->
+    <div id="new-pass-modal" class="modal" style="display:none;">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3>Create New Password</h3>
+                <button class="modal-close" onclick="closeNewPassModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 13px; color: #64748b; margin-bottom: 20px;">Choose a strong password for your account.</p>
+                <form id="new-pass-form" onsubmit="event.preventDefault(); handleNewPassSubmit();">
+                    <div class="form-group">
+                        <label>New Password</label>
+                        <input type="password" id="final-new-password" required placeholder="Minimum 6 characters">
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm Password</label>
+                        <input type="password" id="confirm-new-password" required placeholder="Re-enter new password">
+                    </div>
+                    <div class="modal-footer" style="padding: 10px 0 0 0; background: none; border: none;">
+                        <button type="submit" class="btn-primary" style="width: 100%;">Update Password</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Profile Modal -->
+    <div id="profile-modal" class="modal" style="display:none;">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <div style="position: relative;">
+                        <div id="profile-avatar-large" style="width: 70px; height: 70px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: bold; overflow: hidden; border: 3px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                            JD
+                        </div>
+                        <label for="avatar-upload" style="position: absolute; bottom: 0; right: 0; background: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.15); border: 1px solid #e2e8f0; z-index: 10;">
+                            <i class="fas fa-camera" style="font-size: 12px; color: #64748b;"></i>
+                        </label>
+                        <input type="file" id="avatar-upload" style="display: none;" accept="image/*" onchange="previewAvatar(event)">
+                        
+                        <!-- Mini save button for photo only -->
+                        <button id="save-photo-btn" onclick="saveProfilePhoto()" style="display: none; position: absolute; top: 75px; left: 50%; transform: translateX(-50%); background: #22c55e; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 10px; font-weight: 700; cursor: pointer; white-space: nowrap; box-shadow: 0 2px 5px rgba(34, 197, 94, 0.3);">UPDATE PHOTO</button>
+                    </div>
+                    <div>
+                        <h3 id="profile-name-text" style="margin: 0;">My Profile</h3>
+                        <p id="profile-role-text" style="margin: 0; font-size: 12px; color: #64748b;">Administrator</p>
+                    </div>
+                </div>
+                <button class="modal-close" onclick="closeProfileModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="padding-top: 20px;">
+                <div class="profile-info-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; background: #f8fafc; padding: 15px; border-radius: 12px;">
+                    <div>
+                        <label style="font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: 700;">Username</label>
+                        <p id="profile-username" style="margin: 5px 0 0; font-weight: 600; color: #1e293b;">admin</p>
+                    </div>
+                    <div>
+                        <label style="font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: 700;">Email</label>
+                        <p id="profile-email" style="margin: 5px 0 0; font-weight: 600; color: #1e293b;">admin@hospital.com</p>
+                    </div>
+                </div>
+
+                <h4 style="margin: 0 0 15px; font-size: 14px; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-key" style="font-size: 12px; color: var(--primary);"></i> Change Password
+                </h4>
+                
+                <form id="profile-form" onsubmit="event.preventDefault(); saveProfileChanges();">
+                    <div class="form-group">
+                        <label>Current Password</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="password" id="profile-current-password" placeholder="Enter current password" required style="flex: 1;">
+                            <button type="button" class="btn-secondary" onclick="checkCurrentPassword()" id="verify-pw-btn" style="padding: 0 15px; border-radius: 50px;">Verify</button>
+                        </div>
+                    </div>
+                    
+                    <div id="new-password-section" style="opacity: 0.5; pointer-events: none;">
+                        <div class="form-group">
+                            <label>New Password</label>
+                            <input type="password" id="profile-new-password" placeholder="Enter new password" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label>Confirm New Password</label>
+                            <input type="password" id="profile-confirm-password" placeholder="Repeat new password" disabled>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer" style="padding: 20px 0 0; background: none; border-top: 1px solid #f1f5f9; margin-top: 20px;">
+                        <button type="button" class="btn-secondary" onclick="closeProfileModal()">Cancel</button>
+                        <button type="submit" class="btn-primary" id="save-profile-btn" disabled>Save Changes</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

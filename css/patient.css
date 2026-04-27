@@ -195,4 +195,167 @@
     .patients-table th, .patients-table td {
         padding: 12px 10px;
     }
+}
+
+/* ==================== PREMIUM ADD PATIENT CTA BUTTON ==================== */
+
+.add-patient-cta {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 26px;
+    border: none;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #ffffff;
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow:
+        0 4px 15px rgba(102, 126, 234, 0.35),
+        0 1px 3px rgba(118, 75, 162, 0.2);
+    white-space: nowrap;
+}
+
+.add-patient-cta:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow:
+        0 8px 25px rgba(102, 126, 234, 0.45),
+        0 4px 10px rgba(118, 75, 162, 0.3);
+    background: linear-gradient(135deg, #7c8ef5 0%, #8a5db5 100%);
+}
+
+.add-patient-cta:active {
+    transform: translateY(0) scale(0.98);
+    box-shadow:
+        0 2px 8px rgba(102, 126, 234, 0.3),
+        0 1px 3px rgba(118, 75, 162, 0.15);
+    transition-duration: 0.1s;
+}
+
+/* Icon Wrapper */
+.add-patient-cta .cta-icon-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(4px);
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+}
+
+.add-patient-cta:hover .cta-icon-wrap {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(-8deg) scale(1.1);
+}
+
+.add-patient-cta .cta-icon-wrap i {
+    font-size: 14px;
+    color: #ffffff;
+    transition: transform 0.3s ease;
+}
+
+.add-patient-cta:hover .cta-icon-wrap i {
+    transform: scale(1.15);
+}
+
+/* Label */
+.add-patient-cta .cta-label {
+    position: relative;
+    z-index: 1;
+    line-height: 1;
+}
+
+/* Animated Shimmer Sweep */
+.add-patient-cta .cta-shimmer {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.15) 40%,
+        rgba(255, 255, 255, 0.3) 50%,
+        rgba(255, 255, 255, 0.15) 60%,
+        transparent 100%
+    );
+    transform: skewX(-20deg);
+    animation: ctaShimmer 3.5s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes ctaShimmer {
+    0% {
+        left: -100%;
+    }
+    50%, 100% {
+        left: 200%;
+    }
+}
+
+/* Focus Ring for Accessibility */
+.add-patient-cta:focus-visible {
+    outline: 3px solid rgba(102, 126, 234, 0.5);
+    outline-offset: 3px;
+}
+
+/* Pulse Ring on Hover */
+.add-patient-cta::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 17px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    opacity: 0;
+    z-index: -1;
+    transition: opacity 0.35s ease;
+    filter: blur(8px);
+}
+
+.add-patient-cta:hover::before {
+    opacity: 0.4;
+    animation: ctaPulseGlow 2s ease-in-out infinite;
+}
+
+@keyframes ctaPulseGlow {
+    0%, 100% {
+        opacity: 0.25;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.45;
+        transform: scale(1.04);
+    }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .add-patient-cta {
+        padding: 10px 18px;
+        font-size: 13px;
+        border-radius: 12px;
+        gap: 8px;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .add-patient-cta .cta-icon-wrap {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+    }
+
+    .add-patient-cta .cta-icon-wrap i {
+        font-size: 12px;
+    }
 }

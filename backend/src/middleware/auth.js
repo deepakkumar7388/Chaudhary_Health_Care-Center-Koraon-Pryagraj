@@ -1,10 +1,21 @@
 const jwt = require('jsonwebtoken');
+const User = require('../models/User');
 
-exports.authenticate = (req, res, next) => {
+exports.authenticate = async (req, res, next) => {
     try {
         const token = req.headers.authorization.split(' ')[1];
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        
+        // Security Check: Verify user still exists and is active
+        const user = await User.findById(decoded.userId);
+        if (!user || user.status !== 'active') {
+            return res.status(403).json({
+                message: 'Account is inactive or has been suspended. Please contact admin.'
+            });
+        }
+
         req.userData = decoded;
+        req.user = user; // Attach full user object for convenience
         next();
     } catch (error) {
         return res.status(401).json({

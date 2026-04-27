@@ -2,9 +2,11 @@
 let currentUser = null;
 let currentModule = 'dashboard';
 // Use local IP for same-wifi mobile access, or the Render URL for production
-const API_BASE = (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost' || window.location.hostname.startsWith('192.168.') || window.location.hostname.startsWith('10.'))
-    ? `http://${window.location.hostname}:5000/api/`
-    : 'https://chaudhary-hms-api.onrender.com/api/';
+// Point to local backend for testing new features
+let API_BASE = 'http://127.0.0.1:5000/api/';
+
+// If you want to use live server later, uncomment the line below:
+// API_BASE = 'https://chaudhary-hms-api.onrender.com/api/';
 
 
 // ==================== UTILITY FUNCTIONS ====================
@@ -101,61 +103,39 @@ async function login() {
             };
 
             sessionStorage.setItem('user', JSON.stringify(currentUser));
-            sessionStorage.setItem('token', result.token || 'authenticated');
+            sessionStorage.setItem('token', result.token);
 
             hideLoading();
             showNotification('Login successful!', 'success', 'Welcome');
             switchToApp();
         } else {
-            document.getElementById('login-error').textContent = result.message || 'Invalid credentials';
             hideLoading();
+            if (response.status === 403) {
+                // Account is pending or rejected
+                let title = 'Access Restricted';
+                let type = 'warning';
+                let msg = result.message || 'Account is not active';
+
+                if (msg.includes('pending')) {
+                    title = 'Approval Pending';
+                    msg = 'Your account is pending administrator approval. Please contact the admin.';
+                } else if (msg.includes('rejected')) {
+                    title = 'Account Rejected';
+                    type = 'error';
+                    msg = 'Your account request has been rejected. Please contact the admin.';
+                }
+                
+                showNotification(msg, type, title);
+                document.getElementById('login-error').textContent = msg;
+            } else {
+                document.getElementById('login-error').textContent = result.message || 'Invalid credentials';
+            }
         }
     } catch (error) {
         console.error('Login error:', error);
-        // LocalStorage fallback for Login
-        let storedUsers = JSON.parse(localStorage.getItem('users'));
-        if (!storedUsers || storedUsers.length === 0) {
-            storedUsers = [
-                { id: 1, username: 'admin', password: 'admin123', role: 'admin', name: 'System Admin', email: 'admin@hospital.com', status: 'active' },
-                { id: 2, username: 'doctor', password: '123456', role: 'doctor', name: 'Dr. Sharma', email: 'doctor@hospital.com', status: 'active' },
-                { id: 3, username: 'reception', password: '123456', role: 'receptionist', name: 'Receptionist', email: 'reception@hospital.com', status: 'active' },
-                { id: 4, username: 'nurse', password: '123456', role: 'staff', name: 'Nurse Priya', email: 'nurse@hospital.com', status: 'active' }
-            ];
-            localStorage.setItem('users', JSON.stringify(storedUsers));
-        }
-
-        const validUser = storedUsers.find(u => u.username === username && u.password === password);
-
-        if (validUser) {
-            if (validUser.status !== 'active') {
-                let errorMsg = 'Your account is inactive.';
-                if (validUser.status === 'pending') errorMsg = 'Your account is pending administrator approval.';
-                if (validUser.status === 'rejected') errorMsg = 'Your account has been rejected. Please contact the administrator.';
-
-                document.getElementById('login-error').textContent = errorMsg;
-                hideLoading();
-                return;
-            }
-
-            currentUser = {
-                id: validUser.id,
-                username: validUser.username,
-                role: validUser.role,
-                name: validUser.name,
-                email: validUser.email,
-                mobile: validUser.mobile || ''
-            };
-
-            sessionStorage.setItem('user', JSON.stringify(currentUser));
-            sessionStorage.setItem('token', 'authenticated');
-
-            hideLoading();
-            showNotification('Login successful!', 'success', 'Welcome');
-            switchToApp();
-        } else {
-            document.getElementById('login-error').textContent = 'Invalid credentials';
-            hideLoading();
-        }
+        hideLoading();
+        showNotification('Server is unreachable. Please check your internet connection or contact support.', 'error', 'Connection Error');
+        document.getElementById('login-error').textContent = 'Cannot connect to server';
     }
 }
 
@@ -205,31 +185,9 @@ async function signup() {
         }
     } catch (error) {
         console.error('Signup error:', error);
-        setTimeout(() => {
-            let storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
-            if (storedUsers.some(u => u.username === username)) {
-                hideLoading();
-                document.getElementById('signup-error').textContent = 'Username already exists';
-                return;
-            }
-
-            storedUsers.push({
-                id: Date.now(),
-                username: username,
-                password: password,
-                role: role,
-                name: name,
-                email: email,
-                mobile: mobile,
-                status: 'pending' // New signups remain pending until admin approval
-            });
-            localStorage.setItem('users', JSON.stringify(storedUsers));
-
-            hideLoading();
-            showNotification('Account created! Pending admin approval.', 'success', 'Signup Complete');
-            document.getElementById('signup-form').reset();
-            toggleAuthPanel('login');
-        }, 1000);
+        hideLoading();
+        showNotification('Connection error while creating account. Please try again.', 'error');
+        document.getElementById('signup-error').textContent = 'Cannot connect to server';
     }
 }
 
@@ -282,9 +240,18 @@ function updateUserInfo() {
 
         const avatarDiv = document.getElementById('sidebar-avatar');
         if (avatarDiv) {
-            if (currentUser.name && currentUser.name.trim().length > 0) {
+            console.log("Updating Sidebar Avatar. Current User Data:", currentUser);
+            if (currentUser.avatar) {
+                // Construct full URL
+                const baseUrl = API_BASE.replace('/api/', '');
+                const fullUrl = currentUser.avatar.startsWith('http') ? currentUser.avatar : `${baseUrl}${currentUser.avatar}`;
+                console.log("Loading Sidebar Avatar from:", fullUrl);
+                avatarDiv.innerHTML = `<img src="${fullUrl}" alt="User" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+            } else if (currentUser.name && currentUser.name.trim().length > 0) {
                 const initials = currentUser.name.trim().split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
                 avatarDiv.textContent = initials;
+                avatarDiv.innerHTML = initials; // Ensure text is set
+                avatarDiv.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
             } else {
                 avatarDiv.innerHTML = '<i class="fas fa-user"></i>';
             }
@@ -634,3 +601,334 @@ document.addEventListener('click', function (e) {
 });
 
 window.toggleSidebar = toggleSidebar;
+
+// ==================== FORGOT PASSWORD LOGIC ====================
+function openForgotModal() {
+    document.getElementById('forgot-modal').style.display = 'flex';
+}
+function closeForgotModal() {
+    document.getElementById('forgot-modal').style.display = 'none';
+}
+function openOtpModal() {
+    document.getElementById('otp-modal').style.display = 'flex';
+}
+function closeOtpModal() {
+    document.getElementById('otp-modal').style.display = 'none';
+}
+function openNewPassModal() {
+    document.getElementById('new-pass-modal').style.display = 'flex';
+}
+function closeNewPassModal() {
+    document.getElementById('new-pass-modal').style.display = 'none';
+}
+
+async function handleForgotSubmit() {
+    const email = document.getElementById('forgot-email').value.trim();
+    if (!email) return;
+
+    showLoading('Sending verification code...');
+    try {
+        const response = await fetch(`${API_BASE}auth/forgot-password`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+
+        const result = await response.json();
+        hideLoading();
+
+        if (result.success) {
+            showNotification(result.message, 'success');
+            closeForgotModal();
+            openOtpModal();
+        } else {
+            showNotification(result.message || 'Failed to send OTP', 'error');
+        }
+    } catch (error) {
+        console.error('Forgot password error:', error);
+        hideLoading();
+        showNotification('Connection Error: ' + error.message, 'error');
+    }
+}
+
+async function handleOtpVerify() {
+    const email = document.getElementById('forgot-email').value.trim();
+    const otp = document.getElementById('verify-otp-input').value.trim();
+
+    if (!otp) return;
+
+    showLoading('Verifying code...');
+    try {
+        const response = await fetch(`${API_BASE}auth/verify-otp`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, otp })
+        });
+
+        const result = await response.json();
+        hideLoading();
+
+        if (result.success) {
+            showNotification('Code verified!', 'success');
+            closeOtpModal();
+            openNewPassModal();
+        } else {
+            showNotification(result.message || 'Invalid code', 'error');
+        }
+    } catch (error) {
+        console.error('OTP verify error:', error);
+        hideLoading();
+        showNotification('Connection error.', 'error');
+    }
+}
+
+async function handleNewPassSubmit() {
+    const email = document.getElementById('forgot-email').value.trim();
+    const otp = document.getElementById('verify-otp-input').value.trim();
+    const newPassword = document.getElementById('final-new-password').value;
+    const confirmPassword = document.getElementById('confirm-new-password').value;
+
+    if (!newPassword || !confirmPassword) return;
+
+    if (newPassword !== confirmPassword) {
+        showNotification('Passwords do not match!', 'warning');
+        return;
+    }
+
+    if (newPassword.length < 6) {
+        showNotification('Password must be at least 6 characters.', 'warning');
+        return;
+    }
+
+    showLoading('Updating password...');
+    try {
+        const response = await fetch(`${API_BASE}auth/reset-password`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, otp, newPassword })
+        });
+
+        const result = await response.json();
+        hideLoading();
+
+        if (result.success) {
+            showNotification('Password updated! Please login.', 'success');
+            closeNewPassModal();
+            toggleAuthPanel('login');
+        } else {
+            showNotification(result.message || 'Update failed', 'error');
+        }
+    } catch (error) {
+        console.error('Password update error:', error);
+        hideLoading();
+        showNotification('Connection error.', 'error');
+    }
+}
+
+// Expose functions to window
+window.openForgotModal = openForgotModal;
+window.closeForgotModal = closeForgotModal;
+window.openOtpModal = openOtpModal;
+window.closeOtpModal = closeOtpModal;
+window.openNewPassModal = openNewPassModal;
+window.closeNewPassModal = closeNewPassModal;
+window.handleForgotSubmit = handleForgotSubmit;
+window.handleOtpVerify = handleOtpVerify;
+window.handleNewPassSubmit = handleNewPassSubmit;
+
+// ==================== USER PROFILE LOGIC ====================
+function openProfileModal() {
+    if (!currentUser) return;
+
+    // Fill profile info
+    document.getElementById('profile-name-text').textContent = currentUser.name;
+    document.getElementById('profile-role-text').textContent = currentUser.role.toUpperCase();
+    document.getElementById('profile-username').textContent = currentUser.username;
+    document.getElementById('profile-email').textContent = currentUser.email || 'N/A';
+    
+    // Set avatar
+    const avatarContainer = document.getElementById('profile-avatar-large');
+    if (currentUser.avatar) {
+        // Construct full URL (Local backend or Render)
+        const baseUrl = API_BASE.replace('/api/', '');
+        const fullUrl = currentUser.avatar.startsWith('http') ? currentUser.avatar : `${baseUrl}${currentUser.avatar}`;
+        avatarContainer.innerHTML = `<img src="${fullUrl}" style="width: 100%; height: 100%; object-fit: cover;">`;
+    } else {
+        const initials = currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase();
+        avatarContainer.textContent = initials;
+        avatarContainer.style.background = 'var(--primary)';
+    }
+
+    // Reset fields and states
+    document.getElementById('profile-current-password').value = '';
+    document.getElementById('profile-current-password').disabled = false;
+    document.getElementById('verify-pw-btn').disabled = false;
+    document.getElementById('verify-pw-btn').textContent = 'Verify';
+    document.getElementById('avatar-upload').value = ''; // Reset file input
+
+    document.getElementById('new-password-section').style.opacity = '0.5';
+    document.getElementById('new-password-section').style.pointerEvents = 'none';
+    document.getElementById('profile-new-password').disabled = true;
+    document.getElementById('profile-confirm-password').disabled = true;
+    document.getElementById('save-profile-btn').disabled = true;
+
+    document.getElementById('profile-modal').style.display = 'flex';
+}
+
+function closeProfileModal() {
+    document.getElementById('profile-modal').style.display = 'none';
+}
+
+function previewAvatar(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('profile-avatar-large').innerHTML = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover;">`;
+            const photoBtn = document.getElementById('save-photo-btn');
+            if (photoBtn) photoBtn.style.display = 'block'; // Show button after selection
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+async function saveProfilePhoto() {
+    const avatarFile = document.getElementById('avatar-upload').files[0];
+    if (!avatarFile) return;
+
+    const formData = new FormData();
+    formData.append('avatar', avatarFile);
+
+    showLoading('Uploading photo...');
+    try {
+        const token = sessionStorage.getItem('token');
+        const response = await fetch(`${API_BASE}auth/users/${currentUser.id}`, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${token}` },
+            body: formData
+        });
+
+        const result = await response.json();
+        hideLoading();
+
+        if (result.success) {
+            showNotification('Photo updated successfully!', 'success');
+            if (result.user.avatar) currentUser.avatar = result.user.avatar;
+            sessionStorage.setItem('user', JSON.stringify(currentUser));
+            updateUserInfo(); 
+            const photoBtn = document.getElementById('save-photo-btn');
+            if (photoBtn) photoBtn.style.display = 'none';
+        } else {
+            showNotification(result.message || 'Upload failed', 'error');
+        }
+    } catch (error) {
+        console.error('Photo upload error:', error);
+        hideLoading();
+        showNotification('Connection error.', 'error');
+    }
+}
+
+async function checkCurrentPassword() {
+    const currentPassword = document.getElementById('profile-current-password').value;
+    if (!currentPassword) {
+        showNotification('Please enter your current password.', 'warning');
+        return;
+    }
+
+    showLoading('Verifying...');
+    try {
+        const token = sessionStorage.getItem('token');
+        if (!token) {
+            hideLoading();
+            showNotification('Session expired. Please logout and login again.', 'error');
+            return;
+        }
+
+        const response = await fetch(`${API_BASE}auth/verify-password`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ currentPassword })
+        });
+
+        const result = await response.json();
+        hideLoading();
+
+        if (result.success) {
+            showNotification('Password verified! You can now set a new password.', 'success');
+            
+            // Enable new password fields
+            document.getElementById('profile-current-password').disabled = true;
+            document.getElementById('verify-pw-btn').disabled = true;
+            document.getElementById('verify-pw-btn').textContent = 'Verified';
+            
+            document.getElementById('new-password-section').style.opacity = '1';
+            document.getElementById('new-password-section').style.pointerEvents = 'auto';
+            document.getElementById('profile-new-password').disabled = false;
+            document.getElementById('profile-confirm-password').disabled = false;
+            document.getElementById('save-profile-btn').disabled = false;
+        } else {
+            showNotification(result.message || 'Incorrect password', 'error');
+        }
+    } catch (error) {
+        console.error('Password verify error:', error);
+        hideLoading();
+        showNotification('Connection error.', 'error');
+    }
+}
+
+async function saveProfileChanges() {
+    const newPassword = document.getElementById('profile-new-password').value;
+    const confirmPassword = document.getElementById('profile-confirm-password').value;
+
+    if (!newPassword) {
+        showNotification('Please enter a new password.', 'warning');
+        return;
+    }
+
+    if (newPassword !== confirmPassword) {
+        showNotification('Passwords do not match!', 'warning');
+        return;
+    }
+
+    if (newPassword.length < 6) {
+        showNotification('Password must be at least 6 characters.', 'warning');
+        return;
+    }
+
+    showLoading('Updating password...');
+    try {
+        const token = sessionStorage.getItem('token');
+        const response = await fetch(`${API_BASE}auth/users/${currentUser.id}`, {
+            method: 'PUT',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ password: newPassword })
+        });
+
+        const result = await response.json();
+        hideLoading();
+
+        if (result.success) {
+            showNotification('Password updated successfully!', 'success');
+            closeProfileModal();
+        } else {
+            showNotification(result.message || 'Update failed', 'error');
+        }
+    } catch (error) {
+        console.error('Profile update error:', error);
+        hideLoading();
+        showNotification('Connection error.', 'error');
+    }
+}
+
+window.openProfileModal = openProfileModal;
+window.closeProfileModal = closeProfileModal;
+window.previewAvatar = previewAvatar;
+window.saveProfilePhoto = saveProfilePhoto;
+window.checkCurrentPassword = checkCurrentPassword;
+window.saveProfileChanges = saveProfileChanges;

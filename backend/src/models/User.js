@@ -9,6 +9,9 @@ const userSchema = new mongoose.Schema({
     password: { type: String, required: true },
     role: { type: String, enum: ['admin', 'doctor', 'receptionist', 'staff'], default: 'staff' },
     status: { type: String, enum: ['active', 'pending', 'rejected'], default: 'pending' },
+    avatar: { type: String }, // Stores image URL or base64
+    resetPasswordToken: { type: String },
+    resetPasswordExpires: { type: Date },
     createdAt: { type: Date, default: Date.now }
 });
 

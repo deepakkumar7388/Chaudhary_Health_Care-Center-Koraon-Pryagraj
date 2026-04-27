@@ -8,8 +8,10 @@ function renderPatients() {
         <div class="patients-container">
             <div class="module-header">
                 <h2>Patient Management</h2>
-                <button class="btn-primary" onclick="showModule('add-patient')">
-                    <i class="fas fa-user-plus"></i> Add New Patient
+                <button class="add-patient-cta" onclick="showModule('add-patient')" id="btn-add-patient-cta">
+                    <span class="cta-icon-wrap"><i class="fas fa-user-plus"></i></span>
+                    <span class="cta-label">Add New Patient</span>
+                    <span class="cta-shimmer"></span>
                 </button>
             </div>
             
