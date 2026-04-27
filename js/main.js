@@ -3,10 +3,8 @@ let currentUser = null;
 let currentModule = 'dashboard';
 // Use local IP for same-wifi mobile access, or the Render URL for production
 // Point to local backend for testing new features
-let API_BASE = 'http://127.0.0.1:5000/api/';
-
-// If you want to use live server later, uncomment the line below:
-// API_BASE = 'https://chaudhary-hms-api.onrender.com/api/';
+let API_BASE = 'https://chaudhary-hms-api.onrender.com/api/';
+// let API_BASE = 'http://127.0.0.1:5000/api/';
 
 
 // ==================== UTILITY FUNCTIONS ====================
