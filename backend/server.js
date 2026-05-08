@@ -53,4 +53,15 @@ app.use((req, res, next) => {
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
+
+    // Keep-alive cron: Ping self every 14 minutes to prevent Render free tier sleep
+    const RENDER_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
+    setInterval(async () => {
+        try {
+            const res = await fetch(`${RENDER_URL}/api/ping`);
+            console.log(`[Keep-Alive] Pinged at ${new Date().toLocaleTimeString()} - Status: ${res.status}`);
+        } catch (err) {
+            console.log(`[Keep-Alive] Ping failed:`, err.message);
+        }
+    }, 14 * 60 * 1000); // Every 14 minutes
 });
