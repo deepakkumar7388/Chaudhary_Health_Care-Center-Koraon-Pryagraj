@@ -36,7 +36,7 @@ const patientSchema = new mongoose.Schema({
     wardChargePerDay: Number,
     doctorFees: Number,
     totalBill: Number,
-    bedHistory: [bedHistorySchema],
+    bedHistory: { type: [bedHistorySchema], default: [] },
     guardianSignature: { type: String, default: null },
     documents: [{ type: String }],
     isDeleted: { type: Boolean, default: false },

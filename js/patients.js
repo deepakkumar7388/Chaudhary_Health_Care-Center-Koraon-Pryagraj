@@ -147,6 +147,8 @@ function renderPatientsTable(patientsList) {
                 ${(currentUser && (currentUser.role === 'admin' || currentUser.role === 'doctor')) ?
                 `<button class="btn-small btn-warning" onclick="editPatient('${patient.patient_id}')" title="Edit Patient"><i class="fas fa-edit"></i></button>` : ''}
                 
+                ${!isDischarged ? `<button class="btn-small" style="background:#4b5563; color:white; border:none;" onclick="openTransferBedModal('${patient.patient_id}')" title="Transfer Bed"><i class="fas fa-exchange-alt"></i></button>` : ''}
+                
                 ${(currentUser && currentUser.role === 'admin') ?
                 `<button class="btn-small btn-danger" onclick="deletePatient('${patient.patient_id}')" title="Delete Patient"><i class="fas fa-trash"></i></button>` : ''}
                 
@@ -471,6 +473,148 @@ function editPatient(patientId) {
     `;
     document.body.appendChild(modal);
     loadAvailableBedsForEdit(patient.bed_no, patient.gender);
+}
+
+function openTransferBedModal(patientId) {
+    const patient = window.allPatientsData?.find(p => String(p.id) === String(patientId) || String(p.patient_id) === String(patientId));
+    if (!patient) return;
+
+    if ((patient.status || '').toLowerCase() === 'discharged') {
+        showNotification('Cannot transfer a discharged patient.', 'warning');
+        return;
+    }
+
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'flex';
+    modal.style.zIndex = '3000';
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 450px; padding: 0; border-radius: 12px; overflow: hidden; box-shadow: 0 20px 45px rgba(0,0,0,0.3);">
+            <div class="modal-header" style="background: #4b5563; padding: 15px 25px;">
+                <h3 style="color: white; margin: 0; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-exchange-alt"></i> Transfer Bed
+                </h3>
+                <button class="modal-close" style="color: white;" onclick="this.closest('.modal').remove()">&times;</button>
+            </div>
+            <div style="padding: 25px; background: white;">
+                <form id="transfer-bed-form" onsubmit="event.preventDefault(); saveTransferBed('${patient.patient_id || patient.id}')">
+                    <div style="margin-bottom: 20px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                        <div style="font-size: 13px; color: #475569; margin-bottom: 5px;"><strong>Patient:</strong> ${patient.name}</div>
+                        <div style="font-size: 13px; color: #475569;"><strong>Current Bed:</strong> ${patient.bed_no || 'Unassigned'}</div>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <label style="display:block; font-size:11px; font-weight:700; color:#a0aec0; text-transform:uppercase; margin-bottom:5px;">Select New Bed</label>
+                        <select id="transfer-new-bed" class="filter-select" style="width:100%; height: 35px;" required>
+                            <option value="">Loading beds...</option>
+                        </select>
+                    </div>
+
+                    <div style="margin-bottom: 20px;">
+                        <label style="display:block; font-size:11px; font-weight:700; color:#a0aec0; text-transform:uppercase; margin-bottom:5px;">New Daily Charge (${window.currencySymbol || '₹'})</label>
+                        <input type="number" id="transfer-daily-charge" value="${patient.wardChargePerDay || 0}" class="search-input" style="width:100%;" required>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; justify-content: center;">
+                        <button type="submit" class="btn-primary" style="padding: 10px 30px; border-radius: 8px; font-weight: 700; background: #4b5563;">
+                            <i class="fas fa-exchange-alt"></i> Confirm Transfer
+                        </button>
+                        <button type="button" class="btn" style="background:#f1f5f9;" onclick="this.closest('.modal').remove()">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    // Fetch and populate available beds specifically for the transfer select
+    fetch(`${API_BASE}patients/available-beds`, {
+        headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('token') }
+    }).then(res => res.json()).then(result => {
+        const select = document.getElementById('transfer-new-bed');
+        if (!select) return;
+        select.innerHTML = '<option value="" disabled selected>Select New Bed</option>';
+        
+        if (result.success && result.beds && result.beds.length > 0) {
+            const gender = patient.gender || 'Male';
+            const groups = {
+                'General Ward (Male)': [],
+                'General Ward (Female)': [],
+                'ICU Ward': [],
+                'Private Room': [],
+                'Others': []
+            };
+
+            result.beds.forEach(bed => {
+                if (bed.startsWith('Male-G')) {
+                    if (gender === 'Male') groups['General Ward (Male)'].push(bed);
+                }
+                else if (bed.startsWith('Female-G')) {
+                    if (gender === 'Female') groups['General Ward (Female)'].push(bed);
+                }
+                else if (bed.startsWith('ICU-')) groups['ICU Ward'].push(bed);
+                else if (bed.startsWith('Private-')) groups['Private Room'].push(bed);
+                else groups['Others'].push(bed);
+            });
+
+            for (const [groupName, beds] of Object.entries(groups)) {
+                if (beds.length > 0) {
+                    const optgroup = document.createElement('optgroup');
+                    optgroup.label = groupName;
+                    beds.forEach(bed => {
+                        const option = document.createElement('option');
+                        option.value = bed;
+                        option.textContent = bed;
+                        optgroup.appendChild(option);
+                    });
+                    select.appendChild(optgroup);
+                }
+            }
+        } else {
+            select.innerHTML = '<option value="" disabled selected>No beds available</option>';
+        }
+    }).catch(err => console.error(err));
+}
+
+async function saveTransferBed(patientId) {
+    const newBed = document.getElementById('transfer-new-bed').value;
+    const newCharge = parseFloat(document.getElementById('transfer-daily-charge').value) || 0;
+
+    if (!newBed) {
+        showNotification('Please select a new bed', 'error');
+        return;
+    }
+
+    showLoading('Transferring patient...');
+    try {
+        const res = await fetch(`${API_BASE}patients/transfer`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+            },
+            body: JSON.stringify({
+                patient_id: patientId,
+                new_bed_no: newBed,
+                new_daily_charge: newCharge
+            })
+        });
+        const result = await res.json();
+        hideLoading();
+        
+        if (result.success) {
+            showNotification('Patient successfully transferred to new bed.', 'success');
+            document.querySelector('#transfer-bed-form').closest('.modal').remove();
+            loadPatients(); // Refresh the list
+        } else {
+            showNotification(result.message || 'Failed to transfer patient', 'error');
+        }
+    } catch (err) {
+        console.error("Transfer Error Details:", err);
+        console.log("Attempted URL:", `${API_BASE}patients/${patientId}/transfer-bed`);
+        hideLoading();
+        showNotification('Network error while transferring patient', 'error');
+    }
 }
 
 async function loadAvailableBedsForEdit(currentBed, gender) {

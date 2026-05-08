@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
-require('dotenv').config();
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const authRoutes = require('./src/routes/auth');
 const patientRoutes = require('./src/routes/patients');
@@ -14,6 +14,7 @@ const settingsRoutes = require('./src/routes/settings');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+console.log("\x1b[31m%s\x1b[0m", "HMS Server Version: 2.0 - Transfer Ready");
 
 // Middleware
 app.use(cors());
@@ -53,6 +54,7 @@ app.use((req, res, next) => {
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
+    console.log("\x1b[31m%s\x1b[0m", "HMS Server Version: 2.0 - Transfer Ready");
 
     // Keep-alive cron: Ping self every 14 minutes to prevent Render free tier sleep
     const RENDER_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
