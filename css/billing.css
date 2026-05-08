@@ -404,6 +404,9 @@
     display: flex;
     justify-content: flex-end;
     gap: 15px;
+    position: sticky;
+    top: 20px;
+    z-index: 1010;
 }
 
 .a4-bill-container {
