@@ -4,8 +4,8 @@
   "description": "Frontend for Hospital Management System",
   "main": "index.html",
   "scripts": {
-    "start": "npx serve -l 3000",
-    "dev": "npx serve -l 3000"
+    "start": "cd backend && npm install && node server.js",
+    "dev": "cd backend && node server.js"
   },
   "keywords": [],
   "author": "",
