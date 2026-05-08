@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const path = require('path');
 require('dotenv').config();
 
 const authRoutes = require('./src/routes/auth');
@@ -18,9 +19,12 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use('/uploads', express.static(require('path').join(__dirname, 'uploads')));
 
-// Routes
+// Serve static files from the frontend (parent directory)
+app.use(express.static(path.join(__dirname, '../')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/patients', patientRoutes);
 app.use('/api/billing', billingRoutes);
@@ -33,12 +37,16 @@ mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log('MongoDB Connected successfully'))
     .catch(err => console.log('MongoDB Connection Error:', err));
 
-app.get('/', (req, res) => {
-    res.send('Hospital Management System API is running...');
-});
-
+// API Ping
 app.get('/api/ping', (req, res) => {
     res.status(200).send('pong');
+});
+
+// For any other request, serve index.html (SPA support)
+app.get('*', (req, res) => {
+    if (!req.path.startsWith('/api/')) {
+        res.sendFile(path.join(__dirname, '../index.html'));
+    }
 });
 
 app.listen(PORT, () => {
