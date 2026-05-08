@@ -67,7 +67,12 @@ function renderSettings() {
                                 <input type="text" id="hospital-reg" class="search-input" value="HOSP/2024/001">
                             </div>
                             <div class="form-group" style="grid-column: span 2;">
-                                <label>Hospital Beds (Comma separated list)</label>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                    <label style="margin-bottom: 0;">Hospital Beds (Comma separated list)</label>
+                                    <button class="btn-secondary" style="font-size: 11px; padding: 4px 10px; border-radius: 4px;" onclick="regenerateDefaultBeds()">
+                                        <i class="fas fa-sync-alt"></i> Regenerate Default List
+                                    </button>
+                                </div>
                                 <textarea id="hospital-beds" class="search-input" style="height: 80px; width: 100%; padding: 10px;" placeholder="ICU-1, ICU-2, ICU-3, Ward-1, Ward-2, Ward-3, Ward-4, Ward-5"></textarea>
                                 <small style="color: #64748b; margin-top: 5px; display: block;">Enter all available bed IDs/Numbers separated by commas.</small>
                             </div>
@@ -308,7 +313,7 @@ function showSettingsTab(tabName) {
     // Update tab buttons
     document.querySelectorAll('.settings-tabs .tab-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelector(`.settings-tabs .tab-btn[onclick*="${tabName}"]`)?.classList.add('active');
-    
+
     // Update tab content
     document.querySelectorAll('.settings-tab-content').forEach(content => content.style.display = 'none');
     document.getElementById(`settings-${tabName}`).style.display = 'block';
@@ -317,9 +322,9 @@ function showSettingsTab(tabName) {
 function loadSettings() {
     console.log("Loading module settings into form...");
     const savedSettings = window.hospitalSettings || {};
-    
+
     // Apply saved values to form fields
-    const inputs = document.querySelectorAll('#settings-content input, #settings-content select');
+    const inputs = document.querySelectorAll('#settings-content input, #settings-content select, #settings-content textarea');
     inputs.forEach(element => {
         if (!element.id) return;
         if (savedSettings[element.id] !== undefined) {
@@ -334,7 +339,7 @@ function loadSettings() {
 
 async function saveSettings() {
     const settings = {};
-    document.querySelectorAll('#settings-content input, #settings-content select').forEach(element => {
+    document.querySelectorAll('#settings-content input, #settings-content select, #settings-content textarea').forEach(element => {
         if (!element.id) return;
         if (element.type === 'checkbox') {
             settings[element.id] = element.checked;
@@ -342,7 +347,7 @@ async function saveSettings() {
             settings[element.id] = element.value;
         }
     });
-    
+
     if (!settings['hospital-name'] || !settings['hospital-name'].trim()) {
         showNotification('Hospital Name is required!', 'error');
         return;
@@ -356,7 +361,7 @@ async function saveSettings() {
     try {
         const response = await fetch(`${API_BASE}settings`, {
             method: 'POST',
-            headers: { 
+            headers: {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + sessionStorage.getItem('token')
             },
@@ -385,22 +390,38 @@ function resetSettings() {
     }
 }
 
+function regenerateDefaultBeds() {
+    if (!confirm('This will replace your current bed list with the default 92-bed configuration. Continue?')) return;
+    
+    const beds = [];
+    for (let i = 1; i <= 40; i++) beds.push(`Male-G${i}`);
+    for (let i = 1; i <= 40; i++) beds.push(`Female-G${i}`);
+    for (let i = 1; i <= 7; i++) beds.push(`ICU-${i}`);
+    for (let i = 1; i <= 5; i++) beds.push(`Private-${i}`);
+    
+    const bedTextarea = document.getElementById('hospital-beds');
+    if (bedTextarea) {
+        bedTextarea.value = beds.join(', ');
+        showNotification('Default bed list generated. Click "Save All Changes" to persist to database.', 'success');
+    }
+}
+
 function applyTheme(theme, mode) {
     const root = document.documentElement;
-    
+
     const themes = {
         green: { primary: '#4CAF50', secondary: '#388E3C' },
         blue: { primary: '#2196F3', secondary: '#1976D2' },
         purple: { primary: '#9C27B0', secondary: '#7B1FA2' },
         red: { primary: '#F44336', secondary: '#D32F2F' }
     };
-    
+
     const selectedTheme = themes[theme] || themes.green;
-    
+
     // Update CSS variables for primary colors
     root.style.setProperty('--primary-color', selectedTheme.primary);
     root.style.setProperty('--secondary-color', selectedTheme.secondary);
-    
+
     // Switch Light/Dark Mode
     if (mode === 'dark') {
         document.body.classList.add('dark-theme');
@@ -424,14 +445,14 @@ async function applyGlobalSettings() {
         if (result.success) {
             window.hospitalSettings = result.settings;
             window.currencySymbol = result.settings['currency-symbol'] || '₹';
-            
+
             const hName = result.settings['hospital-name'] || 'City Hospital';
             document.querySelectorAll('.hospital-name').forEach(el => {
                 el.textContent = hName;
             });
 
             applyTheme(result.settings['theme-color'] || 'green', result.settings['theme-mode'] || 'light');
-            
+
             if (typeof calculateBillingTotals === 'function' && document.getElementById('billing-items')) {
                 if (typeof renderBilling === 'function' && currentModule === 'billing') {
                     renderBilling();

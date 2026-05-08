@@ -1,0 +1,45 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+
+    <FontFamily x:Key="FontFamily">Arial</FontFamily>
+
+    <system:String x:Key="APNAME">Assistant d'installation ASUS</system:String>
+    <system:String x:Key="DESCRIPTION">Ce programme vous permet d'installer en toute simplicité les applications et utilitaires ASUS sur votre ordinateur portable.</system:String>
+    <system:String x:Key="TITLE">Quelles applications souhaitez-vous installer?</system:String>
+    <system:String x:Key="SELECTALL">Sélectionner tout</system:String>
+    <system:String x:Key="NAME">Nom</system:String>
+    <system:String x:Key="VERSION">Version</system:String>
+    <system:String x:Key="STATUS">État</system:String>
+    <system:String x:Key="DRIVER">Pilote</system:String>
+    <system:String x:Key="APPLICATION">Application</system:String>
+    <system:String x:Key="CATALOG_1">Multimédia / Divertissement</system:String>
+    <system:String x:Key="CATALOG_2">Outils système</system:String>
+    <system:String x:Key="CATALOG_3">Réseau</system:String>
+    <system:String x:Key="CATALOG_4">Sauvegarde et restauration</system:String>
+    <system:String x:Key="CATALOG_5">Sécurité et protection</system:String>
+    <system:String x:Key="CATALOG_6">Outils professionnels</system:String>
+    <system:String x:Key="SIZE1">Espace disque requis pour l'installation :</system:String>
+    <system:String x:Key="SIZE2">1</system:String>
+    <system:String x:Key="SIZE3">MB</system:String>
+    <system:String x:Key="REBOOT">Redémarrer</system:String>
+    <system:String x:Key="REBOOTMESSAGE">Redémarrer</system:String>
+    <system:String x:Key="INSTALL">Installer</system:String>
+    <system:String x:Key="CANCEL">Annuler</system:String>
+    <system:String x:Key="SELECT1">Total</system:String>
+    <system:String x:Key="SELECT2">22</system:String>
+    <system:String x:Key="SELECT3S">éléments sélectionnés</system:String>
+    <system:String x:Key="SELECT3">élément sélectionné</system:String>
+    <system:String x:Key="NOITEMS">Tous les éléments ont été installés.</system:String>
+    <system:String x:Key="NOTSUITABLE">Les pilotes contenus sur ce disque ne sont pas compatibles avec votre matériel.</system:String>
+    <system:String x:Key="INSTALLNOW">Installer maintenant</system:String>
+    <system:String x:Key="CHOOSEONE">Veuillez sélectionner un élément à installer.</system:String>
+    <system:String x:Key="PLEASEWAIT">Veuillez patienter.</system:String>
+    <system:String x:Key="WRONGTYPE">Les pilotes contenus sur ce disque ne sont pas compatibles avec votre système d'exploitation.</system:String>
+    <system:String x:Key="INSTALLING">Installation</system:String>
+    <system:String x:Key="DONE">Terminé</system:String>
+    <system:String x:Key="FAILED">Échec</system:String>    
+    <system:String x:Key="CANCELINSTALL">Souhaitez-vous quitter l'Assistant d'installation ASUS ?</system:String>
+    <system:String x:Key="CLOSE">X</system:String>
+
+</ResourceDictionary>

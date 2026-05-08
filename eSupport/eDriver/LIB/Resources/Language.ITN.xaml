@@ -1,0 +1,45 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+
+    <FontFamily x:Key="FontFamily">Arial</FontFamily>
+
+    <system:String x:Key="APNAME">ASUS Installation Wizard</system:String>
+    <system:String x:Key="DESCRIPTION">Applicazione gratuita per notebook ASUS, che consente di installare nel sistema le utilità e le applicazioni preferite ASUS.</system:String>
+    <system:String x:Key="TITLE">Quali applicazioni intendete installare?</system:String>
+    <system:String x:Key="SELECTALL">Seleziona tutto</system:String>
+    <system:String x:Key="NAME">Nome</system:String>
+    <system:String x:Key="VERSION">Versione</system:String>
+    <system:String x:Key="STATUS">Stato</system:String>
+    <system:String x:Key="DRIVER">Driver</system:String>
+    <system:String x:Key="APPLICATION">Applicazione</system:String>
+    <system:String x:Key="CATALOG_1">Multimedia / Intrattenimento</system:String>
+    <system:String x:Key="CATALOG_2">Strumento di sistema</system:String>
+    <system:String x:Key="CATALOG_3">Rete</system:String>
+    <system:String x:Key="CATALOG_4">Backup &amp; Ripristino</system:String>
+    <system:String x:Key="CATALOG_5">Sicurezza &amp; Protezione</system:String>
+    <system:String x:Key="CATALOG_6">Business</system:String>
+    <system:String x:Key="SIZE1">Spazio su disco necessario per le applicazioni:</system:String>
+    <system:String x:Key="SIZE2">1</system:String>
+    <system:String x:Key="SIZE3">MB</system:String>
+    <system:String x:Key="REBOOT">Riavvia</system:String>
+    <system:String x:Key="REBOOTMESSAGE">Riavvia</system:String>
+    <system:String x:Key="INSTALL">Installa</system:String>
+    <system:String x:Key="CANCEL">Annulla</system:String>
+    <system:String x:Key="SELECT1">Totale</system:String>
+    <system:String x:Key="SELECT2">22</system:String>
+    <system:String x:Key="SELECT3S">elemento selezionato</system:String>
+    <system:String x:Key="SELECT3">elementi selezionati</system:String>
+    <system:String x:Key="NOITEMS">Tutti gli elementi sono stati installati.</system:String>
+    <system:String x:Key="NOTSUITABLE">I driver nel disco non sono compatibili con l'hardware.</system:String>
+    <system:String x:Key="INSTALLNOW">Installa ora</system:String>
+    <system:String x:Key="CHOOSEONE">Scegliere l'elemento da installare</system:String>
+    <system:String x:Key="PLEASEWAIT">Attendere, prego.</system:String>
+    <system:String x:Key="WRONGTYPE">I driver nel disco non sono compatibili con il sistema operativo.</system:String>
+    <system:String x:Key="INSTALLING">Installazione</system:String>
+    <system:String x:Key="DONE">Fine</system:String>
+    <system:String x:Key="FAILED">Errore</system:String>    
+    <system:String x:Key="CANCELINSTALL">Desiderate chiudere ASUS Installation Wizard?</system:String>
+    <system:String x:Key="CLOSE">X</system:String>
+
+</ResourceDictionary>

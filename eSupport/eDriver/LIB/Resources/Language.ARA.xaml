@@ -1,0 +1,45 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+
+    <FontFamily x:Key="FontFamily">Arial</FontFamily>
+
+    <system:String x:Key="APNAME">معالج التثبيت من ASUS</system:String>
+    <system:String x:Key="DESCRIPTION">هو عبارة عن تطبيق مجانيّ لجهاز الكمبيوتر المحمول من ASUS يسمح لك بتثبيت التطبيقات والأدوات المساعدة المفضلة لك من ASUS في النظام.</system:String>
+    <system:String x:Key="TITLE">ما هي التطبيقات التي تريد تثبيها؟</system:String>
+    <system:String x:Key="SELECTALL">تحديد الكل</system:String>
+    <system:String x:Key="NAME">الاسم</system:String>
+    <system:String x:Key="VERSION">الإصدار</system:String>
+    <system:String x:Key="STATUS">الحالة</system:String>
+    <system:String x:Key="DRIVER">برنامج التشغيل</system:String>
+    <system:String x:Key="APPLICATION">التطبيق</system:String>
+    <system:String x:Key="CATALOG_1">الوسائط المتعددة / الترفيه</system:String>
+    <system:String x:Key="CATALOG_2">أداة النظام</system:String>
+    <system:String x:Key="CATALOG_3">الشبكة</system:String>
+    <system:String x:Key="CATALOG_4">النسخ الاحتياطي والاستعادة</system:String>
+    <system:String x:Key="CATALOG_5">السلامة والحماية</system:String>
+    <system:String x:Key="CATALOG_6">أداة تجارية</system:String>
+    <system:String x:Key="SIZE1">مساحة القرص المطلوبة للتطبيقات المثبتة:</system:String>
+    <system:String x:Key="SIZE2">1</system:String>
+    <system:String x:Key="SIZE3">MB</system:String>
+    <system:String x:Key="REBOOT">إعادة تشغيل</system:String>
+    <system:String x:Key="REBOOTMESSAGE">إعادة تشغيل</system:String>
+    <system:String x:Key="INSTALL">تثبيت</system:String>
+    <system:String x:Key="CANCEL">إلغاء</system:String>
+    <system:String x:Key="SELECT1">إجمالي</system:String>
+    <system:String x:Key="SELECT2">22</system:String>
+    <system:String x:Key="SELECT3S">العناصر المحددة</system:String>
+    <system:String x:Key="SELECT3">العنصر المحدد</system:String>
+    <system:String x:Key="NOITEMS">تم تثبيت جميع العناصر.</system:String>
+    <system:String x:Key="NOTSUITABLE">يتيح هذا التطبيق استعادة نظام التشغيل وبرامج التشغيل المثبتة من المصنع والأدوات المساعدة للكمبيوتر.</system:String>
+    <system:String x:Key="INSTALLNOW">تثبيت الآن</system:String>
+    <system:String x:Key="CHOOSEONE">يرجى اختيار عنصر واحد لتثبيته</system:String>
+    <system:String x:Key="PLEASEWAIT">يرجى الانتظار.</system:String>
+    <system:String x:Key="WRONGTYPE">رامج التشغيل في هذا القرص غير متوافقة مع نظام التشغيل الخاص بك.</system:String>
+    <system:String x:Key="INSTALLING">تثبيت</system:String>
+    <system:String x:Key="DONE">تم</system:String>
+    <system:String x:Key="FAILED">فشل</system:String>    
+    <system:String x:Key="CANCELINSTALL">هل تريد إلغاء معالج تثبيت ASUS؟</system:String>
+    <system:String x:Key="CLOSE">X</system:String>
+
+</ResourceDictionary>

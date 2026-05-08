@@ -1,0 +1,45 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+
+    <FontFamily x:Key="FontFamily">Arial</FontFamily>
+
+    <system:String x:Key="APNAME">ASUS 설치 마법사</system:String>
+    <system:String x:Key="DESCRIPTION">ASUS 노트북용 무료 응용 프로그램이며 선호하는 ASUS 응용 프로그램과 유틸리티를 시스템에 설치할 수 있게 합니다.</system:String>
+    <system:String x:Key="TITLE">어떤 응용 프로그램을 설치하시겠습니까?</system:String>
+    <system:String x:Key="SELECTALL">모두 선택</system:String>
+    <system:String x:Key="NAME">이름</system:String>
+    <system:String x:Key="VERSION">버전</system:String>
+    <system:String x:Key="STATUS">상태</system:String>
+    <system:String x:Key="DRIVER">드라이버</system:String>
+    <system:String x:Key="APPLICATION">응용 프로그램</system:String>
+    <system:String x:Key="CATALOG_1">멀티미디어 / 엔터테인먼트</system:String>
+    <system:String x:Key="CATALOG_2">시스템 도구</system:String>
+    <system:String x:Key="CATALOG_3">네트워크</system:String>
+    <system:String x:Key="CATALOG_4">백업 및 복원</system:String>
+    <system:String x:Key="CATALOG_5">안전 및 보호</system:String>
+    <system:String x:Key="CATALOG_6">비즈니스 툴</system:String>
+    <system:String x:Key="SIZE1">설치된 응용 프로그램에 필요한 디스크 공간:</system:String>
+    <system:String x:Key="SIZE2">1</system:String>
+    <system:String x:Key="SIZE3">MB</system:String>
+    <system:String x:Key="REBOOT">재부팅</system:String>
+    <system:String x:Key="REBOOTMESSAGE">재부팅</system:String>
+    <system:String x:Key="INSTALL">설치</system:String>
+    <system:String x:Key="CANCEL">취소</system:String>
+    <system:String x:Key="SELECT1">합계</system:String>
+    <system:String x:Key="SELECT2">22</system:String>
+    <system:String x:Key="SELECT3S">선택한 항목</system:String>
+    <system:String x:Key="SELECT3">선택한 항목</system:String>
+    <system:String x:Key="NOITEMS">모든 항목이 설치되었습니다.</system:String>
+    <system:String x:Key="NOTSUITABLE">이 디스크의 드라이버가 하드웨어와 호환되지 않습니다.</system:String>
+    <system:String x:Key="INSTALLNOW">지금 설치</system:String>
+    <system:String x:Key="CHOOSEONE">설치할 항목을 한 개 선택하십시오.</system:String>
+    <system:String x:Key="PLEASEWAIT">기다려 주십시오.</system:String>
+    <system:String x:Key="WRONGTYPE">이 디스크의 드라이버가 OS와 호환되지 않습니다.</system:String>
+    <system:String x:Key="INSTALLING">설치 중</system:String>
+    <system:String x:Key="DONE">완료</system:String>
+    <system:String x:Key="FAILED">실패</system:String>    
+    <system:String x:Key="CANCELINSTALL">ASUS 설치 마법사를 취소하시겠습니까?</system:String>
+    <system:String x:Key="CLOSE">X</system:String>
+
+</ResourceDictionary>

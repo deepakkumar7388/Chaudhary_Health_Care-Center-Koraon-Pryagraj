@@ -1,0 +1,45 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+
+    <FontFamily x:Key="FontFamily">Arial</FontFamily>
+
+    <system:String x:Key="APNAME">ASUS Installation Wizard</system:String>
+    <system:String x:Key="DESCRIPTION">Це безкоштовна програма для ноутбуків ASUS, що допоможе інсталювати в системі потрібне програмне забезпечення та утиліти ASUS.</system:String>
+    <system:String x:Key="TITLE">Які програми потрібно інсталювати?</system:String>
+    <system:String x:Key="SELECTALL">Вибрати все</system:String>
+    <system:String x:Key="NAME">Назва</system:String>
+    <system:String x:Key="VERSION">Версія</system:String>
+    <system:String x:Key="STATUS">Статус</system:String>
+    <system:String x:Key="DRIVER">Драйвер</system:String>
+    <system:String x:Key="APPLICATION">Програма</system:String>
+    <system:String x:Key="CATALOG_1">Мультимедіа та розваги</system:String>
+    <system:String x:Key="CATALOG_2">Інструмент системи</system:String>
+    <system:String x:Key="CATALOG_3">Мережа</system:String>
+    <system:String x:Key="CATALOG_4">Резервне копіювання та відновлення</system:String>
+    <system:String x:Key="CATALOG_5">Безпека та захист</system:String>
+    <system:String x:Key="CATALOG_6">Бізнес-інструмент</system:String>
+    <system:String x:Key="SIZE1">Необхідний обсяг на диску для інсталяції програм:</system:String>
+    <system:String x:Key="SIZE2">1</system:String>
+    <system:String x:Key="SIZE3">МБ</system:String>
+    <system:String x:Key="REBOOT">Перезавантажити</system:String>
+    <system:String x:Key="REBOOTMESSAGE">Перезавантажити</system:String>
+    <system:String x:Key="INSTALL">Інсталювати</system:String>
+    <system:String x:Key="CANCEL">Скасувати</system:String>
+    <system:String x:Key="SELECT1">Усього</system:String>
+    <system:String x:Key="SELECT2">22</system:String>
+    <system:String x:Key="SELECT3S">вибрано елементів</system:String>
+    <system:String x:Key="SELECT3">вибрано елемент</system:String>
+    <system:String x:Key="NOITEMS">Усі елементи інстальовано.</system:String>
+    <system:String x:Key="NOTSUITABLE">Драйвери на цьому диску несумісні з апаратним забезпеченням.</system:String>
+    <system:String x:Key="INSTALLNOW">Інсталювати зараз</system:String>
+    <system:String x:Key="CHOOSEONE">Виберіть один елемент для інсталяції</system:String>
+    <system:String x:Key="PLEASEWAIT">Будь ласка, зачекайте.</system:String>
+    <system:String x:Key="WRONGTYPE">Драйвери на цьому диску несумісні з операційною системою.</system:String>
+    <system:String x:Key="INSTALLING">Інсталяція</system:String>
+    <system:String x:Key="DONE">Виконано</system:String>
+    <system:String x:Key="FAILED">Помилка</system:String>    
+    <system:String x:Key="CANCELINSTALL">Бажаєте скасувати ASUS Installation Wizard?</system:String>
+    <system:String x:Key="CLOSE">X</system:String>
+
+</ResourceDictionary>

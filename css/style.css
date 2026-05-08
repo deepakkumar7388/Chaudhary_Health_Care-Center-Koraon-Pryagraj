@@ -67,12 +67,14 @@ body {
 }
 
 #auth-container {
-    height: 100vh;
+    min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
     background: var(--background);
     padding: 20px;
+    position: relative;
+    overflow: hidden;
 }
 
 

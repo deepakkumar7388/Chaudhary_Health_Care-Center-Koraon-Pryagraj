@@ -1,0 +1,96 @@
+;-------------------------------------------------------------------------------
+; INTEL CONFIDENTIAL
+;
+; Copyright (c) 2013-2022 Intel Corporation All Rights Reserved 
+;
+; The source code contained or described herein and all documents related to 
+; the source code ("Material") are owned by Intel Corporation or its suppliers 
+; or licensors. Title to the Material remains with Intel Corporation or its 
+; suppliers and licensors. The Material contains trade secrets and proprietary 
+; and confidential information of Intel or its suppliers and licensors. The 
+; Material is protected by worldwide copyright and trade secret laws and treaty 
+; provisions. No part of the Material may be used, copied, reproduced, 
+; modified, published, uploaded, posted, transmitted, distributed, or 
+; disclosed in any way without Intel's prior express written permission.
+;
+; No license under any patent, copyright, trade secret or other intellectual 
+; property right is granted to or conferred upon you by disclosure or delivery 
+; of the Materials, either expressly, by implication, inducement, estoppel or 
+; otherwise. Any license under such intellectual property rights must be 
+; expressed and approved by Intel in writing.
+;------------------------------------------------------------------------------
+
+[Version] 
+Signature = "$WINDOWS NT$" 
+Class       = Extension
+ClassGuid   = {e2f84ce7-8efa-411c-aa69-97454ca4cb57}
+ExtensionId = {BC7814A1-A80E-44B3-87C6-652EAC676387}
+Provider = %INTEL% 
+CatalogFile = dtt_ext.cat
+DriverVer = 11/10/2022,9.0.11200.30652
+PnpLockDown=1
+
+;----------------------------------------------------------------------
+; File Information
+;----------------------------------------------------------------------
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+
+[DestinationDirs]
+DefaultDestDir = 13
+
+;-------------------------------------------------------------------------------
+; Manufacturer and Models Section
+;-------------------------------------------------------------------------------
+
+[Manufacturer]
+%INTEL% = INTEL,NTamd64.10.0...17763
+
+[INTEL.NTamd64.10.0...17763]
+%PROCADL.DeviceDesc%  = DttExtInstall,PCI\VEN_8086&DEV_461D
+%PROCFHF.DeviceDesc%  = DttExtInstall,PCI\VEN_8086&DEV_3258
+%PROCRPL.DeviceDesc%  = DttExtInstall,PCI\VEN_8086&DEV_A71D
+
+;------------------------------------------------------------------------------
+; Install Sections 
+;------------------------------------------------------------------------------
+[DttExtInstall.NTamd64]
+
+;------------------------------------------------------------------------------
+; DttExtInstall Install Section (Creates SW Component)
+;------------------------------------------------------------------------------
+[DttExtInstall.NTamd64.Components]
+AddComponent = DttExtComponent,,DttExtComponentInstall
+
+[DttExtComponentInstall]
+ComponentIDs = VID8086_DTT_1.0
+Description = %DttExtComponentDescription%
+
+;-------------------------------------------------------------------------------
+; Install HW Section
+;-------------------------------------------------------------------------------
+[DttExtInstall.NTamd64.HW]
+AddReg = Hw_AddParams
+
+[Hw_AddParams]
+HKR,"IPF","DttDir",,%13%
+
+;-------------------------------------------------------------------------------
+; Install Services Section
+;-------------------------------------------------------------------------------
+
+;----------------------------------------------------------------------
+; Strings and Constants
+;----------------------------------------------------------------------
+
+[Strings]
+INTEL = "Intel"
+DiskName = "Intel(R) Dynamic Tuning Technology"
+DttExtComponentDescription="Intel(R) Dynamic Tuning Technology Device Extension Component"
+
+PROCADL.DeviceDesc  = "Intel(R) Dynamic Tuning Technology Extension"
+PROCFHF.DeviceDesc  = "Intel(R) Dynamic Tuning Technology Extension"
+PROCRPL.DeviceDesc  = "Intel(R) Dynamic Tuning Technology Extension"

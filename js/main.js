@@ -3,8 +3,9 @@ let currentUser = null;
 let currentModule = 'dashboard';
 // Use local IP for same-wifi mobile access, or the Render URL for production
 // Point to local backend for testing new features
-let API_BASE = 'https://chaudhary-hms-api.onrender.com/api/';
-// let API_BASE = 'http://127.0.0.1:5000/api/';
+let API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://127.0.0.1:5000/api/'
+    : 'https://chaudhary-hms-api.onrender.com/api/';
 
 
 // ==================== UTILITY FUNCTIONS ====================
@@ -122,7 +123,7 @@ async function login() {
                     type = 'error';
                     msg = 'Your account request has been rejected. Please contact the admin.';
                 }
-                
+
                 showNotification(msg, type, title);
                 document.getElementById('login-error').textContent = msg;
             } else {
@@ -132,8 +133,12 @@ async function login() {
     } catch (error) {
         console.error('Login error:', error);
         hideLoading();
-        showNotification('Server is unreachable. Please check your internet connection or contact support.', 'error', 'Connection Error');
-        document.getElementById('login-error').textContent = 'Cannot connect to server';
+        let errorMsg = 'Cannot connect to server. Please ensure the backend is running.';
+        if (window.location.protocol === 'file:') {
+            errorMsg = 'Browser blocked connection from file://. Please use http://localhost:5000 instead.';
+        }
+        showNotification(errorMsg, 'error', 'Connection Error');
+        document.getElementById('login-error').textContent = errorMsg;
     }
 }
 
@@ -662,6 +667,16 @@ async function handleOtpVerify() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, otp })
         });
+        if (!response.ok) {
+            if (response.status === 401) {
+                showNotification('Session expired. Please logout and login again.', 'error');
+                return;
+            }
+            const errText = await response.text();
+            console.error('API Error:', response.status, errText);
+            showNotification(`Error ${response.status}: Failed to load beds`, 'error');
+            return;
+        }
 
         const result = await response.json();
         hideLoading();
@@ -743,7 +758,7 @@ function openProfileModal() {
     document.getElementById('profile-role-text').textContent = currentUser.role.toUpperCase();
     document.getElementById('profile-username').textContent = currentUser.username;
     document.getElementById('profile-email').textContent = currentUser.email || 'N/A';
-    
+
     // Set avatar
     const avatarContainer = document.getElementById('profile-avatar-large');
     if (currentUser.avatar) {
@@ -781,7 +796,7 @@ function previewAvatar(event) {
     const file = event.target.files[0];
     if (file) {
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = function (e) {
             document.getElementById('profile-avatar-large').innerHTML = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover;">`;
             const photoBtn = document.getElementById('save-photo-btn');
             if (photoBtn) photoBtn.style.display = 'block'; // Show button after selection
@@ -813,7 +828,7 @@ async function saveProfilePhoto() {
             showNotification('Photo updated successfully!', 'success');
             if (result.user.avatar) currentUser.avatar = result.user.avatar;
             sessionStorage.setItem('user', JSON.stringify(currentUser));
-            updateUserInfo(); 
+            updateUserInfo();
             const photoBtn = document.getElementById('save-photo-btn');
             if (photoBtn) photoBtn.style.display = 'none';
         } else {
@@ -844,7 +859,7 @@ async function checkCurrentPassword() {
 
         const response = await fetch(`${API_BASE}auth/verify-password`, {
             method: 'POST',
-            headers: { 
+            headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
@@ -856,12 +871,12 @@ async function checkCurrentPassword() {
 
         if (result.success) {
             showNotification('Password verified! You can now set a new password.', 'success');
-            
+
             // Enable new password fields
             document.getElementById('profile-current-password').disabled = true;
             document.getElementById('verify-pw-btn').disabled = true;
             document.getElementById('verify-pw-btn').textContent = 'Verified';
-            
+
             document.getElementById('new-password-section').style.opacity = '1';
             document.getElementById('new-password-section').style.pointerEvents = 'auto';
             document.getElementById('profile-new-password').disabled = false;
@@ -901,7 +916,7 @@ async function saveProfileChanges() {
         const token = sessionStorage.getItem('token');
         const response = await fetch(`${API_BASE}auth/users/${currentUser.id}`, {
             method: 'PUT',
-            headers: { 
+            headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },

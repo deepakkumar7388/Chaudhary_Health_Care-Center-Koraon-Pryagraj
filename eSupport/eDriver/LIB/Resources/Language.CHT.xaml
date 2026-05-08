@@ -1,0 +1,45 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+
+    <FontFamily x:Key="FontFamily">微軟正黑體</FontFamily>
+
+    <system:String x:Key="APNAME">華碩安裝精靈</system:String>
+    <system:String x:Key="DESCRIPTION">這是提供給華碩筆電的一款免費應用程式，幫助您在系統中安裝所喜愛的華碩應用程式。</system:String>
+    <system:String x:Key="TITLE">您要安裝什麼應用程式？</system:String>
+    <system:String x:Key="SELECTALL">全部選擇</system:String>
+    <system:String x:Key="NAME">名稱</system:String>
+    <system:String x:Key="VERSION">版本</system:String>
+    <system:String x:Key="STATUS">狀態</system:String>
+    <system:String x:Key="DRIVER">驅動程式</system:String>
+    <system:String x:Key="APPLICATION">應用程式</system:String>
+    <system:String x:Key="CATALOG_1">多媒體 / 娛樂</system:String>
+    <system:String x:Key="CATALOG_2">系統工具</system:String>
+    <system:String x:Key="CATALOG_3">網路</system:String>
+    <system:String x:Key="CATALOG_4">備份與回復</system:String>
+    <system:String x:Key="CATALOG_5">安全與保護</system:String>
+    <system:String x:Key="CATALOG_6">商務工具</system:String>
+    <system:String x:Key="SIZE1">安裝所選應用程式所需磁碟空間：</system:String>
+    <system:String x:Key="SIZE2">1</system:String>
+    <system:String x:Key="SIZE3">MB</system:String>
+    <system:String x:Key="REBOOT">重新開機</system:String>
+    <system:String x:Key="REBOOTMESSAGE">重新開機</system:String>
+    <system:String x:Key="INSTALL">安裝</system:String>
+    <system:String x:Key="CANCEL">取消</system:String>
+    <system:String x:Key="SELECT1">共</system:String>
+    <system:String x:Key="SELECT2">22</system:String>
+    <system:String x:Key="SELECT3S">個項目被選擇</system:String>
+    <system:String x:Key="SELECT3">個項目被選擇</system:String>
+    <system:String x:Key="NOITEMS">所有項目已被安裝</system:String>
+    <system:String x:Key="NOTSUITABLE">光碟中的驅動程式與您的硬體不相容。</system:String>
+    <system:String x:Key="INSTALLNOW">現在安裝</system:String>
+    <system:String x:Key="CHOOSEONE">請選擇一個要安裝的項目</system:String>
+    <system:String x:Key="PLEASEWAIT">請稍候。</system:String>
+    <system:String x:Key="WRONGTYPE">光碟中的驅動程式與您的作業系統不相容。</system:String>
+    <system:String x:Key="INSTALLING">安裝中</system:String>
+    <system:String x:Key="DONE">完成</system:String>
+    <system:String x:Key="FAILED">失敗</system:String>    
+    <system:String x:Key="CANCELINSTALL">您想要關閉華碩安裝精靈嗎？</system:String>
+    <system:String x:Key="CLOSE">X</system:String>
+
+</ResourceDictionary>

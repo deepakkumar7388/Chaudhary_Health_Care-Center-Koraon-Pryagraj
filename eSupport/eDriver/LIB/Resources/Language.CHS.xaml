@@ -1,0 +1,45 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+
+    <FontFamily x:Key="FontFamily">Arial</FontFamily>
+
+    <system:String x:Key="APNAME">华硕安装向导</system:String>
+    <system:String x:Key="DESCRIPTION">这是提供给华硕笔记本的一款免费应用程序，帮助您在系统中安装所喜爱的华硕应用程序。</system:String>
+    <system:String x:Key="TITLE">您要安装什么应用程序？</system:String>
+    <system:String x:Key="SELECTALL">全选</system:String>
+    <system:String x:Key="NAME">名称</system:String>
+    <system:String x:Key="VERSION">版本</system:String>
+    <system:String x:Key="STATUS">状态</system:String>
+    <system:String x:Key="DRIVER">驱动程序</system:String>
+    <system:String x:Key="APPLICATION">应用程序</system:String>
+    <system:String x:Key="CATALOG_1">多媒体 / 娱乐</system:String>
+    <system:String x:Key="CATALOG_2">系统工具</system:String>
+    <system:String x:Key="CATALOG_3">网络</system:String>
+    <system:String x:Key="CATALOG_4">备份与恢复</system:String>
+    <system:String x:Key="CATALOG_5">安全与保护</system:String>
+    <system:String x:Key="CATALOG_6">商务工具</system:String>
+    <system:String x:Key="SIZE1">安装所选应用程序所需磁盘空间：</system:String>
+    <system:String x:Key="SIZE2">1</system:String>
+    <system:String x:Key="SIZE3">MB</system:String>
+    <system:String x:Key="REBOOT">重新启动</system:String>
+    <system:String x:Key="REBOOTMESSAGE">重新启动</system:String>
+    <system:String x:Key="INSTALL">安装</system:String>
+    <system:String x:Key="CANCEL">取消</system:String>
+    <system:String x:Key="SELECT1">共</system:String>
+    <system:String x:Key="SELECT2">22</system:String>
+    <system:String x:Key="SELECT3S">个项目被选择</system:String>
+    <system:String x:Key="SELECT3">个项目被选择</system:String>
+    <system:String x:Key="NOITEMS">所有项目已被安裝</system:String>
+    <system:String x:Key="NOTSUITABLE">光盘中的驱动程序与您的硬件不兼容。</system:String>
+    <system:String x:Key="INSTALLNOW">现在安装</system:String>
+    <system:String x:Key="CHOOSEONE">请选择一个要安装的项目</system:String>
+    <system:String x:Key="PLEASEWAIT">请稍候。</system:String>
+    <system:String x:Key="WRONGTYPE">光盘中的驱动程序与您的操作系统不兼容。</system:String>
+    <system:String x:Key="INSTALLING">正在安装</system:String>
+    <system:String x:Key="DONE">完成</system:String>
+    <system:String x:Key="FAILED">失败</system:String>    
+    <system:String x:Key="CANCELINSTALL">您想要关闭华硕安装向导吗？</system:String>
+    <system:String x:Key="CLOSE">X</system:String>
+
+</ResourceDictionary>

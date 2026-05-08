@@ -86,28 +86,54 @@ function renderAddPatient() {
             </form>
         </div>
     `;
-    
+
     // Load available beds
     loadAvailableBeds();
 }
 
 async function loadAvailableBeds() {
+    console.log('Loading available beds from:', `${API_BASE}patients/available-beds`);
     try {
+        const token = sessionStorage.getItem('token');
+        if (!token) {
+            console.error('No auth token found in sessionStorage');
+            showNotification('Authentication error: Please login again', 'error');
+            return;
+        }
+
         const response = await fetch(`${API_BASE}patients/available-beds`, {
-            headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('token') }
+            headers: { 'Authorization': 'Bearer ' + token }
         });
-        const result = await response.json();
         
+        if (!response.ok) {
+            if (response.status === 401) {
+                showNotification('Session expired. Please logout and login again.', 'error');
+                return;
+            }
+            const errText = await response.text();
+            console.error('API Error:', response.status, errText);
+            showNotification(`Error ${response.status}: Failed to load available beds`, 'error');
+            return;
+        }
+
+        const result = await response.json();
+        console.log('Available beds API result:', result);
+
         if (result.success) {
             window.availableBedsList = result.beds || [];
+            console.log(`Loaded ${window.availableBedsList.length} available beds`);
             filterBedsByGender();
+        } else {
+            console.error('API returned success:false', result);
+            showNotification(result.error || 'Failed to load beds', 'error');
         }
     } catch (error) {
-        console.error('Error loading available beds:', error);
+        console.error('Network Error loading available beds:', error);
+        showNotification('Network error loading beds. Check console.', 'error');
     }
 }
 
-window.filterBedsByGender = function() {
+window.filterBedsByGender = function () {
     const genderSelect = document.getElementById('p-gender');
     const bedSelect = document.getElementById('p-bed');
     if (!genderSelect || !bedSelect) return;
@@ -123,7 +149,7 @@ window.filterBedsByGender = function() {
 
     bedSelect.disabled = false;
     bedSelect.innerHTML = '<option value="">Select Bed</option>';
-    
+
     if (allBeds.length === 0) {
         bedSelect.innerHTML += '<option value="" disabled>No beds available</option>';
         return;
@@ -192,7 +218,7 @@ async function addPatient() {
     try {
         const timestamp = Date.now();
         const patientId = `P-${timestamp.toString().slice(-6)}`;
-        
+
         const settings = window.hospitalSettings || {};
         const isICU = bed.toLowerCase().includes('icu');
         const dailyCharge = isICU ? (parseFloat(settings['icu-charge']) || 5000) : (parseFloat(settings['ward-charge']) || 2000);
@@ -237,4 +263,4 @@ async function addPatient() {
         hideLoading();
         showNotification('Network error', 'error');
     }
-}
+}

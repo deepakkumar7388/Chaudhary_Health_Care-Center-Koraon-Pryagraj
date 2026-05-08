@@ -1,0 +1,59 @@
+[Version]
+Signature   = "$WINDOWS NT$"
+Class       = Extension
+ClassGuid   = {e2f84ce7-8efa-411c-aa69-97454ca4cb57}
+Provider    = %OrganizationName%
+ExtensionId = {8232B627-30B1-4F3C-84C6-E103BD6FECCB}
+CatalogFile = HDXRTAPOExt.cat
+DriverVer = 01/10/2023, 6.0.9468.1
+PnpLockDown = 1
+
+[SourceDisksNames]
+222 = %DiskId1%
+
+[SourceDisksFiles]
+gen4pkey_4-78-3124.mdat=222
+gen4RenCond_asus_off.cond=222
+gen4CapCond_asus_off_basic.cond=222
+
+[DestinationDirs]
+DefaultDestDir=13
+
+[Manufacturer]
+%MfgName% = DeviceExtensions,NTamd64.10.0...15063
+
+[DeviceExtensions.NTamd64.10.0...15063]
+;CPU - quad, 78mm
+%Device.ExtensionDesc% = DeviceExtension_Install,HDAUDIO\FUNC_01&VEN_10EC&DEV_0294&SUBSYS_104318F2
+;GNA - quad, 78mm
+%Device.ExtensionDesc% = DeviceExtension_Install, INTELAUDIO\FUNC_01&VEN_10EC&DEV_0294&SUBSYS_10431512
+%Device.ExtensionDesc% = DeviceExtension_Install, INTELAUDIO\FUNC_01&VEN_10EC&DEV_0294&SUBSYS_10431F6E
+%Device.ExtensionDesc% = DeviceExtension_Install, INTELAUDIO\FUNC_01&VEN_10EC&DEV_0294&SUBSYS_10431F7E
+
+[DeviceExtension_Install]
+CopyFiles = Gen4pKey.CopyList
+AddReg = Gen4pKey.AddReg
+
+[Gen4pKey.CopyList]
+gen4pkey_4-78-3124.mdat
+gen4RenCond_asus_off.cond
+gen4CapCond_asus_off_basic.cond
+
+[Gen4pKey.AddReg]
+HKR,APOTunings,TuningFileBasePath,%REG_SZ%,%13%
+HKR,APOTunings,SupportGenericTuning,0x00010001,1
+HKR,APOTunings,TuningVersion,,"72"
+HKR,APOTunings,TuningFiles,%REG_MULTI_SZ%,"gen4pkey_4-78-3124.mdat","gen4RenCond_asus_off.cond","gen4CapCond_asus_off_basic.cond"
+
+[Strings]
+OrganizationName     = "Realtek Semiconductor Corp."
+MfgName              = "Realtek"
+Realtek	             = "Realtek"
+Device.ExtensionDesc = "Realtek Device Extension"
+DiskId1              = "Realtek Device Extension Installation Disk"
+
+REG_BINARY = 0x00000001
+REG_DWORD = 0x00010001
+REG_SZ = 0x00000000
+REG_MULTI_SZ = 0x00010000
+

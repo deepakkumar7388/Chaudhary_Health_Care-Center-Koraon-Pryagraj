@@ -83,7 +83,7 @@ async function loadPatients() {
 
     try {
         const response = await fetch(`${API_BASE}patients?_t=${Date.now()}`, {
-            headers: { 
+            headers: {
                 'Authorization': 'Bearer ' + sessionStorage.getItem('token'),
                 'Cache-Control': 'no-cache, no-store, must-revalidate',
                 'Pragma': 'no-cache'
@@ -144,14 +144,14 @@ function renderPatientsTable(patientsList) {
             <td>
                 <button class="btn-small btn-info" onclick="viewPatient('${patient.patient_id}')" title="View Info"><i class="fas fa-eye"></i></button>
                 
-                ${(currentUser && (currentUser.role === 'admin' || currentUser.role === 'doctor')) ? 
-                    `<button class="btn-small btn-warning" onclick="editPatient('${patient.patient_id}')" title="Edit Patient"><i class="fas fa-edit"></i></button>` : ''}
+                ${(currentUser && (currentUser.role === 'admin' || currentUser.role === 'doctor')) ?
+                `<button class="btn-small btn-warning" onclick="editPatient('${patient.patient_id}')" title="Edit Patient"><i class="fas fa-edit"></i></button>` : ''}
                 
-                ${(currentUser && currentUser.role === 'admin') ? 
-                    `<button class="btn-small btn-danger" onclick="deletePatient('${patient.patient_id}')" title="Delete Patient"><i class="fas fa-trash"></i></button>` : ''}
+                ${(currentUser && currentUser.role === 'admin') ?
+                `<button class="btn-small btn-danger" onclick="deletePatient('${patient.patient_id}')" title="Delete Patient"><i class="fas fa-trash"></i></button>` : ''}
                 
-                ${(currentUser && currentUser.role !== 'receptionist') ? 
-                    `<button class="btn-small btn-success" onclick="addNoteForPatient('${patient.patient_id}')" title="Daily Notes"><i class="fas fa-notes-medical"></i></button>` : ''}
+                ${(currentUser && currentUser.role !== 'receptionist') ?
+                `<button class="btn-small btn-success" onclick="addNoteForPatient('${patient.patient_id}')" title="Daily Notes"><i class="fas fa-notes-medical"></i></button>` : ''}
                 
                 <button class="btn-small btn-primary" style="background-color: #805ad5; border: none; color: white;" onclick="openSurgeryModal('${patient.patient_id}')" title="Add Surgery Event"><i class="fas fa-procedures"></i></button>
             </td>
@@ -482,13 +482,13 @@ async function loadAvailableBedsForEdit(currentBed, gender) {
             headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('token') }
         });
         const result = await response.json();
-        
+
         if (result.success) {
             const allBeds = result.beds || [];
             if (currentBed && !allBeds.includes(currentBed)) {
                 allBeds.unshift(currentBed);
             }
-            
+
             bedSelect.innerHTML = '';
             if (allBeds.length === 0 && !currentBed) {
                 bedSelect.innerHTML = '<option value="" disabled>No beds available</option>';
@@ -708,7 +708,7 @@ function deletePatient(patientId) {
     document.body.appendChild(modal);
 
     // Close on overlay background click only
-    document.getElementById('delete-overlay-bg').addEventListener('mousedown', function(e) {
+    document.getElementById('delete-overlay-bg').addEventListener('mousedown', function (e) {
         if (e.target === this) {
             window._deleteStep = 1;
             document.getElementById('delete-confirm-modal')?.remove();
@@ -736,7 +736,7 @@ function handleDeleteStep(patientId) {
 
         const input = document.getElementById('delete-confirm-input');
         input.focus();
-        input.addEventListener('input', function() {
+        input.addEventListener('input', function () {
             const match = this.value.trim().toUpperCase() === 'DELETE';
             proceedBtn.disabled = !match;
             this.classList.toggle('matched', match);
@@ -753,21 +753,21 @@ function handleDeleteStep(patientId) {
             method: 'DELETE',
             headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('token') }
         })
-        .then(res => res.json())
-        .then(result => {
-            hideLoading();
-            if (result.success) {
-                showNotification('Patient successfully deleted from records.', 'success');
-                loadPatients();
-            } else {
-                showNotification(result.message || 'Failed to delete patient', 'error');
-            }
-        })
-        .catch(err => {
-            hideLoading();
-            console.error(err);
-            showNotification('Network error while deleting patient', 'error');
-        });
+            .then(res => res.json())
+            .then(result => {
+                hideLoading();
+                if (result.success) {
+                    showNotification('Patient successfully deleted from records.', 'success');
+                    loadPatients();
+                } else {
+                    showNotification(result.message || 'Failed to delete patient', 'error');
+                }
+            })
+            .catch(err => {
+                hideLoading();
+                console.error(err);
+                showNotification('Network error while deleting patient', 'error');
+            });
     }
 }
 
@@ -916,12 +916,12 @@ async function saveSurgery(patientId, btnEl) {
         if (result.success) {
             showNotification('Surgery details and bill updated in Cloud!', 'success');
             btnEl.closest('.modal').remove();
-            loadPatients(); 
+            loadPatients();
         } else {
             showNotification(result.message || 'Failed to update surgery', 'error');
         }
         return; // Exit here since we handled it
-        return; 
+        return;
     } catch (err) {
         hideLoading();
         console.error(err);
@@ -954,7 +954,7 @@ async function savePatientEdit(patientId) {
     try {
         const response = await fetch(`${API_BASE}patients/${patientId}`, {
             method: 'PUT',
-            headers: { 
+            headers: {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + sessionStorage.getItem('token')
             },

@@ -1,0 +1,330 @@
+;============================================================================ 
+; Installation file (.inf) for Windows 10 Finger Print SPI Device (DCHU).
+;
+; All Rights Reserved, Copyright(C) ELAN Microelectronics Corp. 2003-2019
+;============================================================================
+
+[Version]
+Signature="$Windows NT$"
+Class=Biometric
+ClassGuid={53D29EF7-377C-4D14-864B-EB3A85769359}
+Provider=%ProviderName%
+CatalogFile=WbfSpiDriver.cat
+DriverVer=12/09/2022, 4.5.11001.12005
+PnpLockdown=1
+
+[Manufacturer]
+%VenderName%=Elan, NTamd64
+
+[Elan.NTamd64]
+%DeviceName%		= Biometric_Install, ACPI\ELAN7001	; For Normal NB Type
+%DeviceName%		= Biometric_Install, ACPI\ELAN7002	; For 2 In 1 NB Type
+
+;----------------------------------------------------------------------------
+; SourceDisks Sections
+;----------------------------------------------------------------------------
+
+[SourceDisksNames]
+1 = %MediaDescription%
+
+[SourceDisksFiles]
+WbfSpiDriver.dll = 1
+EngineAdapter.dll = 1
+ELANFPService.exe = 1
+;----------------------------------------------------------------------------
+; Install Sections
+;----------------------------------------------------------------------------
+
+[DestinationDirs]
+UMDriverCopy		= 12, UMDF		; \Windows\System32\drivers\UMDF
+EFDServiceCopy 		= 11			; Driver directory
+WinBioEngineAdapterCopy	= 11, WinBioPlugins	; \Windows\System32\WinBioPlugins
+CoInstallers_CopyFiles	= 11
+
+;----------------------------------------------------------------------------
+; Common File Copy and Registry Operations
+;----------------------------------------------------------------------------
+
+[UMDriverCopy]
+WbfSpiDriver.dll,,,0x00004000
+
+[WinBioEngineAdapterCopy]
+EngineAdapter.dll,,,0x00004000
+
+[EFDServiceCopy]
+ELANFPService.exe,,,0x00004000
+
+;----------------------------------------------------------------------------
+
+;[ClassInstall32]
+;AddReg=BiometricClass_RegistryAdd
+
+;[BiometricClass_RegistryAdd]
+;HKR,,,,%ClassName%
+;HKR,,Icon,,"-201"
+;HKR,,IconPath,0x00010000,"%%SYSTEMROOT%%\system32\SysClass.dll,-201"
+
+;----------------------------------------------------------------------------
+; UMDF WBDI Usb Device - WBDI IOCTL interface
+;----------------------------------------------------------------------------
+
+[Biometric_Install.NT]
+AddProperty=Device_Properties
+CopyFiles=UMDriverCopy,\
+          WinBioEngineAdapterCopy,\
+		  EFDServiceCopy
+
+AddReg=EFD_System.AddReg,\
+       EFD_DeviceInfo.AddReg,\
+       EFD_OtherSetting.AddReg,\
+       EFD_CustomerSetting.AddReg,\
+       EFD_StableSolution.AddReg,\
+       EFD_CSNoiseSolution.AddReg,\
+       EFD_WaterProofSolution.AddReg,\
+       EFD_SpecialSettingByPID.AddReg
+
+[Biometric_Install.NT.hw]
+AddReg=Biometric_Device_AddReg
+AddReg=DriverPlugInAddReg, DatabaseAddReg
+
+[Device_Properties]
+DeviceIcon,,,,"%%SYSTEMROOT%%\system32\SysClass.dll,-201" ; This is where a device specific icon can be specified.
+
+[Biometric_Install.NT.Services]
+AddService=WUDFRd,0x000001fa,WUDFRD_ServiceInstall  ; flag 0x2 sets this as the service for the device
+AddService=ELANFPService,0x00000800, ELANFPService_Install
+[Biometric_Install.NT.Wdf]
+UmdfService=WBFSPIDriver,WBFSPIDriver_Install
+UmdfServiceOrder=WBFSPIDriver
+UmdfDirectHardwareAccess = AllowDirectHardwareAccess
+UmdfHostProcessSharing=ProcessSharingDisabled
+
+[Biometric_Install.NT.CoInstallers]
+AddReg=CoInstallers_AddReg
+
+[WBFSPIDriver_Install]
+UmdfLibraryVersion=2.19.0
+ServiceBinary=%12%\UMDF\WBFSPIDriver.dll
+[ELANFPService_Install]
+DisplayName    = "ELAN Service"
+ServiceType    = 0x00000010         ; SERVICE_WIN32_OWN_PROCESS
+StartType      = 0x00000002         ; SERVICE_AUTO_START
+ErrorControl   = 1                  ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %11%\ELANFPService.exe
+[Biometric_Device_AddReg]
+HKR,,"DeviceCharacteristics",0x10001,0x0100     ; Use same security checks on relative opens
+HKR,,"Security",,"D:P(A;;GA;;;BA)(A;;GA;;;SY)"  ; Allow generic-all access to Built-in administrators and Local system
+;HKR,,"LowerFilters",0x00010008,"WinUsb"         ; FLG_ADDREG_TYPE_MULTI_SZ | FLG_ADDREG_APPEND
+HKR,,"Exclusive",0x10001,1
+HKR,,"SystemWakeEnabled",0x00010001,0
+HKR,,"DeviceIdleEnabled",0x00010001,0
+HKR,,"UserSetDeviceIdleEnabled",0x00010001,1
+HKR,,"DefaultIdleState",0x00010001,1
+HKR,,"DefaultIdleTimeout",0x00010001,5000
+HKR,"WDF","WdfDirectedPowerTransitionEnable",0x00010001,1
+[DriverPlugInAddReg]
+HKR,WinBio\Configurations,DefaultConfiguration,,"0"
+HKR,WinBio\Configurations\0,SensorMode,0x10001,1                                ; Basic - 1, Advanced - 2
+HKR,WinBio\Configurations\0,SystemSensor,0x10001,1                              ; UAC/Winlogon - 1
+HKR,WinBio\Configurations\0,SensorAdapterBinary,,"WinBioSensorAdapter.DLL"      ; Windows built-in WBDI sensor adapter.
+HKR,WinBio\Configurations\0,EngineAdapterBinary,,"EngineAdapter.DLL"            ; Vendor engine
+HKR,WinBio\Configurations\0,StorageAdapterBinary,,"WinBioStorageAdapter.DLL"    ; Windows built-in storage adapter
+HKR,WinBio\Configurations\0,DatabaseId,,"D0586DE1-1F56-4F9F-B904-67930F9A703A"  ; Unique database GUID
+
+[DatabaseAddReg]
+HKLM,System\CurrentControlSet\Services\WbioSrvc\Databases\{D0586DE1-1F56-4F9F-B904-67930F9A703A},BiometricType,0x00010001,0x00000008
+HKLM,System\CurrentControlSet\Services\WbioSrvc\Databases\{D0586DE1-1F56-4F9F-B904-67930F9A703A},Attributes,0x00010001,0x00000001
+HKLM,System\CurrentControlSet\Services\WbioSrvc\Databases\{D0586DE1-1F56-4F9F-B904-67930F9A703A},Format,,"00000000-0000-0000-0000-000000000000"
+HKLM,System\CurrentControlSet\Services\WbioSrvc\Databases\{D0586DE1-1F56-4F9F-B904-67930F9A703A},InitialSize,0x00010001,0x00000020
+HKLM,System\CurrentControlSet\Services\WbioSrvc\Databases\{D0586DE1-1F56-4F9F-B904-67930F9A703A},AutoCreate,0x00010001,0x00000001
+HKLM,System\CurrentControlSet\Services\WbioSrvc\Databases\{D0586DE1-1F56-4F9F-B904-67930F9A703A},AutoName,0x00010001,0x00000001
+HKLM,System\CurrentControlSet\Services\WbioSrvc\Databases\{D0586DE1-1F56-4F9F-B904-67930F9A703A},FilePath,,""
+HKLM,System\CurrentControlSet\Services\WbioSrvc\Databases\{D0586DE1-1F56-4F9F-B904-67930F9A703A},ConnectionString,,""
+
+[WUDFRD_ServiceInstall]
+DisplayName = %WudfRdDisplayName%
+ServiceType = 1
+StartType = 3
+ErrorControl = 1
+ServiceBinary = %12%\WUDFRd.sys
+LoadOrderGroup = Base
+
+[CoInstallers_AddReg]
+;HKR,,CoInstallers32,0x00010000,"WudfCoinstaller.dll","EFDCoInstaller01004.dll,CoInstallerEntry"
+HKR,,CoInstallers32,0x00010000,"WudfCoinstaller.dll"
+
+;----------------------------------------------------------------------------
+; Device Information Section
+;----------------------------------------------------------------------------
+
+[EFD_DeviceInfo.AddReg]
+HKR,"ElanFP\DeviceInfo",DeviceType,%REG_DWORD%,1				; 0 = USB, 1 = SPI
+HKR,"ElanFP\DeviceInfo",AcceptSampleHint,%REG_DWORD%,17			; Max Enroll Times (1~50)
+HKR,"ElanFP\DeviceInfo",CoveragePercent,%REG_DWORD%,80			; Coverage Percent (20~100)
+HKR,"ElanFP\DeviceInfo",EnrollAreaCenterCount,%REG_DWORD%,6		; 0: Disable, 3 ~ (AcceptSampleHint-1): Enable (Count Setting)
+
+;----------------------------------------------------------------------------
+; Other Setting Section
+;----------------------------------------------------------------------------
+
+[EFD_OtherSetting.AddReg]
+HKR,"ElanFP\OtherSetting",ResetType,%REG_DWORD%,2			; 0 = None, 1 = TP_PTP, 2 = GPIO
+HKR,"ElanFP\OtherSetting",SupportWOEMode,%REG_DWORD%,1			; 0 = Disable, 1 = Enable
+HKR,"ElanFP\OtherSetting",WaitFingerPressType,%REG_DWORD%,2		; 0 = None, 1 = By Power State, 2 = Force Wait
+HKR,"ElanFP\OtherSetting",SupportPowerPlan,%REG_DWORD%,0			; 0 = Not Support, 1 = Support
+HKR,"ElanFP\OtherSetting",SupportPBA,%REG_DWORD%,0			; 0 = Not Support, 1 = Support
+HKR,"ElanFP\OtherSetting",ForceNoCheckDuplicate,%REG_DWORD%,1		; 0 = Disable, 1 = Enable
+HKR,"ElanFP\OtherSetting",SupportRecommendUI,%REG_DWORD%,1		; 0 = Disable, 1 = Enable
+;HKLM,%ServiceRoot%"\ElanFP\OtherSetting",IsNeedNotifyAsusTPDriver,%REG_DWORD%,0	; 0 = Not Support, 1 = Support (notify coinstaller reboot)
+HKR,"ElanFP\OtherSetting",QThreshold_L,%REG_DWORD%,25			; Value experiment by Frank
+HKR,"ElanFP\OtherSetting",QThreshold_H,%REG_DWORD%,35			; Value experiment by Frank
+HKR,"ElanFP\OtherSetting",SensorDeviateDetectionQualifyThreshold,%REG_DWORD%,16	
+HKR,"ElanFP\OtherSetting",ContinuousSpiralEnroll,%REG_DWORD%,0	
+HKR,"ElanFP\OtherSetting",RejectDetailTypeCounterTH,%REG_DWORD%,1	
+HKR,"ElanFP\OtherSetting",Area_Threshold_SPIR,%REG_DWORD%,75   ;Default:65
+HKR,"ElanFP\OtherSetting",Area_Threshold_IDEN,%REG_DWORD%,40	  ;Default:40	
+HKR,"ElanFP\OtherSetting",Area_Threshold_ENRO,%REG_DWORD%,75	
+HKR,"ElanFP\OtherSetting",NeedShowD3State,%REG_DWORD%,0	
+HKR,"ElanFP\OtherSetting",MonitorBurnStatus,%REG_DWORD%,0	
+HKR,"ElanFP\OtherSetting",SupportMSTouchWakeup,%REG_DWORD%,0	; 0 = Disable, 1 = Enable
+
+;----------------------------------------------------------------------------
+; Customer Setting Section
+;----------------------------------------------------------------------------
+
+[EFD_CustomerSetting.AddReg]
+HKR,"ElanFP\CustomerSetting",CustomerDefinition,%REG_DWORD%,5		; 0 = NONE, 5 = ASUS, 6 = ACER, 9 = LG, 10 = White Brand, 11 = VAIO
+HKR,"ElanFP\CustomerSetting",PlatformType,%REG_DWORD%,0			; 0 = Normal NB, 1 = 2in1, 2 = Standalone
+HKR,"ElanFP\CustomerSetting",RegistryDefinition,%REG_DWORD%,1	; 0 = HKLM, 1 = HKR
+
+;----------------------------------------------------------------------------
+; Stable Solution Section
+;----------------------------------------------------------------------------
+
+[EFD_StableSolution.AddReg]
+HKR,"ElanFP\StableSolution",SupportStableSolution,%REG_DWORD%,0		; 0 = No Support, 1 = Support
+HKR,"ElanFP\StableSolution",StableMeanAvgThreshold,%REG_DWORD%,1000
+HKR,"ElanFP\StableSolution",StableDiffAvgThreshold,%REG_DWORD%,600
+
+;----------------------------------------------------------------------------
+; CS Noise Solution Section
+;----------------------------------------------------------------------------
+
+[EFD_CSNoiseSolution.AddReg]
+HKR,"ElanFP\CSNoiseSolution",SupportCSSolution,%REG_DWORD%,0		; 0 = No Support, 1 = Support
+HKR,"ElanFP\CSNoiseSolution",SupportFSRDCSSolution,%REG_DWORD%,1		; 0 = No Support, 1 = Support
+HKR,"ElanFP\CSNoiseSolution",CSNoiseHoldTriggerCount,%REG_DWORD%,4
+HKR,"ElanFP\CSNoiseSolution",CSNoiseHoldTime,%REG_DWORD%,30000		; Unit: ms
+HKR,"ElanFP\CSNoiseSolution",CSNoiseDiffAvgThreshold,%REG_DWORD%,1200
+HKR,"ElanFP\CSNoiseSolution",ACDetectTH80,%REG_DWORD%,2000
+HKR,"ElanFP\CSNoiseSolution",ACDetectTH96,%REG_DWORD%,2000
+;----------------------------------------------------------------------------
+; WaterProof Solution Section
+;----------------------------------------------------------------------------
+
+[EFD_WaterProofSolution.AddReg]
+HKR,"ElanFP\WaterProofSolution",SupportWaterProofSolution,%REG_DWORD%,0		; 0 = No Support, 1 = Support
+HKR,"ElanFP\WaterProofSolution",WaterProof_Level1_Threshold,%REG_DWORD%,40
+HKR,"ElanFP\WaterProofSolution",WaterProof_Level1_Count_Threshold,%REG_DWORD%,5
+HKR,"ElanFP\WaterProofSolution",WaterProof_Level2_Threshold,%REG_DWORD%,60
+HKR,"ElanFP\WaterProofSolution",WaterProof_Level2_Count_Threshold,%REG_DWORD%,3
+;HKLM,%ServiceRoot%"\ElanFP\WaterProofSolution",SetWaterTH80,%REG_DWORD%,40
+;HKLM,%ServiceRoot%"\ElanFP\WaterProofSolution",SetWaterTH96,%REG_DWORD%,250
+;----------------------------------------------------------------------------
+; SpecialSettingByPID Section
+;----------------------------------------------------------------------------
+
+[EFD_SpecialSettingByPID.AddReg]
+HKR,"ElanFP\SpecialSettingByPID",TP_VID,%REG_DWORD%,0x04F3
+HKR,"ElanFP\SpecialSettingByPID\0x3028",TipsRotateType,%REG_DWORD%,1		; 0 = 0 Degree, 1 = Rotate Left 90 Degree, 2 = Rotate Left 180 Degree, 3 = Rotate Left 270 Degree
+HKR,"ElanFP\SpecialSettingByPID\0x304D",TipsRotateType,%REG_DWORD%,1		; 0 = 0 Degree, 1 = Rotate Left 90 Degree, 2 = Rotate Left 180 Degree, 3 = Rotate Left 270 Degree
+HKR,"ElanFP\SpecialSettingByPID\0x3059",TipsRotateType,%REG_DWORD%,1		; 0 = 0 Degree, 1 = Rotate Left 90 Degree, 2 = Rotate Left 180 Degree, 3 = Rotate Left 270 Degree
+HKR,"ElanFP\SpecialSettingByPID\0x306F",TipsRotateType,%REG_DWORD%,1		; 0 = 0 Degree, 1 = Rotate Left 90 Degree, 2 = Rotate Left 180 Degree, 3 = Rotate Left 270 Degree
+HKR,"ElanFP\SpecialSettingByPID\0x22FE",TipsRotateType,%REG_DWORD%,1		; 0 = 0 Degree, 1 = Rotate Left 90 Degree, 2 = Rotate Left 180 Degree, 3 = Rotate Left 270 Degree
+
+HKR,"ElanFP\SpecialSettingByPID\0x30B1",EnrollType,%REG_DWORD%,1	; Normal Type:0,Sprial Type:1
+HKR,"ElanFP\SpecialSettingByPID\0x30B1",LibUse,%REG_DWORD%,0	; FF:0,PB:1
+
+HKR,"ElanFP\SpecialSettingByPID\0x30B2",EnrollType,%REG_DWORD%,0	; Normal Type:0,Sprial Type:1
+HKR,"ElanFP\SpecialSettingByPID\0x30B2",LibUse,%REG_DWORD%,0	; FF:0,PB:1
+HKR,"ElanFP\SpecialSettingByPID\0x30B2",FingerUpFastScan,%REG_DWORD%,0			; 0 = Disable, 1 = Enable
+HKR,"ElanFP\SpecialSettingByPID\0x30B2",TipsRotateType,%REG_DWORD%,0		; 0 = 0 Degree, 1 = Rotate Left 90 Degree, 2 = Rotate Left 180 Degree, 3 = Rotate Left 270 Degree
+HKR,"ElanFP\SpecialSettingByPID\0x30B2",ErrorPixelOffset,%REG_DWORD%,256		
+HKR,"ElanFP\SpecialSettingByPID\0x30B2",ESDTH,%REG_DWORD%,40000	
+HKR,"ElanFP\SpecialSettingByPID\0x30B2",DetectWOEThreadEnable,%REG_DWORD%,0
+HKR,"ElanFP\SpecialSettingByPID\0x30B2",DetectWOEPeriod,%REG_DWORD%,2000	
+HKR,"ElanFP\SpecialSettingByPID\0x30B2",SensorSize,%REG_DWORD%,14	 ;ID_eFSA96SA = 6, ID_eFSA80SC = 14
+
+HKR,"ElanFP\SpecialSettingByPID\0x3104",EnrollType,%REG_DWORD%,0	; Normal Type:0,Sprial Type:1
+;HKLM,%ServiceRoot%"\ElanFP\SpecialSettingByPID\0x3104",LibUse,%REG_DWORD%,0	; FF:0,PB:1
+HKR,"ElanFP\SpecialSettingByPID\0x3104",FingerUpFastScan,%REG_DWORD%,0			; 0 = Disable, 1 = Enable
+HKR,"ElanFP\SpecialSettingByPID\0x3104",TipsRotateType,%REG_DWORD%,3		; 0 = 0 Degree, 1 = Rotate Left 90 Degree, 2 = Rotate Left 180 Degree, 3 = Rotate Left 270 Degree
+;HKLM,%ServiceRoot%"\ElanFP\SpecialSettingByPID\0x3104",ErrorPixelOffset,%REG_DWORD%,256		
+;HKLM,%ServiceRoot%"\ElanFP\SpecialSettingByPID\0x3104",ESDTH,%REG_DWORD%,40000	
+HKR,"ElanFP\SpecialSettingByPID\0x3104",DetectWOEThreadEnable,%REG_DWORD%,0
+HKR,"ElanFP\SpecialSettingByPID\0x3104",DetectWOEPeriod,%REG_DWORD%,2000	
+HKR,"ElanFP\SpecialSettingByPID\0x3104",SensorSize,%REG_DWORD%,14	 ;ID_eFSA96SA = 6, ID_eFSA80SC = 14
+HKR,"ElanFP\SpecialSettingByPID\0x3104",CalibrationType,%REG_DWORD%,1			; 0 = Normal_Type, 1 = Recover_Type(can fast login when resume)
+HKR,"ElanFP\SpecialSettingByPID\0x3104",DisableWOENegativeSignalDetection,%REG_DWORD%,1	
+HKR,"ElanFP\SpecialSettingByPID\0x3104",ACDetectTH,%REG_DWORD%,1000
+
+HKR,"ElanFP\SpecialSettingByPID\0x3128",TipsRotateType,%REG_DWORD%,3		; 0 = 0 Degree, 1 = Rotate Left 90 Degree, 2 = Rotate Left 180 Degree, 3 = Rotate Left 270 Degree
+HKR,"ElanFP\SpecialSettingByPID\0x3128",FingerUpFastScan,%REG_DWORD%,0			; 0 = Disable, 1 = Enable
+
+HKR,"ElanFP\SpecialSettingByPID\0x31B7",TipsRotateType,%REG_DWORD%,3		; 0 = 0 Degree, 1 = Rotate Left 90 Degree, 2 = Rotate Left 180 Degree, 3 = Rotate Left 270 Degree
+
+HKR,"ElanFP\SpecialSettingByPID\0x3201",TipsRotateType,%REG_DWORD%,3		; 0 = 0 Degree, 1 = Rotate Left 90 Degree, 2 = Rotate Left 180 Degree, 3 = Rotate Left 270 Degree
+HKR,"ElanFP\SpecialSettingByPID\0x3201",ACDetectTH,%REG_DWORD%,1000
+
+HKR,"ElanFP\SpecialSettingByPID\0x3212",TipsRotateType,%REG_DWORD%,3		; 0 = 0 Degree, 1 = Rotate Left 90 Degree, 2 = Rotate Left 180 Degree, 3 = Rotate Left 270 Degree
+
+HKR,"ElanFP\SpecialSettingByPID\0x3087",TipsRotateType,%REG_DWORD%,3		; 0 = 0 Degree, 1 = Rotate Left 90 Degree, 2 = Rotate Left 180 Degree, 3 = Rotate Left 270 Degree
+HKR,"ElanFP\SpecialSettingByPID\0x3087",ACDetectTH,%REG_DWORD%,50
+
+HKR,"ElanFP\SpecialSettingByPID\0x3296",TipsRotateType,%REG_DWORD%,3		; 0 = 0 Degree, 1 = Rotate Left 90 Degree, 2 = Rotate Left 180 Degree, 3 = Rotate Left 270 Degree
+
+;----------------------------------------------------------------------------
+; System Section
+;----------------------------------------------------------------------------
+
+[EFD_System.AddReg]
+HKLM,%ServiceRoot%"\ElanFP",Version,%REG_SZ%,"%DriverVersion%"
+HKLM,%ServiceRoot%"\ElanFP",DriverVersion,%REG_SZ%,"ELAN FingerPrint %DriverVersion%_%DriverBit%_%DriverVersionExtend%"
+
+;----------------------------------------------------------------------------
+; RS2 Signature
+;----------------------------------------------------------------------------
+[SignatureAttributes]
+WbfSpiDriver.dll = SignatureAttributes.WindowsHello
+EngineAdapter.dll = SignatureAttributes.WindowsHello
+ 
+[SignatureAttributes.WindowsHello]
+WindowsHello = true
+
+;----------------------------------------------------------------------------
+; String Table
+;----------------------------------------------------------------------------
+
+[Strings]
+VenderName		= "ELAN"
+ProviderName		= "ELAN Finger Print"
+Publisher 		= "ELAN Microelectronic Corp."
+MediaDescription	= "Elan Driver Installation Media"
+ClassName		= "Biometric Devices"
+WudfRdDisplayName	= "Windows Driver Foundation - User-mode Driver Framework Reflector"
+DeviceName		= "ELAN WBF Fingerprint Sensor" 
+TargetDir		= "ElanFP"
+ServiceRoot 		= "System\CurrentControlSet\Control"
+
+; Registry Type
+REG_EXPAND_SZ		= 0x00020000 
+REG_DWORD		= 0x00010001 
+REG_MULTI_SZ		= 0x00010000
+REG_BINARY		= 0x00000001
+REG_SZ			= 0x00000000
+
+; ELAN FP Driver Information
+DriverDate		= "12/09/2022"
+DriverVersion		= "4.5.11001.12005"
+DriverBit		= "X64"
+DriverVersionExtend	= "WHQL"        ; Trial or Beta or WHQL

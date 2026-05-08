@@ -1,0 +1,45 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+
+    <FontFamily x:Key="FontFamily">Arial</FontFamily>
+
+    <system:String x:Key="APNAME">ASUSインストールウィザード</system:String>
+    <system:String x:Key="DESCRIPTION">"ASUS製ノートパソコンにインストールするアプリケーション・ユーティリティを選択することができる無料ソフトウェアです"</system:String>
+    <system:String x:Key="TITLE">どのアプリケーションをインストールしますか？</system:String>
+    <system:String x:Key="SELECTALL">全て選択</system:String>
+    <system:String x:Key="NAME">名前</system:String>
+    <system:String x:Key="VERSION">バージョン</system:String>
+    <system:String x:Key="STATUS">状態</system:String>
+    <system:String x:Key="DRIVER">ドライバー</system:String>
+    <system:String x:Key="APPLICATION">アプリケーション</system:String>
+    <system:String x:Key="CATALOG_1">マルチメディア / エンターテイメント</system:String>
+    <system:String x:Key="CATALOG_2">システムツール</system:String>
+    <system:String x:Key="CATALOG_3">ネットワーク</system:String>
+    <system:String x:Key="CATALOG_4">バックアップと復元</system:String>
+    <system:String x:Key="CATALOG_5">セキュリティと保護</system:String>
+    <system:String x:Key="CATALOG_6">ワークツール</system:String>
+    <system:String x:Key="SIZE1">アプリケーションのインストールに必要な空き容量:</system:String>
+    <system:String x:Key="SIZE2">1</system:String>
+    <system:String x:Key="SIZE3">MB</system:String>
+    <system:String x:Key="REBOOT">再起動が必要</system:String>
+    <system:String x:Key="REBOOTMESSAGE">今すぐ再起動しますか</system:String>
+    <system:String x:Key="INSTALL">インストール</system:String>
+    <system:String x:Key="CANCEL">キャンセル</system:String>
+    <system:String x:Key="SELECT1">合計</system:String>
+    <system:String x:Key="SELECT2">22</system:String>
+    <system:String x:Key="SELECT3S">項目を選択</system:String>
+    <system:String x:Key="SELECT3">項目を選択</system:String>
+    <system:String x:Key="NOITEMS">全ての項目をインストールしました。</system:String>
+    <system:String x:Key="NOTSUITABLE">記憶装置内のドライバーはお使いのハードウェアと互換性がありません。</system:String>
+    <system:String x:Key="INSTALLNOW">インストールを開始しますか？</system:String>
+    <system:String x:Key="CHOOSEONE">項目を1つ選択しインストールしてください。</system:String>
+    <system:String x:Key="PLEASEWAIT">お待ちください。</system:String>
+    <system:String x:Key="WRONGTYPE">記憶装置内のドライバーはお使いのOSと互換性がありません。</system:String>
+    <system:String x:Key="INSTALLING">インストール中</system:String>
+    <system:String x:Key="DONE">完了</system:String>
+    <system:String x:Key="FAILED">失敗</system:String>    
+    <system:String x:Key="CANCELINSTALL">ASUS Installation Wizardをキャンセルしますか？</system:String>
+    <system:String x:Key="CLOSE">X</system:String>
+
+</ResourceDictionary>

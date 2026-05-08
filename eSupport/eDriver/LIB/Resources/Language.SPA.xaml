@@ -1,0 +1,45 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+
+    <FontFamily x:Key="FontFamily">Arial</FontFamily>
+
+    <system:String x:Key="APNAME">Asistente para la instalación de ASUS</system:String>
+    <system:String x:Key="DESCRIPTION">Se trata de una aplicación gratuita para su equipo portátil de ASUS que le permitirá instalar las aplicaciones y utilidades de ASUS en el sistema.</system:String>
+    <system:String x:Key="TITLE">¿Qué aplicaciones desea instalar?</system:String>
+    <system:String x:Key="SELECTALL">Seleccionar todas</system:String>
+    <system:String x:Key="NAME">Nombre</system:String>
+    <system:String x:Key="VERSION">Versión</system:String>
+    <system:String x:Key="STATUS">Estado</system:String>
+    <system:String x:Key="DRIVER">Controlador</system:String>
+    <system:String x:Key="APPLICATION">Aplicación</system:String>
+    <system:String x:Key="CATALOG_1">Multimedia / Entretenimiento</system:String>
+    <system:String x:Key="CATALOG_2">Herramientas del sistema</system:String>
+    <system:String x:Key="CATALOG_3">Red</system:String>
+    <system:String x:Key="CATALOG_4" xml:space="preserve" >Copia de seguridad &#x0d; restauración</system:String>
+    <system:String x:Key="CATALOG_5">Seguridad y protección</system:String>
+    <system:String x:Key="CATALOG_6">Herramienta comercial</system:String>
+    <system:String x:Key="SIZE1">Espacio para las aplicaciones instaladas:</system:String>
+    <system:String x:Key="SIZE2">1</system:String>
+    <system:String x:Key="SIZE3">MB</system:String>
+    <system:String x:Key="REBOOT">Reiniciar</system:String>
+    <system:String x:Key="REBOOTMESSAGE">Reiniciar</system:String>
+    <system:String x:Key="INSTALL">Instalar</system:String>
+    <system:String x:Key="CANCEL">Cancelar</system:String>
+    <system:String x:Key="SELECT1">Total</system:String>
+    <system:String x:Key="SELECT2">22</system:String>
+    <system:String x:Key="SELECT3S">elementos seleccionados</system:String>
+    <system:String x:Key="SELECT3">elemento seleccionado</system:String>
+    <system:String x:Key="NOITEMS">Se han instalado todos los elementos.</system:String>
+    <system:String x:Key="NOTSUITABLE">Los controladores de este disco no son compatibles con su hardware.</system:String>
+    <system:String x:Key="INSTALLNOW">Instalar ahora</system:String>
+    <system:String x:Key="CHOOSEONE">Escoja un elemento para instalar</system:String>
+    <system:String x:Key="PLEASEWAIT">Espere.</system:String>
+    <system:String x:Key="WRONGTYPE">Los controladores de este disco no son compatibles con su SO.</system:String>
+    <system:String x:Key="INSTALLING">Instalando</system:String>
+    <system:String x:Key="DONE">Finalizado</system:String>
+    <system:String x:Key="FAILED">Error</system:String>    
+    <system:String x:Key="CANCELINSTALL">Desea cancelar el asistente de instalación de ASUS?</system:String>
+    <system:String x:Key="CLOSE">X</system:String>
+
+</ResourceDictionary>

@@ -13,18 +13,18 @@ exports.getAvailableBeds = async (req, res) => {
         }
 
         const allBeds = bedSetting.value.split(',').map(b => b.trim()).filter(b => b);
-        
+
         // Get currently occupied beds (Admitted patients)
-        const occupiedPatients = await Patient.find({ 
-            status: 'Admitted', 
-            isDeleted: false 
+        const occupiedPatients = await Patient.find({
+            status: 'Admitted',
+            isDeleted: false
         }).select('bed_no');
-        
+
         const occupiedBeds = occupiedPatients.map(p => p.bed_no);
-        
+
         // Filter out occupied beds
         const availableBeds = allBeds.filter(bed => !occupiedBeds.includes(bed));
-        
+
         res.status(200).json({ success: true, beds: availableBeds });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
@@ -161,7 +161,7 @@ exports.addSurgery = async (req, res) => {
     try {
         const patient = await Patient.findOne({ patient_id: req.params.id, isDeleted: false });
         if (!patient) return res.status(404).json({ success: false, message: 'Patient not found' });
-        
+
         patient.surgeries.push(req.body);
         await patient.save();
         res.status(200).json({ success: true, surgeries: patient.surgeries });

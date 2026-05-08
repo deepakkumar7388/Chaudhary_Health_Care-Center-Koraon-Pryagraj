@@ -1,0 +1,45 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+
+    <FontFamily x:Key="FontFamily">Arial</FontFamily>
+
+    <system:String x:Key="APNAME">Мастер установки ASUS</system:String>
+    <system:String x:Key="DESCRIPTION">Это бесплатное приложение для ноутбука ASUS, позволяющее установить приложения и утилиты ASUS.</system:String>
+    <system:String x:Key="TITLE">Какие приложения Вы хотите установить?</system:String>
+    <system:String x:Key="SELECTALL">Выбрать все</system:String>
+    <system:String x:Key="NAME">Название</system:String>
+    <system:String x:Key="VERSION">Версия</system:String>
+    <system:String x:Key="STATUS">Состояние</system:String>
+    <system:String x:Key="DRIVER">Драйвер</system:String>
+    <system:String x:Key="APPLICATION">Приложение</system:String>
+    <system:String x:Key="CATALOG_1">Мультимедиа / Развлечения</system:String>
+    <system:String x:Key="CATALOG_2">Системные утилиты</system:String>
+    <system:String x:Key="CATALOG_3">Сеть</system:String>
+    <system:String x:Key="CATALOG_4" xml:space="preserve" >Резервное копирование &#x0d; восстановление</system:String>
+    <system:String x:Key="CATALOG_5">Защита и безопасность</system:String>
+    <system:String x:Key="CATALOG_6">Утилиты для работы</system:String>
+    <system:String x:Key="SIZE1">Требуемое место на диске для приложений:</system:String>
+    <system:String x:Key="SIZE2">1</system:String>
+    <system:String x:Key="SIZE3">MB</system:String>
+    <system:String x:Key="REBOOT">Перезагрузить</system:String>
+    <system:String x:Key="REBOOTMESSAGE">Перезагрузить</system:String>
+    <system:String x:Key="INSTALL">Установить</system:String>
+    <system:String x:Key="CANCEL">Отмена</system:String>
+    <system:String x:Key="SELECT1">Всего</system:String>
+    <system:String x:Key="SELECT2">22</system:String>
+    <system:String x:Key="SELECT3S">пунктов выбрано</system:String>
+    <system:String x:Key="SELECT3">пункт выбран</system:String>
+    <system:String x:Key="NOITEMS">Все пункты установлены</system:String>
+    <system:String x:Key="NOTSUITABLE">Драйверы на этом диске несовместимы с данным оборудованием.</system:String>
+    <system:String x:Key="INSTALLNOW">Установить сейчас</system:String>
+    <system:String x:Key="CHOOSEONE">Выберите пункт для установки</system:String>
+    <system:String x:Key="PLEASEWAIT">Подождите.</system:String>
+    <system:String x:Key="WRONGTYPE">Драйверы на этом диске несовместимы с данной ОС.</system:String>
+    <system:String x:Key="INSTALLING">Установка</system:String>
+    <system:String x:Key="DONE">Готово</system:String>
+    <system:String x:Key="FAILED">Ошибка</system:String>    
+    <system:String x:Key="CANCELINSTALL">Отменить мастер установки ASUS?</system:String>
+    <system:String x:Key="CLOSE">X</system:String>
+
+</ResourceDictionary>
