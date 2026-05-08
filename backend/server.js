@@ -42,10 +42,12 @@ app.get('/api/ping', (req, res) => {
     res.status(200).send('pong');
 });
 
-// For any other request, serve index.html (SPA support)
-app.get('*', (req, res) => {
+// SPA fallback - serve index.html for non-API routes
+app.use((req, res, next) => {
     if (!req.path.startsWith('/api/')) {
         res.sendFile(path.join(__dirname, '../index.html'));
+    } else {
+        next();
     }
 });
 
