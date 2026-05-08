@@ -124,11 +124,11 @@ function renderBilling() {
                         <table class="billing-table" style="width:100%; border-collapse:collapse;">
                             <thead>
                                 <tr>
-                                    <th style="width:50px; text-align:center;">S.N.</th>
-                                    <th>Particulars / Service Description</th>
-                                    <th style="width:120px; text-align:center;">Rate (Fee)</th>
-                                    <th style="width:80px; text-align:center;">Qty/Days</th>
-                                    <th style="width:120px; text-align:right;">Amount</th>
+                                    <th style="width:30px; text-align:center;">#</th>
+                                    <th>Service Description</th>
+                                    <th style="width:80px; text-align:center;">Rate</th>
+                                    <th style="width:60px; text-align:center;">Qty</th>
+                                    <th style="width:90px; text-align:right;">Amount</th>
                                 </tr>
                             </thead>
                             <tbody id="billing-items-body"></tbody>
