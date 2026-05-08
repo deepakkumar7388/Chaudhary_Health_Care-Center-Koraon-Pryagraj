@@ -246,24 +246,56 @@ function showBillingTab(tab) {
         return;
     }
 
-    container.innerHTML = list.map(bill => `
-        <div class="bill-card ${bill.status.toLowerCase()}">
-            <div class="bill-header">
-                <div><h4>${bill.patient}</h4><span style="font-size:10px; color:#64748b;">INV-${bill.id}</span></div>
-                <div style="text-align:right;"><span class="amount">${window.currencySymbol || '₹'}${bill.amount.toLocaleString()}</span></div>
-            </div>
-            <div class="bill-details">
-                <p><span>Date:</span> <strong>${bill.bill_date}</strong></p>
-                <p><span>Due:</span> <strong style="color:${bill.remaining > 0 ? 'var(--b-danger)' : 'var(--b-success)'}">${window.currencySymbol || '₹'}${bill.remaining.toLocaleString()}</strong></p>
-                <p><span>Status:</span> <span class="status-badge payment-${bill.status.toLowerCase()}">${bill.status}</span></p>
-            </div>
-            <div class="bill-actions">
-                <button class="btn-small btn-info" onclick="viewBill('${bill.id}')"><i class="fas fa-eye"></i> View</button>
-                ${bill.status !== 'Paid' ? `<button class="btn-small btn-success" onclick="markBillPaid('${bill.id}', ${bill.remaining})"><i class="fas fa-check"></i> Settle</button>` : ''}
-                <button class="btn-small btn-primary" onclick="printBill('${bill.id}')"><i class="fas fa-print"></i> Print</button>
-            </div>
-        </div>
-    `).join('');
+    container.innerHTML = `
+        <table class="bills-table">
+            <thead>
+                <tr>
+                    <th>Patient Name</th>
+                    <th>Invoice ID</th>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Due</th>
+                    <th>Status</th>
+                    <th style="text-align:right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${list.map(bill => {
+                    const isPaid = bill.status === 'Paid';
+                    const statusClass = isPaid ? 'paid' : 'pending';
+                    const statusIcon = isPaid ? 'fa-check-circle' : 'fa-clock';
+                    
+                    return `
+                    <tr>
+                        <td><strong>${bill.patient}</strong></td>
+                        <td style="color:#64748b; font-size:12px; font-weight:700;">INV-${bill.id}</td>
+                        <td>${bill.bill_date}</td>
+                        <td style="font-weight:800;">${window.currencySymbol || '₹'}${bill.amount.toLocaleString()}</td>
+                        <td style="color:${bill.remaining > 0 ? '#ef4444' : '#10b981'}; font-weight:700;">
+                            ${window.currencySymbol || '₹'}${bill.remaining.toLocaleString()}
+                        </td>
+                        <td>
+                            <span class="status-badge ${statusClass}">
+                                <i class="fas ${statusIcon}"></i> ${bill.status}
+                            </span>
+                        </td>
+                        <td style="text-align:right;">
+                            <button class="action-btn" title="View Details" onclick="viewBill('${bill.id}')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            ${!isPaid ? `
+                            <button class="action-btn btn-pay" title="Mark as Paid" onclick="markBillPaid('${bill.id}', ${bill.remaining})">
+                                <i class="fas fa-check"></i>
+                            </button>` : ''}
+                            <button class="action-btn" title="Print Invoice" onclick="printBill('${bill.id}')">
+                                <i class="fas fa-print"></i>
+                            </button>
+                        </td>
+                    </tr>`;
+                }).join('')}
+            </tbody>
+        </table>
+    `;
 }
 
 async function viewBill(patientId) {
