@@ -588,7 +588,7 @@
         width: 100% !important;
         box-shadow: none !important;
     }
-    #module-content > div:not(#module-billing) {
+    #module-content > div:not(.active) {
         display: none !important;
     }
     .billing-container > *:not(#billing-report-wrap) {

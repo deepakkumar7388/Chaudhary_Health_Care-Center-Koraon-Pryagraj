@@ -239,20 +239,19 @@
 
 /* Print Specific Rules */
 @media print {
-    body * {
-        visibility: hidden;
+    .sidebar, .mobile-header, .content-header, .sidebar-overlay, #loading-overlay, #notification, .no-print, .print-hide, .action-buttons {
+        display: none !important;
     }
 
     .main-content {
-        margin-left: 0 !important;
+        margin: 0 !important;
         padding: 0 !important;
+        width: 100% !important;
+        box-shadow: none !important;
     }
 
-    #module-discharge,
-    #module-discharge *,
-    #discharge-report-section,
-    #discharge-report-section * {
-        visibility: visible;
+    #module-content > div:not(.active) {
+        display: none !important;
     }
 
     #discharge-report-section {
