@@ -283,53 +283,70 @@ function confirmDischarge() {
         return;
     }
 
-    if (confirm('Are you sure you want to generate the discharge summary?')) {
-        showLoading('Processing discharge...');
+    const patientName = document.getElementById('d-name').value || 'this patient';
+    document.getElementById('discharge-confirm-patient-name').textContent = patientName;
+    
+    const confirmModal = document.getElementById('discharge-confirm-modal');
+    confirmModal.classList.add('active');
 
-        const advisedMedicines = [];
-        document.querySelectorAll('#advised-med-table tbody tr').forEach(tr => {
-            const name = tr.querySelector('.med-name').value.trim();
-            const dose = tr.querySelector('.med-dose').value.trim();
-            const freq = tr.querySelector('.med-freq').value.trim();
-            const dur = tr.querySelector('.med-dur').value.trim();
-            if (name) {
-                advisedMedicines.push({ name, dose, freq, duration: dur });
-            }
-        });
+    document.getElementById('btn-confirm-discharge-action').onclick = function() {
+        confirmModal.classList.remove('active');
+        executeDischarge(patientId, diagnosis, summary, dischargeDate);
+    };
+}
 
-        const dischargeData = {
-            id: 'D' + Date.now(),
-            patientId,
-            doctorName: "Dr. Bhoopendra Chaudhary",
-            dischargeDate,
-            diagnosis,
-            summary,
-            advisedMedicines
-        };
+function closeDischargeConfirmModal() {
+    const confirmModal = document.getElementById('discharge-confirm-modal');
+    if (confirmModal) confirmModal.classList.remove('active');
+}
+window.closeDischargeConfirmModal = closeDischargeConfirmModal;
 
-        fetch(`${API_BASE}discharge`, {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + sessionStorage.getItem('token')
-            },
-            body: JSON.stringify(dischargeData)
-        })
-        .then(res => res.json())
-        .then(result => {
-            hideLoading();
-            if (result.success) {
-                showNotification('Patient discharged successfully!', 'success');
-                displayDischargeReport(dischargeData);
-            } else {
-                showNotification(result.message || 'Error processing discharge', 'error');
-            }
-        })
-        .catch(err => {
-            hideLoading();
-            console.error(err);
-        });
-    }
+function executeDischarge(patientId, diagnosis, summary, dischargeDate) {
+    showLoading('Processing discharge...');
+
+    const advisedMedicines = [];
+    document.querySelectorAll('#advised-med-table tbody tr').forEach(tr => {
+        const name = tr.querySelector('.med-name').value.trim();
+        const dose = tr.querySelector('.med-dose').value.trim();
+        const freq = tr.querySelector('.med-freq').value.trim();
+        const dur = tr.querySelector('.med-dur').value.trim();
+        if (name) {
+            advisedMedicines.push({ name, dose, freq, duration: dur });
+        }
+    });
+
+    const dischargeData = {
+        id: 'D' + Date.now(),
+        patientId,
+        doctorName: "Dr. Bhoopendra Chaudhary",
+        dischargeDate,
+        diagnosis,
+        summary,
+        advisedMedicines
+    };
+
+    fetch(`${API_BASE}discharge`, {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+        },
+        body: JSON.stringify(dischargeData)
+    })
+    .then(res => res.json())
+    .then(result => {
+        hideLoading();
+        if (result.success) {
+            showNotification('Patient discharged successfully!', 'success');
+            displayDischargeReport(dischargeData);
+        } else {
+            showNotification(result.message || 'Error processing discharge', 'error');
+        }
+    })
+    .catch(err => {
+        hideLoading();
+        console.error(err);
+    });
 }
 
 function displayDischargeReport(data) {
