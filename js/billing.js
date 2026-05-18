@@ -127,7 +127,7 @@ function renderBilling() {
                                     <th style="width:30px; text-align:center;">#</th>
                                     <th>Service Description</th>
                                     <th style="width:80px; text-align:center;">Rate</th>
-                                    <th style="width:60px; text-align:center;">Qty</th>
+                                    <th style="width:60px; text-align:center;">Day</th>
                                     <th style="width:90px; text-align:right;">Amount</th>
                                 </tr>
                             </thead>
