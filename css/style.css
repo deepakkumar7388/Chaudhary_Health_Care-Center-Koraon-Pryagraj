@@ -3,17 +3,24 @@
    ============================================ */
 
 :root {
-    --primary: #4f46e5;       /* Deep Indigo - Professional & Trustworthy */
+    --primary: #4f46e5;
+    /* Deep Indigo - Professional & Trustworthy */
     --primary-dark: #3730a3;
     --primary-light: #eef2ff;
-    --secondary: #64748b;     /* Cool Slate - Clean Secondary */
-    --success: #10b981;       /* Emerald - Positive */
-    --warning: #f59e0b;       /* Amber - Alert */
-    --danger: #ef4444;        /* Rose - Urgent */
-    --background: #f8fafc;    /* Modern Gray/Blue Background */
+    --secondary: #64748b;
+    /* Cool Slate - Clean Secondary */
+    --success: #10b981;
+    /* Emerald - Positive */
+    --warning: #f59e0b;
+    /* Amber - Alert */
+    --danger: #ef4444;
+    /* Rose - Urgent */
+    --background: #f8fafc;
+    /* Modern Gray/Blue Background */
     --sidebar-bg: #ffffff;
     --card-bg: #ffffff;
-    --text-main: #0f172a;     /* High Contrast Text */
+    --text-main: #0f172a;
+    /* High Contrast Text */
     --text-muted: #64748b;
     --border: #e2e8f0;
     --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
@@ -265,7 +272,8 @@ body {
     margin-left: 280px;
     padding: 32px;
     transition: all 0.3s ease;
-    min-width: 0; /* Prevent flex-item from overflowing */
+    min-width: 0;
+    /* Prevent flex-item from overflowing */
 }
 
 
@@ -1173,7 +1181,7 @@ body {
         left: 0;
     }
 
-    .sidebar.active ~ .sidebar-overlay {
+    .sidebar.active~.sidebar-overlay {
         display: block;
     }
 
@@ -1201,6 +1209,7 @@ body {
         flex: 1;
         min-width: 120px;
     }
+
     .sidebar-header {
         padding: 20px 15px;
     }
@@ -1446,13 +1455,22 @@ body.dark-theme tr:hover {
     display: block;
 }
 
-.modal, .logout-modal, .notification {
+.modal,
+.logout-modal,
+.notification {
     display: none;
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .table-responsive {
