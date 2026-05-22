@@ -26,13 +26,13 @@ async function fixBeds() {
 
         const beds = [];
 
-        // 1. General Ward Male (40 beds)
-        for (let i = 1; i <= 40; i++) {
+        // 1. General Ward Male (20 beds)
+        for (let i = 1; i <= 20; i++) {
             beds.push(`Male-G${i}`);
         }
 
-        // 2. General Ward Female (40 beds)
-        for (let i = 1; i <= 40; i++) {
+        // 2. General Ward Female (20 beds)
+        for (let i = 1; i <= 20; i++) {
             beds.push(`Female-G${i}`);
         }
 

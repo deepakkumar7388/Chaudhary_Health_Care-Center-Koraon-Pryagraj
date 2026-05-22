@@ -43,6 +43,10 @@ function renderAddPatient() {
                             <input type="tel" id="p-mobile" required pattern="[0-9]{10}" placeholder="10-digit number">
                         </div>
                         <div class="form-group">
+                            <label>Email Address</label>
+                            <input type="email" id="p-email" placeholder="patient@example.com">
+                        </div>
+                        <div class="form-group">
                             <label>Bed Number *</label>
                             <select id="p-bed" class="filter-select" required disabled>
                                 <option value="">Select Gender First</option>
@@ -155,31 +159,20 @@ window.filterBedsByGender = function () {
         return;
     }
 
-    const groups = {
-        'General Ward (Male)': [],
-        'General Ward (Female)': [],
-        'ICU Ward': [],
-        'Private Room': [],
-        'Others': []
-    };
+    const groups = {};
 
-    allBeds.forEach(bed => {
-        if (bed.startsWith('Male-G')) {
-            if (gender === 'Male') groups['General Ward (Male)'].push(bed);
-        }
-        else if (bed.startsWith('Female-G')) {
-            if (gender === 'Female') groups['General Ward (Female)'].push(bed);
-        }
-        else if (bed.startsWith('ICU-')) {
-            groups['ICU Ward'].push(bed);
-        }
-        else if (bed.startsWith('Private-')) {
-            groups['Private Room'].push(bed);
-        }
-        else {
-            groups['Others'].push(bed);
-        }
-    });
+    // Gender-specific ward
+    if (gender === 'Male') {
+        groups['👨 Male Ward (General)'] = allBeds.filter(bed => bed.startsWith('Male-G'));
+    } else if (gender === 'Female') {
+        groups['👩 Female Ward (General)'] = allBeds.filter(bed => bed.startsWith('Female-G'));
+    }
+
+    // ICU and Private are common for all genders
+    const icuBeds = allBeds.filter(bed => bed.startsWith('ICU-'));
+    const privateBeds = allBeds.filter(bed => bed.startsWith('Private-'));
+    if (icuBeds.length > 0) groups['🏥 ICU Ward (Common)'] = icuBeds;
+    if (privateBeds.length > 0) groups['🚪 Private Room (Common)'] = privateBeds;
 
     for (const [groupName, beds] of Object.entries(groups)) {
         if (beds.length > 0) {
@@ -202,6 +195,7 @@ async function addPatient() {
     const age = document.getElementById('p-age').value;
     const gender = document.getElementById('p-gender').value;
     const mobile = document.getElementById('p-mobile').value.trim();
+    const email = document.getElementById('p-email').value.trim() || null;
     const guardian = document.getElementById('p-guardian').value.trim();
     const bed = document.getElementById('p-bed').value.trim();
     const address = document.getElementById('p-address').value.trim();
@@ -227,7 +221,7 @@ async function addPatient() {
 
         const newPatient = {
             patient_id: patientId,
-            name, age: parseInt(age), gender, mobile,
+            name, age: parseInt(age), gender, mobile, email,
             guardian_name: guardian,
             bed_no: bed,
             wardChargePerDay: dailyCharge,

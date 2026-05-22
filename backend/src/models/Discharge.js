@@ -5,6 +5,7 @@ const dischargeSchema = new mongoose.Schema({
     patientId: { type: String, required: true },
     doctorName: String,
     dischargeDate: Date,
+    dischargeTime: String,
     diagnosis: String,
     summary: String,
     advisedMedicines: [{

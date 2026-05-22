@@ -5,7 +5,20 @@ const surgerySchema = new mongoose.Schema({
     surgeonName: String,
     surgeryDate: Date,
     cost: Number,
-    paid: { type: Boolean, default: false }
+    paid: { type: Boolean, default: false },
+    indoorNo: String,
+    wardNo: String,
+    provisional: String,
+    finalDiag: String,
+    witnessName: String,
+    witnessAddress: String,
+    witnessDate: Date,
+    witnessPlace: String,
+    guardianName: String,
+    guardianAddress: String,
+    guardianDate: Date,
+    guardianPlace: String,
+    guardianSignature: String
 });
 
 const bedHistorySchema = new mongoose.Schema({
@@ -25,12 +38,14 @@ const patientSchema = new mongoose.Schema({
     bed_no: String,
     admission_date: { type: Date, default: Date.now },
     discharge_date: Date,
+    discharge_time: { type: String, default: null },
     status: { type: String, enum: ['Admitted', 'Discharged'], default: 'Admitted' },
     payment_status: { type: String, enum: ['Paid', 'Pending'], default: 'Pending' },
     pending_amount: { type: Number, default: 0 },
     problem: String,
     doctor_assigned: String,
     mobile: String,
+    email: { type: String, default: null },
     address: String,
     surgeries: [surgerySchema],
     wardChargePerDay: Number,

@@ -3,7 +3,7 @@ const Patient = require('../models/Patient');
 
 exports.createDischarge = async (req, res) => {
     try {
-        const { patientId, dischargeDate } = req.body;
+        const { patientId, dischargeDate, dischargeTime } = req.body;
         
         // Save discharge record
         const newDischarge = new Discharge(req.body);
@@ -14,6 +14,7 @@ exports.createDischarge = async (req, res) => {
         if (patient) {
             patient.status = 'Discharged';
             patient.discharge_date = dischargeDate || Date.now();
+            patient.discharge_time = dischargeTime || '';
             
             if (patient.bedHistory && patient.bedHistory.length > 0) {
                 const lastBed = patient.bedHistory[patient.bedHistory.length - 1];
@@ -22,6 +23,23 @@ exports.createDischarge = async (req, res) => {
                 }
             }
             await patient.save();
+
+            // Send discharge email asynchronously in the background
+            setTimeout(async () => {
+                try {
+                    const Setting = require('../models/Setting');
+                    const emailDischargeSetting = await Setting.findOne({ key: 'email-discharge' });
+                    const isEmailEnabled = emailDischargeSetting ? (emailDischargeSetting.value === true || emailDischargeSetting.value === 'true') : false;
+
+                    if (isEmailEnabled && patient.email) {
+                        const emailService = require('../config/emailService');
+                        await emailService.sendDischargeEmail(patient.email, patient, newDischarge);
+                        console.log(`[Notification] Discharge email sent successfully to ${patient.email}`);
+                    }
+                } catch (err) {
+                    console.error('[Notification] Error in discharge email background process:', err.message);
+                }
+            }, 0);
         }
         
         res.status(201).json({ success: true, discharge: newDischarge });

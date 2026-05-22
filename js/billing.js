@@ -5,6 +5,17 @@
 let currentBillPatientId = null;
 let currentBillData = null;
 
+function formatBillDate(val) {
+    if (!val || val === 'N/A' || val === '-') return 'N/A';
+    try {
+        const d = new Date(val);
+        if (isNaN(d)) return val;
+        return d.toLocaleDateString('en-IN', {
+            day: '2-digit', month: 'short', year: 'numeric'
+        });
+    } catch { return val; }
+}
+
 const BILLING_ITEMS_LIST = [
     "DR. FEES", "OXYGEN CHARGE", "NEBULIZER CHARGE", "MONITOR CHARGE",
     "SYRINGE PUMP CHARGE", "SUCTION CHARGE", "NURSING CHARGE", "RMO CHARGE",
@@ -93,7 +104,7 @@ function renderBilling() {
                     <div class="chk-header">
                         <div class="hospital-logo"><img src="hlogo.png" alt="Logo"></div>
                         <div class="hospital-info">
-                            <h1 class="hospital-title">CHAUDHARY HEALTH CARE CENTER</h1>
+                            <h1 class="hospital-title hospital-name">CHAUDHARY HEALTH CARE CENTER</h1>
                             <h3 class="hospital-subtitle">GANDHI CHAURAHA, MEJA WALI ROAD, KORAON-PRAYAGRAJ 212306</h3>
                             <p style="font-size:11px; margin-top:5px; font-weight:700; color:#475569;">Helpline: +91 9935100000 | Email: contact@chchealth.com</p>
                         </div>
@@ -280,14 +291,14 @@ function showBillingTab(tab) {
                             </span>
                         </td>
                         <td style="text-align:right;">
-                            <button class="action-btn" title="View Details" onclick="viewBill('${bill.id}')">
+                            <button class="bill-action-btn bill-btn-view" title="View Details" onclick="viewBill('${bill.id}')">
                                 <i class="fas fa-eye"></i>
                             </button>
                             ${!isPaid ? `
-                            <button class="action-btn btn-pay" title="Mark as Paid" onclick="markBillPaid('${bill.id}', ${bill.remaining})">
+                            <button class="bill-action-btn bill-btn-pay" title="Mark as Paid" onclick="markBillPaid('${bill.id}', ${bill.remaining})">
                                 <i class="fas fa-check"></i>
                             </button>` : ''}
-                            <button class="action-btn" title="Print Invoice" onclick="printBill('${bill.id}')">
+                            <button class="bill-action-btn bill-btn-print" title="Print Invoice" onclick="printBill('${bill.id}')">
                                 <i class="fas fa-print"></i>
                             </button>
                         </td>
@@ -302,23 +313,28 @@ async function viewBill(patientId) {
     currentBillPatientId = patientId;
     showLoading('Generating invoice...');
     try {
-        const response = await fetch(`${API_BASE}billing/${patientId}`, {
-            headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('token') }
-        });
+        const [response, pResponse] = await Promise.all([
+            fetch(`${API_BASE}billing/${patientId}`, {
+                headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('token') }
+            }),
+            fetch(`${API_BASE}patients/${patientId}`, {
+                headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('token') }
+            })
+        ]);
         const result = await response.json();
-        currentBillData = result.billing;
+        const pResult = await pResponse.json();
         
-        // Find patient info
-        const p = window.allPatientsData?.find(x => x.patient_id === patientId);
+        currentBillData = result.billing;
+        const p = pResult?.patient || window.allPatientsData?.find(x => x.patient_id === patientId);
         
         document.getElementById('b-patient-id').textContent = patientId;
         document.getElementById('b-patient-name').textContent = p?.name || 'Unknown';
-        document.getElementById('b-relative').textContent = p?.relative_name || '-';
+        document.getElementById('b-relative').textContent = p?.guardian_name || p?.relative_name || '-';
         document.getElementById('b-address').textContent = p?.address || '-';
         document.getElementById('b-age').textContent = (p?.age || '-') + ' / ' + (p?.gender || '-');
-        document.getElementById('b-bed').textContent = p?.bed_number || '-';
-        document.getElementById('b-doa').textContent = p?.admission_date || '-';
-        document.getElementById('b-dod').textContent = p?.discharge_date || 'N/A';
+        document.getElementById('b-bed').textContent = p?.bed_no || '-';
+        document.getElementById('b-doa').textContent = formatBillDate(p?.admission_date);
+        document.getElementById('b-dod').textContent = formatBillDate(p?.discharge_date);
         
         // Auto-populate invoice date and time
         const now = new Date();
@@ -327,7 +343,7 @@ async function viewBill(patientId) {
         
         document.getElementById('discount-amt').value = currentBillData?.discount || 0;
         
-        initializeBillingTable(currentBillData?.items || [], p?.bedHistory || []);
+        initializeBillingTable(currentBillData?.items || [], p?.bedHistory || [], p?.surgeries || []);
         renderPaymentHistory(currentBillData?.payments || []);
         
         // Calculate total admitted days
@@ -358,7 +374,7 @@ async function viewBill(patientId) {
                 }
             } else {
                 // First-time load: no saved item exists yet
-                if (!itemName.startsWith('Bed Charge')) {
+                if (!itemName.startsWith('Bed Charge') && !itemName.startsWith('Surgery:')) {
                     // Populate total admitted days for static items
                     row.querySelector('.days-input').value = totalAdmittedDays;
 
@@ -381,7 +397,7 @@ async function viewBill(patientId) {
     }
 }
 
-function initializeBillingTable(items = [], bedHistory = []) {
+function initializeBillingTable(items = [], bedHistory = [], surgeries = []) {
     const tbody = document.getElementById('billing-items-body');
     let html = '';
     let rowIndex = 1;
@@ -404,6 +420,22 @@ function initializeBillingTable(items = [], bedHistory = []) {
                 <td><strong>${itemName}</strong> <br><small style="color:#64748b; font-size:10px;">${startDate.toLocaleDateString()} to ${bed.end_date ? endDate.toLocaleDateString() : 'Present'}</small></td>
                 <td style="text-align:center;"><input type="number" class="calc-input fee-input" oninput="calculateBillingTotals()" value="${bed.daily_charge || 0}" placeholder="0"></td>
                 <td style="text-align:center;"><input type="number" class="calc-input days-input" oninput="calculateBillingTotals()" value="${diffDays}" placeholder="1"></td>
+                <td class="row-amt" style="text-align:right; font-weight:700;"></td>
+            </tr>
+            `;
+        });
+    }
+
+    // Dynamically add surgery rows
+    if (surgeries && surgeries.length > 0) {
+        surgeries.forEach((s) => {
+            const itemName = `Surgery: ${s.surgeryName}`;
+            html += `
+            <tr class="billing-item-row" data-item-name="${itemName}">
+                <td style="text-align:center;">${rowIndex++}</td>
+                <td><strong>${itemName}</strong> <br><small style="color:#64748b; font-size:10px;">Date: ${new Date(s.surgeryDate).toLocaleDateString()}</small></td>
+                <td style="text-align:center;"><input type="number" class="calc-input fee-input" oninput="calculateBillingTotals()" value="${s.cost || 0}" placeholder="0"></td>
+                <td style="text-align:center;"><input type="number" class="calc-input days-input" oninput="calculateBillingTotals()" value="1" placeholder="1"></td>
                 <td class="row-amt" style="text-align:right; font-weight:700;"></td>
             </tr>
             `;
@@ -504,10 +536,14 @@ function renderPaymentHistory(payments = []) {
     const tbody = document.getElementById('payment-history-body');
     tbody.innerHTML = payments.map(p => `
         <tr>
-            <td>${new Date(p.date).toLocaleDateString()}</td>
-            <td>${p.mode}</td>
-            <td>${p.amount}</td>
-            <td class="no-print"><button class="btn-small btn-danger" onclick="deletePayment('${p._id}')"><i class="fas fa-trash"></i></button></td>
+            <td style="padding: 8px 5px;">${new Date(p.date).toLocaleDateString()}</td>
+            <td style="padding: 8px 5px;">${p.mode}</td>
+            <td style="padding: 8px 5px; font-weight: 700;">₹${p.amount}</td>
+            <td class="no-print" style="padding: 8px 5px;">
+                <button onclick="deletePayment('${p._id}')" style="background: transparent; border: none; color: #ef4444; cursor: pointer; padding: 6px; font-size: 14px; transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px;" onmouseover="this.style.background='#fef2f2'; this.style.color='#dc2626';" onmouseout="this.style.background='transparent'; this.style.color='#ef4444';">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </td>
         </tr>
     `).join('');
 }
@@ -557,6 +593,11 @@ function searchBillingPatients() {
     if (term.length < 2) { results.style.display = 'none'; return; }
 
     const filtered = (window.allPatientsData || []).filter(p => p.name.toLowerCase().includes(term) || p.patient_id.toLowerCase().includes(term));
-    results.innerHTML = filtered.map(p => `<div onclick="viewBill('${p.patient_id}'); document.getElementById('billing-search-results').style.display='none';"><strong>${p.name}</strong> (${p.patient_id})</div>`).join('');
+    results.innerHTML = filtered.map(p => `
+        <div class="pro-search-item" onclick="viewBill('${p.patient_id}'); document.getElementById('billing-search-results').style.display='none';">
+            <span class="p-name">${p.name}</span>
+            <span class="p-id">${p.patient_id}</span>
+        </div>
+    `).join('');
     results.style.display = filtered.length ? 'block' : 'none';
 }

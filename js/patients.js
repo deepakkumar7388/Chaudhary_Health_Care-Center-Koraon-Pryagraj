@@ -338,18 +338,37 @@ function viewPatient(patientId) {
                         </div>
                         <div style="display: flex; flex-direction: column; gap: 10px;">
                             ${surgeries.map(s => `
-                                <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 8px; border-bottom: 1px dotted #e2e8f0;">
-                                    <div>
-                                        <div style="font-size: 14px; font-weight: 700; color: #2d3748;">${s.surgeryName}</div>
-                                        <div style="font-size: 12px; color: #718096;">By ${s.surgeonName} on ${new Date(s.surgeryDate).toLocaleDateString()}</div>
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 12px; border-bottom: 1px dotted #e2e8f0; margin-bottom: 12px;">
+                                    <div style="flex: 1;">
+                                        <div style="font-size: 14px; font-weight: 700; color: #2d3748; display:flex; align-items:center; gap:8px;">
+                                            <span>${s.surgeryName}</span>
+                                            ${s.indoorNo ? `<span style="font-size: 10px; background: #e0e7ff; color: #4f46e5; padding: 2px 6px; border-radius: 4px; border: 1px solid #c7d2fe;">Indoor No: ${s.indoorNo}</span>` : ''}
+                                            ${s.wardNo ? `<span style="font-size: 10px; background: #fef3c7; color: #d97706; padding: 2px 6px; border-radius: 4px; border: 1px solid #fde68a;">Ward No: ${s.wardNo}</span>` : ''}
+                                        </div>
+                                        <div style="font-size: 12px; color: #4a5568; margin-top: 2px;">Surgeon: <strong>${s.surgeonName}</strong> | Date: <strong>${new Date(s.surgeryDate).toLocaleDateString()}</strong></div>
+                                        
+                                        ${s.provisional || s.finalDiag ? `
+                                            <div style="font-size: 11px; color: #718096; margin-top: 4px;">
+                                                ${s.provisional ? `Prov. Diagnosis: <em>${s.provisional}</em>` : ''}
+                                                ${s.finalDiag ? ` | Final: <em>${s.finalDiag}</em>` : ''}
+                                            </div>
+                                        ` : ''}
+
+                                        ${s.witnessName || s.guardianName ? `
+                                            <div style="font-size: 11px; color: #4a5568; margin-top: 6px; background: #f8fafc; padding: 6px 10px; border-radius: 4px; display: inline-block;">
+                                                ${s.guardianName ? `अभिभावक: <strong>${s.guardianName}</strong>` : ''}
+                                                ${s.witnessName ? ` | गवाह: <strong>${s.witnessName}</strong>` : ''}
+                                            </div>
+                                        ` : ''}
+
                                         ${s.guardianSignature ? `
                                             <div style="margin-top: 8px; display: flex; align-items: center; gap: 10px;">
                                                 <span style="font-size: 11px; color: #718096; font-weight: 600;">Guardian Signature Proof:</span>
-                                                <img src="${s.guardianSignature}" style="max-height: 40px; border: 1px solid #edf2f7; border-radius: 4px; padding: 2px; background: #fff;" alt="Sign Proof">
+                                                <img src="${s.guardianSignature}" style="max-height: 45px; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px; background: #fff;" alt="Sign Proof">
                                             </div>
                                         ` : ''}
                                     </div>
-                                    <div style="text-align: right; color: #805ad5; font-weight: 700; font-size: 14px;">
+                                    <div style="text-align: right; color: #805ad5; font-weight: 700; font-size: 14px; white-space: nowrap;">
                                         ${window.currencySymbol || '₹'}${s.cost}
                                     </div>
                                 </div>
@@ -434,9 +453,15 @@ function editPatient(patientId) {
                         </div>
                     </div>
 
-                    <div style="margin-bottom: 20px;">
-                        <label style="display:block; font-size:11px; font-weight:700; color:#a0aec0; text-transform:uppercase; margin-bottom:5px;">Mobile / Contact</label>
-                        <input type="text" id="edit-p-mobile" value="${patient.mobile || ''}" class="search-input" style="width:100%;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                        <div>
+                            <label style="display:block; font-size:11px; font-weight:700; color:#a0aec0; text-transform:uppercase; margin-bottom:5px;">Mobile / Contact</label>
+                            <input type="text" id="edit-p-mobile" value="${patient.mobile || ''}" class="search-input" style="width:100%;">
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:11px; font-weight:700; color:#a0aec0; text-transform:uppercase; margin-bottom:5px;">Email Address</label>
+                            <input type="email" id="edit-p-email" value="${patient.email || ''}" class="search-input" style="width:100%;" placeholder="patient@example.com">
+                        </div>
                     </div>
 
                     <div style="margin-bottom: 20px;">
@@ -544,7 +569,7 @@ function openTransferBedModal(patientId) {
         const select = document.getElementById('transfer-new-bed');
         if (!select) return;
         select.innerHTML = '<option value="" disabled selected>Select New Bed</option>';
-        
+
         if (result.success && result.beds && result.beds.length > 0) {
             const gender = patient.gender || 'Male';
             const groups = {
@@ -586,7 +611,7 @@ function openTransferBedModal(patientId) {
     }).catch(err => console.error(err));
 }
 
-window.handleTransferBedChange = function(bedNo) {
+window.handleTransferBedChange = function (bedNo) {
     if (!bedNo) return;
     const settings = window.hospitalSettings || {};
     const isICU = bedNo.toLowerCase().includes('icu');
@@ -622,7 +647,7 @@ async function saveTransferBed(patientId) {
         });
         const result = await res.json();
         hideLoading();
-        
+
         if (result.success) {
             showNotification('Patient successfully transferred to new bed.', 'success');
             document.querySelector('#transfer-bed-form').closest('.modal').remove();
@@ -638,7 +663,7 @@ async function saveTransferBed(patientId) {
     }
 }
 
-window.handleEditBedChange = function(bedNo) {
+window.handleEditBedChange = function (bedNo) {
     if (!bedNo) return;
     const settings = window.hospitalSettings || {};
     const isICU = bedNo.toLowerCase().includes('icu');
@@ -989,10 +1014,10 @@ function isSurgeryPatient(patientId) {
     return patientObj && patientObj.surgeries && patientObj.surgeries.length > 0;
 }
 
-window.handleSurgerySignatureUpload = function(input) {
+window.handleSurgerySignatureUpload = function (input) {
     if (input.files && input.files[0]) {
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = function (e) {
             const imgEl = document.getElementById('surgery-sig-preview-img');
             const placeholder = document.getElementById('surgery-sig-placeholder');
             if (imgEl && placeholder) {
@@ -1007,56 +1032,245 @@ window.handleSurgerySignatureUpload = function(input) {
 
 function openSurgeryModal(patientId) {
     const patientObj = window.allPatientsData?.find(p => String(p.patient_id) === String(patientId));
+    const records = JSON.parse(localStorage.getItem('patient_records') || '{}');
+    const savedRecord = records[patientId] || {};
 
     const modal = document.createElement('div');
     modal.className = 'modal';
     modal.style.display = 'flex';
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
+    modal.style.zIndex = '1050';
+
     modal.innerHTML = `
-        <div class="modal-content" style="max-width: 450px;">
-            <div class="modal-header">
-                <h3><i class="fas fa-procedures" style="color:#805ad5;"></i> Add Surgery Event</h3>
-                <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
+        <div class="modal-content" style="max-width: 800px; width: 95%; max-height: 90vh; overflow-y: auto; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); border: 1px solid #cbd5e1;">
+            <div class="modal-header" style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 16px 24px;">
+                <h3 style="margin: 0; font-size: 18px; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-procedures" style="color:#805ad5;"></i> Add Surgery Event & Operation Consent
+                </h3>
+                <button class="modal-close" style="font-size: 24px; color: #94a3b8; background: none; border: none; cursor: pointer;" onclick="window.stopSurgeryCameraStream(); this.closest('.modal').remove()">&times;</button>
             </div>
-            <div style="padding:20px;">
-                <p style="margin-top:0; color:#4a5568; font-size:14px; margin-bottom:15px;">
-                    Recording surgery for <strong>${patientObj ? patientObj.name : patientId}</strong>
+            <div style="padding: 24px;">
+                <p style="margin-top:0; color:#475569; font-size:14px; margin-bottom:20px; padding: 10px 14px; background: #f1f5f9; border-radius: 6px; border-left: 4px solid #6366f1;">
+                    <i class="fas fa-user-circle"></i> Recording surgery for patient: <strong style="color: #0f172a;">${patientObj ? patientObj.name : patientId}</strong>
                 </p>
-                <div class="form-group" style="margin-bottom: 15px;">
-                    <label>Surgery Name / Procedure *</label>
-                    <input type="text" id="surgery-name" placeholder="Appendectomy" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px;">
-                </div>
-                <div class="form-group" style="margin-bottom: 15px;">
-                    <label>Surgeon Name *</label>
-                    <input type="text" id="surgeon-name" placeholder="Dr. Name" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px;">
-                </div>
-                <div class="form-group" style="margin-bottom: 15px;">
-                    <label>Surgery Date *</label>
-                    <input type="date" id="surgery-date" value="${new Date().toISOString().split('T')[0]}" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px;">
-                </div>
-                <div class="form-group" style="margin-bottom: 15px;">
-                    <label>Surgery Base Charges (${window.currencySymbol || '₹'}) *</label>
-                    <input type="number" id="surgery-cost" placeholder="Enter amount" min="0" onfocus="this.select()" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px;">
-                    <small style="color:#718096; display:block; margin-top:5px;"><i class="fas fa-info-circle"></i> This will be automatically added to the Billing Module.</small>
-                </div>
-                <div class="form-group" style="margin-bottom: 25px;">
-                    <label>Upload Guardian Signature / Thumb Proof *</label>
-                    <div style="border: 1px dashed #ccc; padding: 10px; border-radius: 8px; text-align: center; background: #f9f9f9; margin-bottom: 10px;">
-                        <input type="file" id="surgery-sig-upload" accept="image/*" onchange="handleSurgerySignatureUpload(this)" style="font-size: 12px; width: 100%;">
+
+                <!-- SECTION 1: SURGERY & DIAGNOSIS DETAILS -->
+                <h4 style="margin: 0 0 12px 0; font-size: 13px; color: #4f46e5; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; font-weight:700;">
+                    <i class="fas fa-file-medical"></i> Surgery & Diagnosis Information
+                </h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                    <div>
+                        <label style="display:block; font-size:12px; font-weight:600; color:#475569; margin-bottom:6px;">Surgery Name / Procedure *</label>
+                        <input type="text" id="surgery-name" placeholder="Appendectomy" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background:#fff;">
                     </div>
-                    <div id="surgery-sig-preview-wrap" style="height: 100px; border: 1px solid #e2e8f0; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: #fff; overflow: hidden; position: relative;">
-                        <img id="surgery-sig-preview-img" style="max-height: 100%; display: none;">
-                        <span id="surgery-sig-placeholder" style="color: #cbd5e1; font-style: italic; font-size: 13px;">Signature Preview / अंगूठे का निशान</span>
+                    <div>
+                        <label style="display:block; font-size:12px; font-weight:600; color:#475569; margin-bottom:6px;">Surgeon Name *</label>
+                        <input type="text" id="surgeon-name" placeholder="Dr. Bhoopendra Chaudhary" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background:#fff;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:12px; font-weight:600; color:#475569; margin-bottom:6px;">Surgery Date *</label>
+                        <input type="date" id="surgery-date" value="${new Date().toISOString().split('T')[0]}" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background:#fff;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:12px; font-weight:600; color:#475569; margin-bottom:6px;">Surgery Base Charges (${window.currencySymbol || '₹'}) *</label>
+                        <input type="number" id="surgery-cost" placeholder="0" min="0" onfocus="this.select()" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background:#fff;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:12px; font-weight:600; color:#475569; margin-bottom:6px;">INDOOR No. (IPD No.) <span style="font-weight: normal; color: #94a3b8;">(Optional)</span></label>
+                        <input type="text" id="surgery-indoor-no" placeholder="Indoor No. (Optional)" value="${savedRecord.indoor_no || ''}" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background:#fff;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:12px; font-weight:600; color:#475569; margin-bottom:6px;">WARD No. <span style="font-weight: normal; color: #94a3b8;">(Optional)</span></label>
+                        <input type="text" id="surgery-ward-no" placeholder="Ward No. (Optional)" value="${savedRecord.ward_no || ''}" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background:#fff;">
+                    </div>
+                    <div style="grid-column: span 2;">
+                        <label style="display:block; font-size:12px; font-weight:600; color:#475569; margin-bottom:6px;">Provisional Diagnosis <span style="font-weight: normal; color: #94a3b8;">(Optional)</span></label>
+                        <input type="text" id="surgery-provisional" placeholder="Provisional Diagnosis (Optional)" value="${savedRecord.provisional || ''}" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background:#fff;">
+                    </div>
+                    <div style="grid-column: span 2;">
+                        <label style="display:block; font-size:12px; font-weight:600; color:#475569; margin-bottom:6px;">Final Diagnosis <span style="font-weight: normal; color: #94a3b8;">(Optional)</span></label>
+                        <input type="text" id="surgery-final" placeholder="Final Diagnosis (Optional)" value="${savedRecord.final || ''}" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background:#fff;">
                     </div>
                 </div>
-                <div style="display:flex; justify-content:flex-end; gap:10px;">
-                    <button class="btn" style="background:#eee;color:#333;border:none;padding:10px 20px;border-radius:5px;cursor:pointer;" onclick="this.closest('.modal').remove()">Cancel</button>
-                    <button class="btn btn-primary" style="background:#805ad5;color:#fff;border:none;padding:10px 20px;border-radius:5px;cursor:pointer;" onclick="saveSurgery('${patientId}', this)">Confirm Surgery</button>
+
+                <!-- SECTION 2: HINDI CONSENT WARNING CALLOUT -->
+                <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 16px; margin-bottom: 24px; border-radius: 8px; font-size: 14px; color: #b45309; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px; font-weight:700;">
+                        <i class="fas fa-hand-holding-medical" style="font-size:16px;"></i> 
+                        <span>शल्य चिकित्सा एवं निश्चेतक हेतु सहमति (Operation Consent Form)</span>
+                    </div>
+                    मैं एतद्द्वारा अपने रोगी के किसी प्रकार के नैदानिक परीक्षण, उपचार एवं तद हेतु आवश्यक शल्य क्रिया व निश्चेतक औषधियों के प्रयोग की अनुमति देता / देती हूँ। मुझे इसके सभी संभावित परिणामों से अवगत करा दिया गया है।
+                </div>
+
+                <!-- SECTION 3: WITNESS AND GUARDIAN SIDE-BY-SIDE -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+                    
+                    <!-- WITNESS COLUMN -->
+                    <div style="background: #f8fafc; padding: 16px; border: 1px solid #e2e8f0; border-radius: 8px;">
+                        <h5 style="margin: 0 0 12px 0; font-size: 13px; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; display:flex; align-items:center; gap:6px; border-bottom:1px solid #cbd5e1; padding-bottom:6px; font-weight:700;">
+                            <i class="fas fa-user-shield"></i> साक्षी गवाह (Witness Details)
+                        </h5>
+                        <div style="display:flex; flex-direction:column; gap:10px;">
+                            <div>
+                                <label style="display:block; font-size:11px; font-weight:600; color:#64748b; margin-bottom:4px;">गवाह का नाम (Witness Name)</label>
+                                <input type="text" id="surgery-witness-name" autocomplete="off" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background:#fff;">
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:11px; font-weight:600; color:#64748b; margin-bottom:4px;">वर्तमान पता (Address)</label>
+                                <input type="text" id="surgery-witness-address" autocomplete="off" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background:#fff;">
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                                <div>
+                                    <label style="display:block; font-size:11px; font-weight:600; color:#64748b; margin-bottom:4px;">दिनांक (Date)</label>
+                                    <input type="date" id="surgery-witness-date" value="${new Date().toISOString().split('T')[0]}" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background:#fff;">
+                                </div>
+                                <div>
+                                    <label style="display:block; font-size:11px; font-weight:600; color:#64748b; margin-bottom:4px;">स्थान (Place)</label>
+                                    <input type="text" id="surgery-witness-place" placeholder="" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background:#fff;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- GUARDIAN COLUMN -->
+                    <div style="background: #f8fafc; padding: 16px; border: 1px solid #e2e8f0; border-radius: 8px;">
+                        <h5 style="margin: 0 0 12px 0; font-size: 13px; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; display:flex; align-items:center; gap:6px; border-bottom:1px solid #cbd5e1; padding-bottom:6px; font-weight:700;">
+                            <i class="fas fa-signature"></i> रोगी से संबंधित हस्ताक्षरकर्ता (Guardian Details)
+                        </h5>
+                        <div style="display:flex; flex-direction:column; gap:10px;">
+                            <div>
+                                <label style="display:block; font-size:11px; font-weight:600; color:#64748b; margin-bottom:4px;">अभिभावक का नाम (Guardian Name)</label>
+                                <input type="text" id="surgery-guardian-name" value="" autocomplete="off" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background:#fff;">
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:11px; font-weight:600; color:#64748b; margin-bottom:4px;">वर्तमान पता (Address)</label>
+                                <input type="text" id="surgery-guardian-address" value="" autocomplete="off" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background:#fff;">
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                                <div>
+                                    <label style="display:block; font-size:11px; font-weight:600; color:#64748b; margin-bottom:4px;">दिनांक (Date)</label>
+                                    <input type="date" id="surgery-guardian-date" value="${new Date().toISOString().split('T')[0]}" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background:#fff;">
+                                </div>
+                                <div>
+                                    <label style="display:block; font-size:11px; font-weight:600; color:#64748b; margin-bottom:4px;">स्थान (Place)</label>
+                                    <input type="text" id="surgery-guardian-place" placeholder="" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background:#fff;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <!-- SECTION 4: SIGNATURE UPLOAD & WEBCAM CAPTURE SIDE-BY-SIDE -->
+                <h4 style="margin: 0 0 12px 0; font-size: 13px; color: #4f46e5; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; font-weight:700;">
+                    <i class="fas fa-signature"></i> Patient Signature Proof
+                </h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; align-items: start;">
+                    
+                    <!-- UPLOAD & WEBCAM TRIGGERS -->
+                    <div style="background: #f8fafc; padding: 16px; border: 1px dashed #94a3b8; border-radius: 8px; text-align: center;">
+                        <div style="margin-bottom: 12px;">
+                            <label style="display:block; font-size:12px; font-weight:600; color:#475569; margin-bottom:6px; text-align:left;">Method 1: Upload Image File</label>
+                            <input type="file" id="surgery-sig-upload" accept="image/*" onchange="handleSurgerySignatureUpload(this)" style="font-size: 12px; width: 100%; padding: 4px; border: 1px solid #cbd5e1; border-radius: 4px; background:#fff;">
+                        </div>
+                        <div style="margin: 10px 0; font-size: 12px; font-weight: 700; color: #64748b;">— OR —</div>
+                        <div style="text-align: center;">
+                            <label style="display:block; font-size:12px; font-weight:600; color:#475569; margin-bottom:6px; text-align:left;">Method 2: Take Instant Photo via Camera</label>
+                            <button id="btn-surgery-camera" class="btn" style="background:#4f46e5; color:#fff; border:none; padding:10px 16px; border-radius:6px; cursor:pointer; font-weight:600; font-size:13px; display:inline-flex; align-items:center; gap:6px; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.15);" onclick="window.startSurgeryCamera()">
+                                <i class="fas fa-camera"></i> 📷 Open Camera (कैमरा खोलें)
+                            </button>
+                            <button id="btn-surgery-snap" class="btn" style="display:none; background:#10b981; color:#fff; border:none; padding:10px 16px; border-radius:6px; cursor:pointer; font-weight:600; font-size:13px; align-items:center; gap:6px; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.15);" onclick="window.snapSurgeryPhoto()">
+                                <i class="fas fa-camera-retro"></i> 📸 Snap Photo (फ़ोटो खींचें)
+                            </button>
+                        </div>
+                        <div style="margin-top: 10px;">
+                            <video id="surgery-camera" autoplay playsinline style="display:none; width: 100%; max-height: 180px; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1;"></video>
+                            <canvas id="surgery-canvas" style="display:none;"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- PREVIEW BOX -->
+                    <div style="background: #ffffff; padding: 12px; border: 1px solid #94a3b8; border-radius: 8px; text-align: center; height: 185px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; overflow: hidden;">
+                        <img id="surgery-sig-preview-img" style="max-height: 100%; max-width: 100%; display: none; object-fit: contain;">
+                        <div id="surgery-sig-placeholder" style="color: #94a3b8; display:flex; flex-direction:column; align-items:center; gap:8px;">
+                            <i class="fas fa-file-signature" style="font-size:32px;"></i>
+                            <span style="font-style: italic; font-size: 13px;">Signature Preview<br>(हस्ताक्षर का लाइव प्रीव्यू)</span>
+                        </div>
+                    </div>
+
+                </div>                <!-- ACTIONS BUTTONS -->
+                <div style="display:flex; justify-content:flex-end; gap:12px; border-top:1px solid #e2e8f0; padding-top:16px; margin-top:20px;">
+                    <button class="btn" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; padding:10px 20px; border-radius:4px; cursor:pointer; font-weight:600; font-size:14px; transition:all 0.2s;" onclick="window.stopSurgeryCameraStream(); this.closest('.modal').remove()">Cancel</button>
+                    <button class="btn btn-primary" style="background:linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%); color:#fff; border:none; padding:10px 20px; border-radius:4px; cursor:pointer; font-weight:600; font-size:14px; transition:all 0.2s; box-shadow:0 4px 12px rgba(79, 70, 229, 0.2);" onclick="saveSurgery('${patientId}', this)">Confirm Surgery Event</button>
                 </div>
             </div>
         </div>
     `;
+
     document.body.appendChild(modal);
     document.getElementById('surgery-name').focus();
+
+    let localStream = null;
+    window.startSurgeryCamera = async function () {
+        const video = document.getElementById('surgery-camera');
+        const snapBtn = document.getElementById('btn-surgery-snap');
+        const startBtn = document.getElementById('btn-surgery-camera');
+
+        try {
+            localStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: { ideal: "environment" } }
+            });
+            video.srcObject = localStream;
+            video.style.display = 'block';
+            snapBtn.style.display = 'inline-flex';
+            startBtn.style.display = 'none';
+        } catch (err) {
+            console.error("Camera access failed", err);
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = localStream;
+                video.style.display = 'block';
+                snapBtn.style.display = 'inline-flex';
+                startBtn.style.display = 'none';
+            } catch (fallbackErr) {
+                console.error("Fallback camera access failed", fallbackErr);
+                showNotification('Unable to access device camera. Please check permissions.', 'error');
+            }
+        }
+    };
+
+    window.snapSurgeryPhoto = function () {
+        const video = document.getElementById('surgery-camera');
+        const canvas = document.getElementById('surgery-canvas');
+        const previewImg = document.getElementById('surgery-sig-preview-img');
+        const placeholder = document.getElementById('surgery-sig-placeholder');
+        const snapBtn = document.getElementById('btn-surgery-snap');
+        const startBtn = document.getElementById('btn-surgery-camera');
+
+        if (video && canvas && previewImg) {
+            const ctx = canvas.getContext('2d');
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight || 480;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            const dataUrl = canvas.toDataURL('image/jpeg');
+            previewImg.src = dataUrl;
+            previewImg.style.display = 'block';
+            if (placeholder) placeholder.style.display = 'none';
+
+            window.stopSurgeryCameraStream();
+            video.style.display = 'none';
+            snapBtn.style.display = 'none';
+            startBtn.style.display = 'inline-flex';
+        }
+    };
+
+    window.stopSurgeryCameraStream = function () {
+        if (localStream) {
+            localStream.getTracks().forEach(track => track.stop());
+            localStream = null;
+        }
+    };
 }
 
 async function saveSurgery(patientId, btnEl) {
@@ -1065,6 +1279,22 @@ async function saveSurgery(patientId, btnEl) {
     const date = document.getElementById('surgery-date').value;
     const cost = parseFloat(document.getElementById('surgery-cost').value) || 0;
     const signature = document.getElementById('surgery-sig-preview-img')?.src || '';
+
+    // Consent Form Details
+    const indoorNo = document.getElementById('surgery-indoor-no').value.trim();
+    const wardNo = document.getElementById('surgery-ward-no').value.trim();
+    const provisional = document.getElementById('surgery-provisional').value.trim();
+    const finalDiag = document.getElementById('surgery-final').value.trim();
+
+    const witnessName = document.getElementById('surgery-witness-name').value.trim();
+    const witnessAddress = document.getElementById('surgery-witness-address').value.trim();
+    const witnessDate = document.getElementById('surgery-witness-date').value;
+    const witnessPlace = document.getElementById('surgery-witness-place').value.trim();
+
+    const guardianName = document.getElementById('surgery-guardian-name').value.trim();
+    const guardianAddress = document.getElementById('surgery-guardian-address').value.trim();
+    const guardianDate = document.getElementById('surgery-guardian-date').value;
+    const guardianPlace = document.getElementById('surgery-guardian-place').value.trim();
 
     if (!name || !surgeon || !date) {
         showNotification('Please provide mandatory details (Name, Surgeon, Date).', 'error');
@@ -1078,8 +1308,33 @@ async function saveSurgery(patientId, btnEl) {
         surgeryDate: date,
         cost: cost,
         guardianSignature: signature,
-        paid: false
+        paid: false,
+
+        // Consent & Witnesses Meta
+        indoorNo,
+        wardNo,
+        provisional,
+        finalDiag,
+        witnessName,
+        witnessAddress,
+        witnessDate,
+        witnessPlace,
+        guardianName,
+        guardianAddress,
+        guardianDate,
+        guardianPlace
     };
+
+    // Save to patient_records local storage to sync back to the In-Patient Record Sheet!
+    const records = JSON.parse(localStorage.getItem('patient_records') || '{}');
+    records[patientId] = {
+        ...(records[patientId] || {}),
+        indoor_no: indoorNo,
+        ward_no: wardNo,
+        provisional: provisional,
+        final: finalDiag
+    };
+    localStorage.setItem('patient_records', JSON.stringify(records));
 
     showLoading('Updating surgery details in Cloud...');
     try {
@@ -1140,6 +1395,7 @@ async function savePatientEdit(patientId) {
     const age = document.getElementById('edit-p-age').value;
     const gender = document.getElementById('edit-p-gender').value;
     const mobile = document.getElementById('edit-p-mobile').value.trim();
+    const email = document.getElementById('edit-p-email').value.trim() || null;
     const address = document.getElementById('edit-p-address').value.trim();
     const wardType = document.getElementById('edit-p-ward-type').value;
     const bedNo = document.getElementById('edit-p-bed-no').value.trim();
@@ -1148,7 +1404,7 @@ async function savePatientEdit(patientId) {
 
     const editData = {
         name, guardian_name: guardian, age: parseInt(age),
-        gender, mobile, address, bed_no: bedNo,
+        gender, mobile, email, address, bed_no: bedNo,
         wardChargePerDay: dailyCharge
     };
 

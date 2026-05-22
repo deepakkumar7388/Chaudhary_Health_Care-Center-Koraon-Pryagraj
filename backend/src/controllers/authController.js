@@ -124,7 +124,19 @@ exports.updateUser = async (req, res) => {
         
         // Handle Avatar File
         if (req.file) {
-            updateData.avatar = `/uploads/avatars/${req.file.filename}`;
+            const { uploadToCloudinary, configureCloudinary } = require('../config/cloudinary');
+            const hasCloudinary = await configureCloudinary();
+            if (hasCloudinary) {
+                try {
+                    const cloudRes = await uploadToCloudinary(req.file.buffer, 'hms/avatars');
+                    updateData.avatar = cloudRes.secure_url;
+                } catch (cloudinaryErr) {
+                    console.error('Cloudinary avatar upload error, falling back to local file:', cloudinaryErr.message);
+                    updateData.avatar = `/uploads/avatars/${req.file.filename}`;
+                }
+            } else {
+                updateData.avatar = `/uploads/avatars/${req.file.filename}`;
+            }
         }
 
         // Prevent non-admins from changing their own role or status
@@ -171,37 +183,10 @@ exports.forgotPassword = async (req, res) => {
         user.resetPasswordExpires = Date.now() + 600000; // Valid for 10 minutes
         await user.save();
 
-        // Email Transport Configuration
-        const nodemailer = require('nodemailer');
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: process.env.EMAIL_USER || 'dk21230621@gmail.com', // Fallback to user email if env not set
-                pass: process.env.EMAIL_PASS || 'your_app_password_here'
-            }
-        });
-
-        const mailOptions = {
-            from: `"Chaudhary Health Care" <${process.env.EMAIL_USER || 'dk21230621@gmail.com'}>`,
-            to: email,
-            subject: 'Password Reset OTP - Hospital Management System',
-            html: `
-                <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; border: 1px solid #eee; border-radius: 10px; max-width: 600px;">
-                    <h2 style="color: #4CAF50;">Password Reset Request</h2>
-                    <p>Hello <strong>${user.name}</strong>,</p>
-                    <p>We received a request to reset your password. Use the following 6-digit OTP to complete the process:</p>
-                    <div style="background: #f4f4f4; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; color: #333; border-radius: 5px; margin: 20px 0;">
-                        ${otp}
-                    </div>
-                    <p style="color: #666; font-size: 14px;">This code will expire in 10 minutes.</p>
-                    <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-                    <p style="font-size: 12px; color: #999;">If you did not request this, please ignore this email or contact support.</p>
-                </div>
-            `
-        };
+        const { sendOtpEmail } = require('../config/emailService');
 
         try {
-            await transporter.sendMail(mailOptions);
+            await sendOtpEmail(email, otp, user.name);
             res.status(200).json({ success: true, message: 'OTP has been sent to your email.' });
         } catch (mailError) {
             console.error('Mail Sending Failed:', mailError);
@@ -268,6 +253,23 @@ exports.resetPassword = async (req, res) => {
 
         res.status(200).json({ success: true, message: 'Password has been reset successfully. You can now login.' });
 
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// Update FCM Token for push notifications
+exports.updateFcmToken = async (req, res) => {
+    try {
+        const { fcmToken } = req.body;
+        const userId = req.userData.userId;
+
+        const user = await User.findByIdAndUpdate(userId, { fcmToken }, { new: true });
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        res.status(200).json({ success: true, message: 'FCM Token updated successfully' });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

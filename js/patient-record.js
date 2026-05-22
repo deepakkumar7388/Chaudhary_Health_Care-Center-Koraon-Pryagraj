@@ -1,5 +1,33 @@
 // ==================== PATIENT RECORD MODULE ====================
 let currentRecordPatientId = null;
+let allPatientsForRecord = []; // API-fetched cache
+
+// ── Date / Time Formatting Helpers ──────────────────────────────────────
+function fmtDate(val) {
+    if (!val) return '';
+    try {
+        const d = new Date(val);
+        if (isNaN(d)) return val; // Return as-is if unparsable
+        return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
+    } catch { return val; }
+}
+function fmtTime(val) {
+    if (!val) return '';
+    // If it looks like HH:MM (plain time string), parse directly
+    if (/^\d{1,2}:\d{2}(:\d{2})?$/.test(val)) {
+        const [h, m] = val.split(':').map(Number);
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        const hour = h % 12 || 12;
+        return `${String(hour).padStart(2,'0')}:${String(m).padStart(2,'0')} ${ampm}`;
+    }
+    try {
+        const d = new Date(val);
+        if (isNaN(d)) return val;
+        return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+    } catch { return val; }
+}
+// ────────────────────────────────────────────────────────────────────────
+
 
 function renderPatientRecord() {
     const moduleEl = document.getElementById('module-patient-record');
@@ -16,7 +44,6 @@ function renderPatientRecord() {
             </div>
 
             <div id="patient-record-controls" class="no-print" style="display:none; margin-bottom:15px; display:flex; justify-content:flex-end; gap:10px;">
-                <button class="btn btn-success" onclick="savePatientRecord()"><i class="fas fa-save"></i> Save Record</button>
                 <button class="btn btn-primary" onclick="window.print()"><i class="fas fa-print"></i> Print Record</button>
             </div>
 
@@ -27,7 +54,7 @@ function renderPatientRecord() {
                          <div style="display:flex; align-items:center; justify-content:center; gap:20px;">
                              <img src="hlogo.png" alt="Logo" style="height: 80px;">
                              <div>
-                                 <h1 style="margin: 0; color: #2b6cb0; font-size: 28px; font-weight: 900;">Chaudhary Health Care Centre</h1>
+                                 <h1 class="hospital-name" style="margin: 0; color: #2b6cb0; font-size: 28px; font-weight: 900;">Chaudhary Health Care Centre</h1>
                                  <p style="margin: 5px 0; font-weight: bold; color: #2d3748;">A Complete Healthcare Point</p>
                                  <p style="margin: 2px 0;">Koraon-Prayagraj</p>
                                  <p style="margin: 2px 0; font-weight: bold;">Mob.: 9918333370, 8896017340</p>
@@ -40,11 +67,11 @@ function renderPatientRecord() {
                     <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
                         <div>
                             <strong>INDOOR No.:</strong> 
-                            <input type="text" id="rec-indoor-no" style="border:none; border-bottom: 1px dotted #000; width: 120px; outline:none; font-weight:bold;">
+                            <span id="rec-indoor-no" style="border-bottom: 1px dotted #000; width: 120px; display: inline-block; font-weight:bold;"></span>
                         </div>
                         <div>
                             <strong>WARD No.:</strong> 
-                            <input type="text" id="rec-ward-no" style="border:none; border-bottom: 1px dotted #000; width: 120px; outline:none; font-weight:bold;">
+                            <span id="rec-ward-no" style="border-bottom: 1px dotted #000; width: 120px; display: inline-block; font-weight:bold;"></span>
                         </div>
                     </div>
 
@@ -66,7 +93,7 @@ function renderPatientRecord() {
                                 <strong>Sex:</strong> <span id="rec-sex" style="border-bottom: 1px dotted #000; width: 80px; display: inline-block; font-weight:bold;"></span>
                             </div>
                             <div style="flex: 1.5;">
-                                <strong>Religion:</strong> <input type="text" id="rec-religion" style="border:none; border-bottom: 1px dotted #000; width: 150px; outline:none;">
+                                <strong>Religion:</strong> <span id="rec-religion" style="border-bottom: 1px dotted #000; width: 150px; display: inline-block; font-weight:bold;"></span>
                             </div>
                         </div>
                         <div class="form-row">
@@ -93,30 +120,26 @@ function renderPatientRecord() {
 
                         <div style="display: flex; gap: 20px;">
                             <div style="flex: 1;">
-                                <strong>Date of Discharge:</strong> <input type="date" id="rec-dod" style="border:none; border-bottom: 1px dotted #000; outline:none;">
+                                <strong>Date of Discharge:</strong> <span id="rec-dod" style="border-bottom: 1px dotted #000; width: 150px; display: inline-block; font-weight:bold;"></span>
                             </div>
                             <div style="flex: 1;">
-                                <strong>Time:</strong> <input type="time" id="rec-tod" style="border:none; border-bottom: 1px dotted #000; outline:none;">
+                                <strong>Time:</strong> <span id="rec-tod" style="border-bottom: 1px dotted #000; width: 120px; display: inline-block; font-weight:bold;"></span>
                             </div>
                         </div>
 
                         <div class="form-row">
                             <strong>Provisional Diagnosis:</strong> 
-                            <input type="text" id="rec-provisional" style="border:none; border-bottom: 1px dotted #000; width: 75%; outline:none;">
+                            <span id="rec-provisional" style="border-bottom: 1px dotted #000; flex: 1; display: inline-block; font-weight:bold;"></span>
                         </div>
 
                         <div class="form-row">
                             <strong>Final Diagnosis:</strong> 
-                            <input type="text" id="rec-final" style="border:none; border-bottom: 1px dotted #000; width: 80%; outline:none;">
+                            <span id="rec-final" style="border-bottom: 1px dotted #000; flex: 1; display: inline-block; font-weight:bold;"></span>
                         </div>
 
                         <div class="form-row" style="display: flex; align-items: baseline; flex-wrap: wrap; gap: 10px;">
                             <strong>Result:</strong> 
-                            <label><input type="radio" name="rec-result" value="DOPR" onclick="toggleRadioDeSelection(this)"> DOPR</label>
-                            <label><input type="radio" name="rec-result" value="Cured" onclick="toggleRadioDeSelection(this)"> Cured</label>
-                            <label><input type="radio" name="rec-result" value="Relieved" onclick="toggleRadioDeSelection(this)"> Relieved</label>
-                            <label><input type="radio" name="rec-result" value="LAMA" onclick="toggleRadioDeSelection(this)"> LAMA</label>
-                            <label><input type="radio" name="rec-result" value="Died" onclick="toggleRadioDeSelection(this)"> Died</label>
+                            <span id="rec-result" style="border-bottom: 1px dotted #000; min-width: 150px; display: inline-block; font-weight:bold;"></span>
                         </div>
                     </div>
 
@@ -131,30 +154,24 @@ function renderPatientRecord() {
                     <div style="margin-top: 50px; display: flex; justify-content: space-between;">
                         <div style="width: 45%;">
                             <p style="margin-bottom: 10px; font-weight: bold;">साक्षी गवाह</p>
-                            <div style="margin-bottom: 8px;">नाम: <input type="text" id="rec-witness-name" style="border:none; border-bottom: 1px dotted #000; width: 80%; outline:none;"></div>
-                            <div style="margin-bottom: 8px;">वर्तमान पता: <input type="text" id="rec-witness-address" style="border:none; border-bottom: 1px dotted #000; width: 70%; outline:none;"></div>
-                            <div style="margin-bottom: 8px;">दिनांक: <input type="date" id="rec-witness-date" style="border:none; border-bottom: 1px dotted #000; outline:none;"></div>
-                            <div style="margin-bottom: 8px;">स्थान: <input type="text" id="rec-witness-place" style="border:none; border-bottom: 1px dotted #000; width: 80%; outline:none;"></div>
+                            <div style="margin-bottom: 8px;">नाम: <span id="rec-witness-name" style="border-bottom: 1px dotted #000; width: 80%; display: inline-block; font-weight:bold;"></span></div>
+                            <div style="margin-bottom: 8px;">वर्तमान पता: <span id="rec-witness-address" style="border-bottom: 1px dotted #000; width: 70%; display: inline-block; font-weight:bold;"></span></div>
+                            <div style="margin-bottom: 8px;">दिनांक: <span id="rec-witness-date" style="border-bottom: 1px dotted #000; width: 50%; display: inline-block; font-weight:bold;"></span></div>
+                            <div style="margin-bottom: 8px;">स्थान: <span id="rec-witness-place" style="border-bottom: 1px dotted #000; width: 80%; display: inline-block; font-weight:bold;"></span></div>
                         </div>
 
                         <div style="width: 45%;">
                             <p style="margin-bottom: 10px; font-weight: bold;">रोगी से संबंधित हस्ताक्षर</p>
-                            
-                            <!-- Signature Upload Area -->
-                            <div class="sig-upload-container no-print" style="margin-bottom: 10px; border: 1px dashed #ccc; padding: 10px; border-radius: 8px; text-align: center; background: #f9f9f9;">
-                                <p style="font-size: 11px; margin: 0 0 5px 0;">Upload Signature Image:</p>
-                                <input type="file" id="sig-upload-input" accept="image/*" onchange="handleSignatureUpload(this)" style="font-size: 11px;">
-                            </div>
-                            
+
                             <div id="sig-preview-wrap" style="height: 100px; border-bottom: 1px solid #000; margin-bottom: 10px; display: flex; align-items: center; justify-content: center;">
-                                <img id="sig-preview-img" src="" style="max-height: 100%; display: none;">
+                                <img id="sig-preview-img" src="" style="max-height: 100%; max-width: 100%; display: none;">
                                 <span id="sig-placeholder" style="color: #ccc; font-style: italic;">Signature / अंगूठा</span>
                             </div>
 
-                            <div style="margin-bottom: 8px;">नाम: <input type="text" id="rec-rel-name" style="border:none; border-bottom: 1px dotted #000; width: 80%; outline:none;"></div>
-                            <div style="margin-bottom: 8px;">वर्तमान पता: <input type="text" id="rec-rel-address" style="border:none; border-bottom: 1px dotted #000; width: 70%; outline:none;"></div>
-                            <div style="margin-bottom: 8px;">दिनांक: <input type="date" id="rec-rel-date" style="border:none; border-bottom: 1px dotted #000; outline:none;"></div>
-                            <div style="margin-bottom: 8px;">स्थान: <input type="text" id="rec-rel-place" style="border:none; border-bottom: 1px dotted #000; width: 80%; outline:none;"></div>
+                            <div style="margin-bottom: 8px;">नाम: <span id="rec-rel-name" style="border-bottom: 1px dotted #000; width: 80%; display: inline-block; font-weight:bold;"></span></div>
+                            <div style="margin-bottom: 8px;">वर्तमान पता: <span id="rec-rel-address" style="border-bottom: 1px dotted #000; width: 70%; display: inline-block; font-weight:bold;"></span></div>
+                            <div style="margin-bottom: 8px;">दिनांक: <span id="rec-rel-date" style="border-bottom: 1px dotted #000; width: 50%; display: inline-block; font-weight:bold;"></span></div>
+                            <div style="margin-bottom: 8px;">स्थान: <span id="rec-rel-place" style="border-bottom: 1px dotted #000; width: 80%; display: inline-block; font-weight:bold;"></span></div>
                         </div>
                     </div>
 
@@ -337,6 +354,7 @@ function renderPatientRecord() {
         </style>
     `;
     loadRecordDropdownListener();
+    loadAllPatientsForRecord();
 }
 
 function loadRecordDropdownListener() {
@@ -352,6 +370,25 @@ function loadRecordDropdownListener() {
     }
 }
 
+async function loadAllPatientsForRecord() {
+    try {
+        const token = sessionStorage.getItem('token');
+        const res = await fetch(`${API_BASE}patients`, {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const result = await res.json();
+        if (result.success) {
+            allPatientsForRecord = result.patients || [];
+            // Also sync to localStorage as fallback
+            localStorage.setItem('patients', JSON.stringify(allPatientsForRecord));
+        }
+    } catch(err) {
+        console.error('Failed to load patients for record search:', err);
+        // Fallback to localStorage
+        allPatientsForRecord = JSON.parse(localStorage.getItem('patients') || '[]');
+    }
+}
+
 function filterRecordPatients(query) {
     const term = (query || '').toLowerCase().trim();
     const resultsContainer = document.getElementById('record-search-results');
@@ -361,38 +398,67 @@ function filterRecordPatients(query) {
         return;
     }
 
-    const patients = JSON.parse(localStorage.getItem('patients') || '[]');
+    // Use API cache first, fallback to localStorage
+    const patients = allPatientsForRecord.length > 0
+        ? allPatientsForRecord
+        : JSON.parse(localStorage.getItem('patients') || '[]');
+
     const filtered = patients.filter(p =>
         (p.name && p.name.toLowerCase().includes(term)) ||
         (p.patient_id && p.patient_id.toLowerCase().includes(term))
     );
 
     if (filtered.length === 0) {
-        resultsContainer.innerHTML = '<div style="padding:15px; text-align:center; color:#888;">No results found</div>';
+        resultsContainer.innerHTML = '<div style="padding:15px; text-align:center; color:#888;">No patient found. Try a different name or ID.</div>';
     } else {
         resultsContainer.innerHTML = filtered.map(p => `
-            <div class="autocomplete-item" style="padding:12px; border-bottom:1px solid #eee; cursor:pointer;" onclick="loadPatientToRecord('${p.patient_id}')">
+            <div class="autocomplete-item" style="padding:12px; border-bottom:1px solid #eee; cursor:pointer;" onclick="loadPatientToRecord('${p.patient_id || p._id}')">
                 <div style="font-weight:bold; color:#2d3748;">${p.name}</div>
-                <div style="font-size:12px; color:#718096;">Patient ID: ${p.patient_id}</div>
+                <div style="font-size:12px; color:#718096;">ID: ${p.patient_id || p._id} &nbsp;|&nbsp; ${p.gender || ''} ${p.age ? '| Age: '+p.age : ''} &nbsp;|&nbsp; Bed: ${p.bed_no || '-'}</div>
             </div>
         `).join('');
     }
     resultsContainer.style.display = 'block';
 }
 
-function loadPatientToRecord(patientId) {
-    const patients = JSON.parse(localStorage.getItem('patients') || '[]');
-    const p = patients.find(pat => pat.patient_id === patientId || pat.id === patientId);
+async function loadPatientToRecord(patientId) {
+    showLoading('Loading patient record...');
+    let p = null;
+    try {
+        const token = sessionStorage.getItem('token');
+        const res = await fetch(`${API_BASE}patients/${patientId}`, {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const result = await res.json();
+        if (result.success && result.patient) {
+            p = result.patient;
+        }
+    } catch(err) {
+        console.error('Failed to fetch latest patient info:', err);
+    }
+
+    // Fallback to cache if API call fails
+    if (!p) {
+        const patients = allPatientsForRecord.length > 0
+            ? allPatientsForRecord
+            : JSON.parse(localStorage.getItem('patients') || '[]');
+        p = patients.find(pat => pat.patient_id === patientId || pat.id === patientId || pat._id === patientId);
+    }
+
+    hideLoading();
+
     if (!p) {
         showNotification('Patient not found in registry', 'error');
         return;
     }
 
-    currentRecordPatientId = p.patient_id || p.id;
+    currentRecordPatientId = p.patient_id || p.id || p._id;
     document.getElementById('record-search-results').style.display = 'none';
     document.getElementById('record-patient-search').value = `${p.name} | ${currentRecordPatientId}`;
     document.getElementById('record-form-container').style.display = 'block';
     document.getElementById('patient-record-controls').style.display = 'flex';
+
+
 
     // 1. Basic Identity from Patient Registration
     document.getElementById('rec-patient-name').textContent = p.name || '';
@@ -401,96 +467,108 @@ function loadPatientToRecord(patientId) {
     document.getElementById('rec-sex').textContent = p.gender || '';
     document.getElementById('rec-address').textContent = p.address || '';
     document.getElementById('rec-mobile').textContent = p.mobile || '';
-    document.getElementById('rec-doa').textContent = p.admission_date || '';
-    document.getElementById('rec-toa').textContent = p.admission_time || '';
+    document.getElementById('rec-doa').textContent = fmtDate(p.admission_date);
+    document.getElementById('rec-toa').textContent = fmtTime(p.admission_time || p.admission_date);
     
-    // Logic for Physician/Surgeon-in-Charge (Check if surgery patient)
+    // Logic for Physician/Surgeon-in-Charge + Auto-load Signature from Surgery
     const allSurgeries = JSON.parse(localStorage.getItem('surgeries') || '[]');
-    const patientSurgeries = allSurgeries.filter(s => String(s.patient_id) === String(currentRecordPatientId));
-    
+    const lsSurgeries = allSurgeries.filter(s => String(s.patient_id) === String(currentRecordPatientId));
+    const apiSurgeries = Array.isArray(p.surgeries) ? p.surgeries : [];
+    const patientSurgeries = lsSurgeries.length > 0 ? lsSurgeries : apiSurgeries;
+
+    let surgerySignature = null;
     if (patientSurgeries.length > 0) {
-        // If surgery exists, show latest surgeon's name
         const latestSurgery = patientSurgeries[patientSurgeries.length - 1];
         document.getElementById('rec-physician').textContent = latestSurgery.surgeonName || p.doctor_assigned || '';
+        if (latestSurgery.guardianSignature) {
+            surgerySignature = latestSurgery.guardianSignature;
+        }
     } else {
-        // Otherwise show default assigned doctor
         document.getElementById('rec-physician').textContent = p.doctor_assigned || '';
     }
 
-    // 2. Try to fetch from latest Discharge Summary for Diagnosis/Dates
+    // 2. Auto-fill Indoor No. and Ward No. from patient data
+    document.getElementById('rec-indoor-no').textContent = p.patient_id || p.id || '';
+    document.getElementById('rec-ward-no').textContent = p.bed_no || '';
+    document.getElementById('rec-religion').textContent = p.religion || '';
+
+    // 3. Try to fetch from latest Discharge Summary for Diagnosis/Dates
     const dischargeList = JSON.parse(localStorage.getItem('discharge_records') || '[]');
     const latestDischarge = [...dischargeList].reverse().find(d => d.patientId === currentRecordPatientId);
     
     if (latestDischarge) {
-        document.getElementById('rec-dod').value = latestDischarge.dischargeDate || p.discharge_date || '';
-        document.getElementById('rec-provisional').value = latestDischarge.diagnosis || '';
-        document.getElementById('rec-final').value = latestDischarge.diagnosis || '';
+        document.getElementById('rec-dod').textContent = fmtDate(latestDischarge.dischargeDate || p.discharge_date);
+        document.getElementById('rec-tod').textContent = fmtTime(latestDischarge.dischargeTime || p.discharge_time || '');
+        document.getElementById('rec-provisional').textContent = latestDischarge.diagnosis || p.problem || '';
+        document.getElementById('rec-final').textContent = latestDischarge.finalDiagnosis || latestDischarge.diagnosis || p.problem || '';
+        document.getElementById('rec-result').textContent = latestDischarge.result || latestDischarge.condition || '';
     } else {
-        document.getElementById('rec-dod').value = p.discharge_date || '';
+        document.getElementById('rec-dod').textContent = fmtDate(p.discharge_date);
+        document.getElementById('rec-tod').textContent = fmtTime(p.discharge_time || '');
+        document.getElementById('rec-provisional').textContent = p.problem || '';
+        document.getElementById('rec-final').textContent = p.problem || '';
+        document.getElementById('rec-result').textContent = '';
     }
 
-    // 3. Load saved Case Record (overwrites if user previously saved specific data here)
+    // 4. Auto-fill Relative section from patient guardian data
+    const admDate = fmtDate(p.admission_date);
+    const guardianName = p.guardian_name || p.relative_name || p.fathers_name || '';
+    const patientAddr = p.address || '';
+    const hospitalPlace = 'Koraon-Prayagraj';
+
+    // रोगी से संबंधित (Relative/Guardian) — auto-fill from patient registration
+    document.getElementById('rec-rel-name').textContent = guardianName;
+    document.getElementById('rec-rel-address').textContent = patientAddr;
+    document.getElementById('rec-rel-date').textContent = admDate;
+    document.getElementById('rec-rel-place').textContent = hospitalPlace;
+
+    // साक्षी गवाह (Witness) — auto-fill with guardian as witness
+    document.getElementById('rec-witness-name').textContent = guardianName;
+    document.getElementById('rec-witness-address').textContent = patientAddr;
+    document.getElementById('rec-witness-date').textContent = admDate;
+    document.getElementById('rec-witness-place').textContent = hospitalPlace;
+
+    document.getElementById('sig-preview-img').style.display = 'none';
+    document.getElementById('sig-placeholder').style.display = 'block';
+
+    // 5. If previously saved record exists, override with saved values
     const records = JSON.parse(localStorage.getItem('patient_records') || '{}');
     const saved = records[currentRecordPatientId];
-    
+
     if (saved) {
-        document.getElementById('rec-indoor-no').value = saved.indoor_no || '';
-        document.getElementById('rec-ward-no').value = saved.ward_no || '';
-        document.getElementById('rec-religion').value = saved.religion || '';
-        document.getElementById('rec-toa').value = saved.toa || '';
-        if (saved.dod) document.getElementById('rec-dod').value = saved.dod;
-        document.getElementById('rec-tod').value = saved.tod || '';
-        if (saved.provisional) document.getElementById('rec-provisional').value = saved.provisional;
-        if (saved.final) document.getElementById('rec-final').value = saved.final;
-        
-        if (saved.result) {
-            const radio = document.querySelector('input[name="rec-result"][value="' + saved.result + '"]');
-            if (radio) {
-                radio.checked = true;
-                // Initialize wasChecked for toggle logic
-                document.querySelectorAll('input[name="rec-result"]').forEach(r => r.wasChecked = false);
-                radio.wasChecked = true;
-            }
-        }
-
-        document.getElementById('rec-witness-name').value = saved.witness_name || '';
-        document.getElementById('rec-witness-address').value = saved.witness_address || '';
-        document.getElementById('rec-witness-date').value = saved.witness_date || '';
-        document.getElementById('rec-witness-place').value = saved.witness_place || '';
-
-        document.getElementById('rec-rel-name').value = saved.rel_name || '';
-        document.getElementById('rec-rel-address').value = saved.rel_address || '';
-        document.getElementById('rec-rel-date').value = saved.rel_date || '';
-        document.getElementById('rec-rel-place').value = saved.rel_place || '';
-
-        if (saved.signature) {
-            const imgEl = document.getElementById('sig-preview-img');
-            imgEl.src = saved.signature;
-            imgEl.style.display = 'block';
-            document.getElementById('sig-placeholder').style.display = 'none';
-        } else {
-            document.getElementById('sig-preview-img').style.display = 'none';
-            document.getElementById('sig-placeholder').style.display = 'block';
-        }
-        showNotification('Loaded all available info for this patient', 'success');
-    } else {
-        // Clear non-autofilled fields if no saved record exists
-        document.getElementById('rec-indoor-no').value = '';
-        document.getElementById('rec-ward-no').value = '';
-        document.getElementById('rec-religion').value = '';
-        document.getElementById('rec-toa').value = '';
-        document.getElementById('rec-tod').value = '';
-        document.querySelectorAll('input[name="rec-result"]').forEach(r => {
-            r.checked = false;
-            r.wasChecked = false;
-        });
-        document.getElementById('rec-witness-name').value = '';
-        document.getElementById('rec-rel-name').value = '';
-        document.getElementById('sig-preview-img').src = '';
-        document.getElementById('sig-preview-img').style.display = 'none';
-        document.getElementById('sig-placeholder').style.display = 'block';
+        if (saved.indoor_no) document.getElementById('rec-indoor-no').textContent = saved.indoor_no;
+        if (saved.ward_no) document.getElementById('rec-ward-no').textContent = saved.ward_no;
+        if (saved.religion) document.getElementById('rec-religion').textContent = saved.religion;
+        if (saved.dod) document.getElementById('rec-dod').textContent = saved.dod;
+        if (saved.tod) document.getElementById('rec-tod').textContent = saved.tod;
+        if (saved.provisional) document.getElementById('rec-provisional').textContent = saved.provisional;
+        if (saved.final) document.getElementById('rec-final').textContent = saved.final;
+        if (saved.result) document.getElementById('rec-result').textContent = saved.result;
+        if (saved.witness_name) document.getElementById('rec-witness-name').textContent = saved.witness_name;
+        if (saved.witness_address) document.getElementById('rec-witness-address').textContent = saved.witness_address;
+        if (saved.witness_date) document.getElementById('rec-witness-date').textContent = saved.witness_date;
+        if (saved.witness_place) document.getElementById('rec-witness-place').textContent = saved.witness_place;
+        if (saved.rel_name) document.getElementById('rec-rel-name').textContent = saved.rel_name;
+        if (saved.rel_address) document.getElementById('rec-rel-address').textContent = saved.rel_address;
+        if (saved.rel_date) document.getElementById('rec-rel-date').textContent = saved.rel_date;
+        if (saved.rel_place) document.getElementById('rec-rel-place').textContent = saved.rel_place;
     }
 
+    // Signature priority: 1) Manually saved 2) Surgery consent signature
+    const finalSignature = (saved && saved.signature) ? saved.signature : surgerySignature;
+    const imgEl = document.getElementById('sig-preview-img');
+    const placeholder = document.getElementById('sig-placeholder');
+    if (finalSignature) {
+        imgEl.src = finalSignature;
+        imgEl.style.display = 'block';
+        placeholder.style.display = 'none';
+    } else {
+        imgEl.src = '';
+        imgEl.style.display = 'none';
+        placeholder.style.display = 'block';
+    }
+
+    showNotification('Patient record auto-filled successfully — Read Only', 'success');
     populatePatientJourney(currentRecordPatientId, p);
 }
 
@@ -502,35 +580,56 @@ function handleSignatureUpload(input) {
             imgEl.src = e.target.result;
             imgEl.style.display = 'block';
             document.getElementById('sig-placeholder').style.display = 'none';
+
+            // Auto-save signature to localStorage
+            if (currentRecordPatientId) {
+                const records = JSON.parse(localStorage.getItem('patient_records') || '{}');
+                if (!records[currentRecordPatientId]) records[currentRecordPatientId] = {};
+                records[currentRecordPatientId].signature = e.target.result;
+                localStorage.setItem('patient_records', JSON.stringify(records));
+                showNotification('Signature saved!', 'success');
+            }
         };
         reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function clearSignature() {
+    document.getElementById('sig-preview-img').src = '';
+    document.getElementById('sig-preview-img').style.display = 'none';
+    document.getElementById('sig-placeholder').style.display = 'block';
+    document.getElementById('sig-upload-input').value = '';
+    // Remove from localStorage
+    if (currentRecordPatientId) {
+        const records = JSON.parse(localStorage.getItem('patient_records') || '{}');
+        if (records[currentRecordPatientId]) {
+            delete records[currentRecordPatientId].signature;
+            localStorage.setItem('patient_records', JSON.stringify(records));
+        }
     }
 }
 
 function savePatientRecord() {
     if (!currentRecordPatientId) return;
 
-    const resultEl = document.querySelector('input[name="rec-result"]:checked');
-    
     const recordData = {
-        indoor_no: document.getElementById('rec-indoor-no').value,
-        ward_no: document.getElementById('rec-ward-no').value,
-        religion: document.getElementById('rec-religion').value,
-        toa: document.getElementById('rec-toa').value,
-        dod: document.getElementById('rec-dod').value,
-        tod: document.getElementById('rec-tod').value,
-        provisional: document.getElementById('rec-provisional').value,
-        final: document.getElementById('rec-final').value,
-        result: resultEl ? resultEl.value : '',
-        witness_name: document.getElementById('rec-witness-name').value,
-        witness_address: document.getElementById('rec-witness-address').value,
-        witness_date: document.getElementById('rec-witness-date').value,
-        witness_place: document.getElementById('rec-witness-place').value,
-        rel_name: document.getElementById('rec-rel-name').value,
-        rel_name: document.getElementById('rec-rel-name').value,
-        rel_address: document.getElementById('rec-rel-address').value,
-        rel_date: document.getElementById('rec-rel-date').value,
-        rel_place: document.getElementById('rec-rel-place').value,
+        indoor_no: document.getElementById('rec-indoor-no').textContent,
+        ward_no: document.getElementById('rec-ward-no').textContent,
+        religion: document.getElementById('rec-religion').textContent,
+        toa: document.getElementById('rec-toa').textContent,
+        dod: document.getElementById('rec-dod').textContent,
+        tod: document.getElementById('rec-tod').textContent,
+        provisional: document.getElementById('rec-provisional').textContent,
+        final: document.getElementById('rec-final').textContent,
+        result: document.getElementById('rec-result').textContent,
+        witness_name: document.getElementById('rec-witness-name').textContent,
+        witness_address: document.getElementById('rec-witness-address').textContent,
+        witness_date: document.getElementById('rec-witness-date').textContent,
+        witness_place: document.getElementById('rec-witness-place').textContent,
+        rel_name: document.getElementById('rec-rel-name').textContent,
+        rel_address: document.getElementById('rec-rel-address').textContent,
+        rel_date: document.getElementById('rec-rel-date').textContent,
+        rel_place: document.getElementById('rec-rel-place').textContent,
         signature: document.getElementById('sig-preview-img').src
     };
 
@@ -541,25 +640,32 @@ function savePatientRecord() {
     showNotification('Patient case record saved successfully!', 'success');
 }
 
-function toggleRadioDeSelection(radio) {
-    if (radio.wasChecked) {
-        radio.checked = false;
-        radio.wasChecked = false;
-    } else {
-        const name = radio.name;
-        document.querySelectorAll('input[name="' + name + '"]').forEach(r => r.wasChecked = false);
-        radio.wasChecked = true;
-    }
-}
-
 async function populatePatientJourney(patientId, p) {
+    // Try to fetch discharge summary from server
+    try {
+        const dischargeRes = await fetch(`${API_BASE}discharge/${patientId}`, {
+            headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('token') }
+        });
+        const dResult = await dischargeRes.json();
+        if (dResult.success && dResult.discharge) {
+            const d = dResult.discharge;
+            document.getElementById('rec-dod').textContent = fmtDate(d.dischargeDate || p.discharge_date);
+            document.getElementById('rec-tod').textContent = fmtTime(d.dischargeTime || '');
+            document.getElementById('rec-provisional').textContent = d.diagnosis || p.problem || '';
+            document.getElementById('rec-final').textContent = d.finalDiagnosis || d.diagnosis || p.problem || '';
+            document.getElementById('rec-result').textContent = d.result || d.condition || '';
+        }
+    } catch (err) {
+        console.error("Error fetching discharge summary from server:", err);
+    }
+
     // 1. Bed Stay history
     const bedHistoryTbody = document.getElementById('journey-bed-history');
     if (bedHistoryTbody) {
         if (p && p.bedHistory && p.bedHistory.length > 0) {
             bedHistoryTbody.innerHTML = p.bedHistory.map(b => {
-                const start = b.start_date ? new Date(b.start_date).toLocaleDateString() : '-';
-                const end = b.end_date ? new Date(b.end_date).toLocaleDateString() : 'Present';
+                const start = fmtDate(b.start_date);
+                const end = b.end_date ? fmtDate(b.end_date) : 'Present';
                 return `
                     <tr>
                         <td style="padding:6px; border:1px solid #cbd5e1;">${b.ward_type}</td>
@@ -573,7 +679,7 @@ async function populatePatientJourney(patientId, p) {
         } else if (p) {
             // Render at least current admission bed stay
             const currentCharge = p.daily_charges || p.dailyCharge || 0;
-            const start = p.admission_date ? new Date(p.admission_date).toLocaleDateString() : '-';
+            const start = fmtDate(p.admission_date);
             bedHistoryTbody.innerHTML = `
                 <tr>
                     <td style="padding:6px; border:1px solid #cbd5e1;">${p.ward_type || 'General Ward'}</td>
@@ -593,7 +699,7 @@ async function populatePatientJourney(patientId, p) {
     if (surgeryHistoryTbody) {
         if (p && p.surgeries && p.surgeries.length > 0) {
             surgeryHistoryTbody.innerHTML = p.surgeries.map(s => {
-                const date = s.surgeryDate ? new Date(s.surgeryDate).toLocaleDateString() : '-';
+                const date = fmtDate(s.surgeryDate);
                 const imgProof = s.guardianSignature 
                     ? `<img src="${s.guardianSignature}" style="max-height: 35px; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px; background: #fff;" alt="Sign Proof">`
                     : '<span style="color:#cbd5e1; font-style:italic;">No Proof</span>';
@@ -690,7 +796,7 @@ async function populatePatientJourney(patientId, p) {
                     if (patientBill.payments && patientBill.payments.length > 0) {
                         ledgerTbody.innerHTML = patientBill.payments.map(pay => `
                             <tr>
-                                <td style="padding:5px; border-bottom: 1px solid #e2e8f0;">${pay.date}</td>
+                                <td style="padding:5px; border-bottom: 1px solid #e2e8f0;">${fmtDate(pay.date)}</td>
                                 <td style="padding:5px; border-bottom: 1px solid #e2e8f0; font-weight:bold;">${pay.mode}</td>
                                 <td style="padding:5px; border-bottom: 1px solid #e2e8f0; text-align:right; font-weight:bold; color:#10b981;">₹${pay.amount}</td>
                             </tr>
@@ -703,7 +809,46 @@ async function populatePatientJourney(patientId, p) {
                 // Billing totals
                 const disc = parseFloat(patientBill.discount) || 0;
                 const totalPaid = (patientBill.payments || []).reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
-                const grandTotal = parseFloat(patientBill.grandTotal) || (p ? p.totalBill : 0) || 0;
+                
+                let grandTotal = 0;
+                
+                // 1. Bed Stay charges
+                if (p && p.bedHistory && p.bedHistory.length > 0) {
+                    p.bedHistory.forEach(bed => {
+                        const startDate = new Date(bed.start_date);
+                        const endDate = bed.end_date ? new Date(bed.end_date) : new Date();
+                        const diffTime = Math.abs(endDate - startDate);
+                        let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        if (diffDays < 1) diffDays = 1;
+                        grandTotal += (bed.daily_charge || 0) * diffDays;
+                    });
+                } else if (p && p.bed_no) {
+                    const startDate = new Date(p.admission_date);
+                    const endDate = p.discharge_date ? new Date(p.discharge_date) : new Date();
+                    const diffTime = Math.abs(endDate - startDate);
+                    let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    if (diffDays < 1) diffDays = 1;
+                    grandTotal += (p.wardChargePerDay || 0) * diffDays;
+                }
+
+                // 2. Surgery charges
+                if (p && p.surgeries && p.surgeries.length > 0) {
+                    p.surgeries.forEach(s => {
+                        grandTotal += (s.cost || 0);
+                    });
+                }
+
+                // 3. Add other billing items from the billing record (skip duplicate bed charges / surgery items)
+                if (patientBill.items && patientBill.items.length > 0) {
+                    patientBill.items.forEach(item => {
+                        const isBedCharge = item.name.startsWith('Bed Charge');
+                        const isSurgery = item.name.startsWith('Surgery:');
+                        if (!isBedCharge && !isSurgery) {
+                            grandTotal += (parseFloat(item.fee) || 0) * (parseFloat(item.days) || 1);
+                        }
+                    });
+                }
+                
                 const netPayable = grandTotal - disc;
                 const balDue = netPayable - totalPaid;
 
@@ -721,9 +866,41 @@ async function populatePatientJourney(patientId, p) {
                 }
             } else {
                 // Fallback if no bill exists
-                const grandTotal = (p ? p.totalBill : 0) || 0;
-                const totalPaid = (p ? p.paid_amount : 0) || 0;
-                const balDue = (p ? p.pending_amount : 0) || 0;
+                let grandTotal = 0;
+                
+                // 1. Bed Stay charges
+                if (p && p.bedHistory && p.bedHistory.length > 0) {
+                    p.bedHistory.forEach(bed => {
+                        const startDate = new Date(bed.start_date);
+                        const endDate = bed.end_date ? new Date(bed.end_date) : new Date();
+                        const diffTime = Math.abs(endDate - startDate);
+                        let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        if (diffDays < 1) diffDays = 1;
+                        grandTotal += (bed.daily_charge || 0) * diffDays;
+                    });
+                } else if (p && p.bed_no) {
+                    const startDate = new Date(p.admission_date);
+                    const endDate = p.discharge_date ? new Date(p.discharge_date) : new Date();
+                    const diffTime = Math.abs(endDate - startDate);
+                    let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    if (diffDays < 1) diffDays = 1;
+                    grandTotal += (p.wardChargePerDay || 0) * diffDays;
+                }
+
+                // 2. Surgery charges
+                if (p && p.surgeries && p.surgeries.length > 0) {
+                    p.surgeries.forEach(s => {
+                        grandTotal += (s.cost || 0);
+                    });
+                }
+
+                // Default Consultation/Doctor fee fallback
+                const drFee = parseFloat(p ? p.doctorFees : 0) || 500;
+                grandTotal += drFee;
+
+                const totalPaid = 0;
+                const balDue = grandTotal;
+
                 document.getElementById('j-total-bill').textContent = `₹${grandTotal}`;
                 document.getElementById('j-discount').textContent = `₹0`;
                 document.getElementById('j-net-payable').textContent = `₹${grandTotal}`;

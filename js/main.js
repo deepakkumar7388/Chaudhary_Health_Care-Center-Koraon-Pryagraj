@@ -194,13 +194,21 @@ async function signup() {
     }
 }
 
-function switchToApp() {
+async function switchToApp() {
     document.getElementById('auth-container').style.display = 'none';
     document.getElementById('app-container').style.display = 'flex';
+    if (typeof applyGlobalSettings === 'function') {
+        await applyGlobalSettings();
+    }
     updateUserInfo();
     updateClock();
     setInterval(updateClock, 1000);
     loadModule('dashboard');
+    
+    // Initialize push notifications
+    if (typeof initPushNotifications === 'function') {
+        initPushNotifications();
+    }
 }
 
 function logout() {
@@ -945,3 +953,129 @@ window.previewAvatar = previewAvatar;
 window.saveProfilePhoto = saveProfilePhoto;
 window.checkCurrentPassword = checkCurrentPassword;
 window.saveProfileChanges = saveProfileChanges;
+
+// ==================== FCM PUSH NOTIFICATIONS ====================
+function loadScript(url) {
+    return new Promise((resolve, reject) => {
+        if (document.querySelector(`script[src="${url}"]`)) {
+            resolve();
+            return;
+        }
+        const script = document.createElement('script');
+        script.src = url;
+        script.onload = () => resolve();
+        script.onerror = (err) => reject(err);
+        document.head.appendChild(script);
+    });
+}
+
+async function initPushNotifications() {
+    console.log("Initializing push notifications...");
+    
+    if (!('serviceWorker' in navigator) || !('Notification' in window)) {
+        console.warn('Push notifications not supported in this browser.');
+        return;
+    }
+
+    let apiKey, projectId, messagingSenderId, appId, vapidKey;
+    try {
+        const response = await fetch(`${API_BASE}integrations/config`, {
+            headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('token') }
+        });
+        if (!response.ok) return;
+        const result = await response.json();
+        if (result.success && result.config) {
+            apiKey = result.config.apiKey;
+            projectId = result.config.projectId;
+            messagingSenderId = result.config.messagingSenderId;
+            appId = result.config.appId;
+            vapidKey = result.config.vapidKey;
+        }
+    } catch (e) {
+        console.error('Error fetching FCM configuration from backend:', e);
+        return;
+    }
+
+    if (!apiKey || !projectId || !messagingSenderId || !appId || !vapidKey) {
+        console.log('FCM frontend is not fully configured in env. Skipping registration.');
+        return;
+    }
+
+    try {
+        // Load Firebase client scripts dynamically if not present
+        if (typeof firebase === 'undefined') {
+            await loadScript('https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js');
+        }
+        if (typeof firebase === 'undefined' || !firebase.messaging) {
+            await loadScript('https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js');
+        }
+
+        // Initialize Firebase if not already initialized
+        if (firebase.apps.length === 0) {
+            firebase.initializeApp({
+                apiKey,
+                authDomain: `${projectId}.firebaseapp.com`,
+                projectId,
+                storageBucket: `${projectId}.appspot.com`,
+                messagingSenderId,
+                appId
+            });
+        }
+
+        const messaging = firebase.messaging();
+
+        // Register service worker if not already registered
+        const registration = await navigator.serviceWorker.register('/sw.js');
+        console.log('FCM Service Worker registered successfully:', registration);
+
+        // Request permission
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+            console.warn('Notification permission not granted.');
+            return;
+        }
+
+        // Get token
+        const token = await messaging.getToken({
+            vapidKey: vapidKey,
+            serviceWorkerRegistration: registration
+        });
+
+        if (token) {
+            console.log('FCM Token generated successfully:', token);
+            window.fcmToken = token;
+            sessionStorage.setItem('fcmToken', token);
+
+            // Sync with backend
+            const response = await fetch(`${API_BASE}auth/fcm-token`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                },
+                body: JSON.stringify({ fcmToken: token })
+            });
+            const result = await response.json();
+            if (result.success) {
+                console.log('FCM Token synced to backend successfully');
+            } else {
+                console.error('Failed to sync FCM Token to backend:', result.message);
+            }
+        } else {
+            console.warn('No FCM token received. Check your project config/VAPID key.');
+        }
+
+        // Handle incoming messages when the app is in the foreground
+        messaging.onMessage((payload) => {
+            console.log('Foreground notification received:', payload);
+            const title = payload.notification?.title || 'Notification';
+            const body = payload.notification?.body || '';
+            showNotification(body, 'info', title);
+        });
+
+    } catch (error) {
+        console.error('Error during FCM push notification setup:', error);
+    }
+}
+
+window.initPushNotifications = initPushNotifications;

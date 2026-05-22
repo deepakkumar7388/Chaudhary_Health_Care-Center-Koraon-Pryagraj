@@ -151,16 +151,7 @@ async function migrateLocalData() {
     }
 }
 
-// Add a Sync button to the top right header actions
+// Add a Sync button to the top right header actions (Disabled for clean non-developer UI)
 function renderSyncUI() {
-    const container = document.getElementById('header-actions');
-    if (container && !document.getElementById('btn-migrate')) {
-        const btn = document.createElement('button');
-        btn.id = 'btn-migrate';
-        btn.className = 'btn';
-        btn.style.cssText = 'background:#10b981; color:white; padding:6px 14px; font-size:12px; border-radius:6px; box-shadow:0 2px 6px rgba(16,185,129,0.2); margin-left:8px;';
-        btn.innerHTML = '<i class="fas fa-sync-alt" style="font-size:11px;"></i> Sync';
-        btn.onclick = migrateLocalData;
-        container.appendChild(btn);
-    }
+    // Hidden for end users (doctors/admins). Can still be manually triggered by a developer via browser console using migrateLocalData()
 }

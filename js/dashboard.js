@@ -225,11 +225,19 @@ async function updateRolePanels(role) {
     // Bed occupancy panel (shared across non-admin roles)
     const bedEl = document.getElementById('bed-occupancy-display');
     if (bedEl) {
+        // Dynamically calculate ward totals from settings
+        const savedBeds = (window.hospitalSettings || {})['hospital-beds'] || '';
+        const bedList = savedBeds ? savedBeds.split(',').map(b => b.trim()).filter(b => b) : [];
+        const maleTotal = bedList.filter(b => b.startsWith('Male-G')).length || 20;
+        const femaleTotal = bedList.filter(b => b.startsWith('Female-G')).length || 20;
+        const icuTotal = bedList.filter(b => b.startsWith('ICU-')).length || 7;
+        const privateTotal = bedList.filter(b => b.startsWith('Private-')).length || 5;
+        
         const wards = {
-            'General Male': { total: 40, prefix: 'Male-G' },
-            'General Female': { total: 40, prefix: 'Female-G' },
-            'ICU': { total: 7, prefix: 'ICU-' },
-            'Private': { total: 5, prefix: 'Private-' }
+            'General Male': { total: maleTotal, prefix: 'Male-G' },
+            'General Female': { total: femaleTotal, prefix: 'Female-G' },
+            'ICU': { total: icuTotal, prefix: 'ICU-' },
+            'Private': { total: privateTotal, prefix: 'Private-' }
         };
         let html = '';
         for (const [name, info] of Object.entries(wards)) {
@@ -317,49 +325,30 @@ async function updateDashboardStats() {
         }
 
         // Billing Calculations from API data + patient record
-        let rec = billingMap[p.patient_id];
-        if (rec && rec.items && rec.items.length > 0) {
-            let grandTotal = 0;
-            rec.items.forEach(item => { grandTotal += (item.fee * item.days); });
-            let net = grandTotal - (rec.discount || 0);
-            if (net < 0) net = 0;
-
-            let totalPaid = 0;
-            if (rec.payments) {
-                rec.payments.forEach(pay => {
-                    totalPaid += pay.amount;
-                    allActivities.push({
-                        time: new Date(pay.date || Date.now()).getTime(),
-                        text: `Payment ${window.currencySymbol || '₹'}${pay.amount} received from ${p.name}`,
-                        icon: 'fa-money-bill-wave',
-                        color: '#2ecc71'
-                    });
+        const rec = billingMap[p.patient_id];
+        let totalPaid = 0;
+        if (rec && rec.payments) {
+            rec.payments.forEach(pay => {
+                totalPaid += (pay.amount || 0);
+                allActivities.push({
+                    time: new Date(pay.date || Date.now()).getTime(),
+                    text: `Payment ${window.currencySymbol || '₹'}${pay.amount} received from ${p.name}`,
+                    icon: 'fa-money-bill-wave',
+                    color: '#2ecc71'
                 });
-            }
-            totalRevenue += totalPaid;
-            let remaining = net - totalPaid;
+            });
+        }
+        totalRevenue += totalPaid;
 
-            if (remaining <= 0 && net > 0) {
-                paidBills++;
-            } else {
-                pendingBills++;
-                totalPendingAmt += remaining;
-            }
-        } else {
-            // No billing record in DB — use patient's own fields
-            const patientBill = parseFloat(p.totalBill) || parseFloat(p.pending_amount) || 0;
-            const patientPending = parseFloat(p.pending_amount) || 0;
-            const payStatus = (p.payment_status || 'Pending').toLowerCase();
+        const discount = rec ? (rec.discount || 0) : 0;
+        const netPayable = Math.max(0, (p.totalBill || 0) - discount);
+        const remaining = p.pending_amount !== undefined ? p.pending_amount : Math.max(0, netPayable - totalPaid);
 
-            if (patientBill > 0 || (p.status || '').toLowerCase() === 'admitted') {
-                if (payStatus === 'paid' && patientPending <= 0) {
-                    paidBills++;
-                    totalRevenue += patientBill;
-                } else {
-                    pendingBills++;
-                    totalPendingAmt += patientPending > 0 ? patientPending : patientBill;
-                }
-            }
+        if (remaining <= 0 && netPayable > 0) {
+            paidBills++;
+        } else if (remaining > 0) {
+            pendingBills++;
+            totalPendingAmt += remaining;
         }
     });
 

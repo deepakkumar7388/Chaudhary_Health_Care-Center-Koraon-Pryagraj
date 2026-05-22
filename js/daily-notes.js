@@ -274,6 +274,10 @@ function filterNotesPatients(query) {
 
     // Filter by name or ID
     const filtered = registerPatientsList.filter(p => {
+        // Exclude already discharged patients
+        const status = (p.status || 'Admitted').toUpperCase();
+        if (status === 'DISCHARGED') return false;
+
         const id = (p.patient_id || '').toLowerCase();
         const name = (p.name || '').toLowerCase();
         return id.includes(lowerQuery) || name.includes(lowerQuery);

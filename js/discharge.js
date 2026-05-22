@@ -47,9 +47,15 @@ function renderDischarge() {
                     <input type="text" id="discharge-doctor" value="Dr. Bhoopendra Chaudhary" readonly style="background:#f8fafc; font-weight:700; color:#2d3748;">
                 </div>
                 
-                <div class="form-group">
-                    <label>Discharge Date *</label>
-                    <input type="date" id="discharge-date" required>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label>Discharge Date *</label>
+                        <input type="date" id="discharge-date" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label>Discharge Time *</label>
+                        <input type="time" id="discharge-time" required>
+                    </div>
                 </div>
                 
                 <div class="form-group">
@@ -110,7 +116,7 @@ function renderDischarge() {
                             <img src="hlogo.png" alt="CHC Logo" style="height: 110px; width: auto; max-width: none; object-fit: contain;">
                         </div>
                         <div class="hospital-info" style="flex: 1 1 auto; text-align: center; white-space: nowrap;">
-                            <h1 class="hospital-title" style="margin: 0; font-size: 23px; font-weight: 900; color: #2b6cb0; letter-spacing: 0.5px;">CHAUDHARY HEALTH CARE CENTER</h1>
+                            <h1 class="hospital-title hospital-name" style="margin: 0; font-size: 23px; font-weight: 900; color: #2b6cb0; letter-spacing: 0.5px;">CHAUDHARY HEALTH CARE CENTER</h1>
                             <h3 class="hospital-subtitle" style="margin: 4px 0 0; font-size: 13px; color: #e53e3e; text-transform: uppercase;">GANDHI CHAURAHA, MEJA WALI ROAD, KORAON-PRAYAGRAJ 212306</h3>
                             <p style="margin: 4px 0 0; font-size: 13px; font-weight: bold; color: #2d3748;">Phone: (0542) 123456</p>
                         </div>
@@ -211,6 +217,10 @@ async function loadDischargePatients() {
     }
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('discharge-date').value = today;
+    const now = new Date();
+    const currentTime = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+    const timeEl = document.getElementById('discharge-time');
+    if (timeEl) timeEl.value = currentTime;
 }
 
 function filterDischargePatients(query) {
@@ -277,8 +287,9 @@ function confirmDischarge() {
     const diagnosis = document.getElementById('discharge-diagnosis').value.trim();
     const summary = document.getElementById('discharge-summary').value.trim();
     const dischargeDate = document.getElementById('discharge-date').value;
+    const dischargeTime = document.getElementById('discharge-time').value;
 
-    if (!patientId || !diagnosis || !summary || !dischargeDate) {
+    if (!patientId || !diagnosis || !summary || !dischargeDate || !dischargeTime) {
         showNotification('Please fill all required fields', 'error');
         return;
     }
@@ -291,7 +302,7 @@ function confirmDischarge() {
 
     document.getElementById('btn-confirm-discharge-action').onclick = function() {
         confirmModal.classList.remove('active');
-        executeDischarge(patientId, diagnosis, summary, dischargeDate);
+        executeDischarge(patientId, diagnosis, summary, dischargeDate, dischargeTime);
     };
 }
 
@@ -301,7 +312,7 @@ function closeDischargeConfirmModal() {
 }
 window.closeDischargeConfirmModal = closeDischargeConfirmModal;
 
-function executeDischarge(patientId, diagnosis, summary, dischargeDate) {
+function executeDischarge(patientId, diagnosis, summary, dischargeDate, dischargeTime) {
     showLoading('Processing discharge...');
 
     const advisedMedicines = [];
@@ -320,6 +331,7 @@ function executeDischarge(patientId, diagnosis, summary, dischargeDate) {
         patientId,
         doctorName: "Dr. Bhoopendra Chaudhary",
         dischargeDate,
+        dischargeTime,
         diagnosis,
         summary,
         advisedMedicines

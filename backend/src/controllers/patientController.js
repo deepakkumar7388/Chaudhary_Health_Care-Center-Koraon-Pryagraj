@@ -82,6 +82,56 @@ exports.createPatient = async (req, res) => {
         }
         
         await newPatient.save();
+
+        // Send email/push notifications asynchronously in the background
+        setTimeout(async () => {
+            try {
+                const emailNewPatientSetting = await Setting.findOne({ key: 'email-new-patient' });
+                const isEmailEnabled = emailNewPatientSetting ? (emailNewPatientSetting.value === true || emailNewPatientSetting.value === 'true') : false;
+                
+                if (isEmailEnabled) {
+                    const User = require('../models/User');
+                    const emailService = require('../config/emailService');
+                    const staffUsers = await User.find({ role: { $in: ['admin', 'doctor'] }, status: 'active' });
+                    let recipientEmails = staffUsers.map(u => u.email).filter(e => e);
+                    
+                    if (recipientEmails.length === 0) {
+                        const emailUserSetting = await Setting.findOne({ key: 'email-user' });
+                        const systemSender = emailUserSetting?.value || process.env.EMAIL_USER;
+                        if (systemSender) recipientEmails.push(systemSender);
+                    }
+
+                    // If patient/guardian email is available, include it
+                    if (newPatient.email) {
+                        recipientEmails.push(newPatient.email);
+                    }
+
+                    // De-duplicate emails
+                    recipientEmails = [...new Set(recipientEmails)];
+
+                    for (const toEmail of recipientEmails) {
+                        try {
+                            await emailService.sendAdmissionEmail(toEmail, newPatient);
+                        } catch (mailErr) {
+                            console.error(`[Notification] Failed to send admission email to ${toEmail}:`, mailErr.message);
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error('[Notification] Error in admission email background process:', err.message);
+            }
+
+            try {
+                const fcmService = require('../config/fcmService');
+                await fcmService.broadcastNotification(
+                    'New Patient Admitted 🏥',
+                    `Patient ${newPatient.name} has been admitted to bed ${newPatient.bed_no || 'N/A'}.`
+                );
+            } catch (err) {
+                console.error('[Notification] Error in FCM admission broadcast:', err.message);
+            }
+        }, 0);
+
         res.status(201).json({ success: true, patient: newPatient });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
@@ -209,7 +259,23 @@ exports.uploadPatientFiles = async (req, res) => {
             return res.status(400).json({ success: false, message: 'No files uploaded' });
         }
 
+        const { uploadToCloudinary, configureCloudinary } = require('../config/cloudinary');
+        const hasCloudinary = await configureCloudinary();
+
         const uploadPromises = req.files.map(async (file) => {
+            if (hasCloudinary) {
+                try {
+                    const cloudRes = await uploadToCloudinary(file.buffer, `hms/patients/${id}`);
+                    return cloudRes.secure_url;
+                } catch (cloudinaryErr) {
+                    console.error('Cloudinary upload error, trying Firebase Storage fallback:', cloudinaryErr.message);
+                }
+            }
+
+            // Fallback to Firebase Storage
+            if (!bucket) {
+                throw new Error('Neither Cloudinary nor Firebase Storage is configured.');
+            }
             const fileName = `patients/${id}/${uuidv4()}_${file.originalname}`;
             const blob = bucket.file(fileName);
             const blobStream = blob.createWriteStream({

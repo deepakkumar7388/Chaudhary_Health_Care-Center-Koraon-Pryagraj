@@ -11,6 +11,7 @@ const billingRoutes = require('./src/routes/billing');
 const dailyNoteRoutes = require('./src/routes/dailyNotes');
 const dischargeRoutes = require('./src/routes/discharge');
 const settingsRoutes = require('./src/routes/settings');
+const integrationsRoutes = require('./src/routes/integrations');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -32,6 +33,7 @@ app.use('/api/billing', billingRoutes);
 app.use('/api/notes', dailyNoteRoutes);
 app.use('/api/discharge', dischargeRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/integrations', integrationsRoutes);
 
 // Database Connection
 mongoose.connect(process.env.MONGODB_URI)
