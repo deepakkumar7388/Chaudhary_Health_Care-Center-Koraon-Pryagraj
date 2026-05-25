@@ -203,8 +203,16 @@ async function switchToApp() {
     updateUserInfo();
     updateClock();
     setInterval(updateClock, 1000);
-    loadModule('dashboard');
-    
+
+    // Handle initial routing based on URL hash
+    const hash = window.location.hash.substring(1);
+    if (hash) {
+        showModule(hash, true);
+    } else {
+        showModule('dashboard', true);
+        window.history.replaceState(null, '', '#dashboard');
+    }
+
     // Initialize push notifications
     if (typeof initPushNotifications === 'function') {
         initPushNotifications();
@@ -223,6 +231,24 @@ function cancelLogout() {
 }
 
 function confirmLogout() {
+    // Stop camera stream if active
+    if (typeof window.stopSurgeryCameraStream === 'function') {
+        try {
+            window.stopSurgeryCameraStream();
+        } catch (e) {
+            console.error("Error stopping camera stream on logout:", e);
+        }
+    }
+
+    // Clean up dynamic body-appended modals
+    Array.from(document.body.children).forEach(child => {
+        const isDynamicModal = child.classList.contains('modal') && !child.id;
+        const isDeleteModal = child.id === 'delete-confirm-modal';
+        if (isDynamicModal || isDeleteModal) {
+            child.remove();
+        }
+    });
+
     document.getElementById('logout-modal').classList.remove('active');
     sessionStorage.removeItem('user');
     sessionStorage.removeItem('token');
@@ -234,6 +260,7 @@ function confirmLogout() {
     document.getElementById('signup-form').reset();
     toggleAuthPanel('login');
     showNotification('You have been logged out successfully', 'info', 'Goodbye');
+    window.location.hash = '';
 }
 
 function updateUserInfo() {
@@ -262,7 +289,7 @@ function updateUserInfo() {
                 const initials = currentUser.name.trim().split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
                 avatarDiv.textContent = initials;
                 avatarDiv.innerHTML = initials; // Ensure text is set
-                avatarDiv.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                avatarDiv.style.background = 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)';
             } else {
                 avatarDiv.innerHTML = '<i class="fas fa-user"></i>';
             }
@@ -324,36 +351,7 @@ function updateClock() {
     });
 }
 
-function showModule(moduleName) {
-    const role = currentUser?.role || 'admin';
-
-    // Security check for unauthorized module access via console
-    const permissions = {
-        'admin': ['dashboard', 'patients', 'add-patient', 'daily-notes', 'billing', 'discharge', 'users', 'reports', 'settings', 'patient-record'],
-        'doctor': ['dashboard', 'patients', 'add-patient', 'daily-notes', 'discharge', 'patient-record', 'billing'],
-        'staff': ['dashboard', 'patients', 'add-patient', 'daily-notes'],
-        'receptionist': ['dashboard', 'patients', 'add-patient']
-    };
-
-    const allowedModules = permissions[role] || ['dashboard'];
-
-    if (!allowedModules.includes(moduleName)) {
-        showNotification('Access Denied: You do not have permission for this module.', 'error', 'Security');
-        return;
-    }
-
-    currentModule = moduleName;
-    document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
-    const activeItem = document.querySelector(`.menu-item[onclick*="'${moduleName}'"]`);
-    if (activeItem) activeItem.classList.add('active');
-
-    // Close sidebar on mobile after selecting a module
-    if (window.innerWidth <= 992) {
-        document.querySelector('.sidebar').classList.remove('active');
-    }
-
-    loadModule(moduleName);
-}
+// Consolidated showModule: moved to MODULE SYSTEM section below
 
 function updateSidebarStats() {
     try {
@@ -397,17 +395,25 @@ function updateSidebarStats() {
 }
 
 // ==================== MODULE SYSTEM ====================
-function showModule(moduleName) {
+function showModule(moduleName, preventHashUpdate = false) {
     const role = currentUser?.role || 'admin';
-    const isAdminOnly = ['settings', 'reports', 'users'].includes(moduleName);
-    const isAdminOrDoctor = ['patient-record'].includes(moduleName);
 
-    if (isAdminOnly && role !== 'admin') {
-        showNotification('Access Denied: Restricted to Administrator.', 'error', 'Security');
-        return;
-    }
-    if (isAdminOrDoctor && role !== 'admin' && role !== 'doctor') {
-        showNotification('Access Denied: Restricted to Admin/Doctor.', 'error', 'Security');
+    // Security check for unauthorized module access
+    const permissions = {
+        'admin': ['dashboard', 'patients', 'add-patient', 'daily-notes', 'billing', 'discharge', 'users', 'reports', 'settings', 'patient-record'],
+        'doctor': ['dashboard', 'patients', 'add-patient', 'daily-notes', 'discharge', 'patient-record', 'billing'],
+        'staff': ['dashboard', 'patients', 'add-patient', 'daily-notes'],
+        'receptionist': ['dashboard', 'patients', 'add-patient']
+    };
+
+    const allowedModules = permissions[role] || ['dashboard'];
+
+    if (!allowedModules.includes(moduleName)) {
+        showNotification('Access Denied: You do not have permission for this module.', 'error', 'Security');
+        // Revert hash if it differs from currentModule to keep URL in sync
+        if (window.location.hash.substring(1) !== currentModule) {
+            window.location.hash = currentModule || 'dashboard';
+        }
         return;
     }
 
@@ -419,13 +425,37 @@ function showModule(moduleName) {
 
     // Close sidebar on mobile after selecting a module
     if (window.innerWidth <= 992) {
-        document.querySelector('.sidebar').classList.remove('active');
+        const sidebar = document.querySelector('.sidebar');
+        if (sidebar) sidebar.classList.remove('active');
+    }
+
+    // Update URL hash to support browser back/forward buttons
+    if (!preventHashUpdate) {
+        window.location.hash = moduleName;
     }
 
     loadModule(moduleName);
 }
 
 function loadModule(moduleName) {
+    // Stop camera stream if active
+    if (typeof window.stopSurgeryCameraStream === 'function') {
+        try {
+            window.stopSurgeryCameraStream();
+        } catch (e) {
+            console.error("Error stopping camera stream on navigation:", e);
+        }
+    }
+
+    // Clean up dynamic body-appended modals when navigating
+    Array.from(document.body.children).forEach(child => {
+        const isDynamicModal = child.classList.contains('modal') && !child.id;
+        const isDeleteModal = child.id === 'delete-confirm-modal';
+        if (isDynamicModal || isDeleteModal) {
+            child.remove();
+        }
+    });
+
     document.querySelectorAll('.module-content').forEach(module => module.classList.remove('active'));
 
     const moduleEl = document.getElementById(`module-${moduleName}`);
@@ -434,7 +464,7 @@ function loadModule(moduleName) {
 
         const titles = {
             'patient-record': 'In-Patient Record Registry',
-            'dashboard': 'Dashboard',
+            'dashboard': '',
             'patients': 'Patient Management',
             'add-patient': 'Add New Patient',
             'daily-notes': 'Daily Treatment Notes',
@@ -445,7 +475,13 @@ function loadModule(moduleName) {
             'settings': 'System Settings'
         };
 
-        document.getElementById('page-title').textContent = titles[moduleName] || moduleName;
+        const pageTitle = titles[moduleName] !== undefined ? titles[moduleName] : moduleName;
+        document.getElementById('page-title').textContent = pageTitle;
+
+        const contentHeader = document.querySelector('.content-header');
+        if (contentHeader) {
+            contentHeader.style.display = 'none';
+        }
 
         // Call module-specific render functions
         switch (moduleName) {
@@ -490,6 +526,10 @@ function loadModule(moduleName) {
 
 // ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', function () {
+    if (localStorage.getItem('sidebarCollapsed') === 'true' && window.innerWidth > 992) {
+        document.body.classList.add('sidebar-collapsed');
+    }
+
     migratePatientIds(); // Run once to clean old IDs
 
     const savedUser = sessionStorage.getItem('user');
@@ -596,6 +636,15 @@ function toggleSidebar() {
     const sidebar = document.querySelector('.sidebar');
     sidebar.classList.toggle('active');
 }
+
+function toggleSidebarCollapse() {
+    if (window.innerWidth > 992) {
+        document.body.classList.toggle('sidebar-collapsed');
+        const isCollapsed = document.body.classList.contains('sidebar-collapsed');
+        localStorage.setItem('sidebarCollapsed', isCollapsed ? 'true' : 'false');
+    }
+}
+window.toggleSidebarCollapse = toggleSidebarCollapse;
 
 // Close sidebar when clicking menu items on mobile
 document.addEventListener('click', function (e) {
@@ -971,7 +1020,7 @@ function loadScript(url) {
 
 async function initPushNotifications() {
     console.log("Initializing push notifications...");
-    
+
     if (!('serviceWorker' in navigator) || !('Notification' in window)) {
         console.warn('Push notifications not supported in this browser.');
         return;
@@ -1079,3 +1128,12 @@ async function initPushNotifications() {
 }
 
 window.initPushNotifications = initPushNotifications;
+
+// Handle browser Back/Forward (hash change) events for step-wise navigation
+window.addEventListener('hashchange', function () {
+    if (!currentUser) return; // Only handle routing when user is logged in
+    const hash = window.location.hash.substring(1);
+    if (hash && hash !== currentModule) {
+        showModule(hash, true);
+    }
+});

@@ -14,13 +14,13 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 25px;
-    border-bottom: 2px solid #f0f2f5;
+    border-bottom: 2px solid var(--border);
     padding-bottom: 15px;
 }
 
 .patients-container .module-header h2 {
     color: var(--text-main);
-    font-size: 24px;
+    font-size: 28px;
     font-weight: 800;
     margin: 0;
     position: relative;
@@ -71,12 +71,12 @@
 
 /* Beautiful Table Styling */
 .patients-table {
-    background: #ffffff;
+    background: var(--card-bg);
     border-radius: 15px;
     overflow-x: auto;
     position: relative;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.03);
-    border: 1px solid #f0f2f5;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
 }
 
 .patients-table table {
@@ -213,7 +213,7 @@
 }
 
 .patients-table td strong {
-    color: #1a202c;
+    color: var(--text-main);
     font-weight: 700;
 }
 
@@ -264,7 +264,7 @@
     padding: 12px 26px;
     border: none;
     border-radius: 14px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
     color: #ffffff;
     font-family: 'Outfit', sans-serif;
     font-size: 14px;
@@ -274,24 +274,25 @@
     overflow: hidden;
     transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow:
-        0 4px 15px rgba(102, 126, 234, 0.35),
-        0 1px 3px rgba(118, 75, 162, 0.2);
+        0 4px 15px rgba(79, 70, 229, 0.25),
+        0 1px 3px rgba(79, 70, 229, 0.15);
     white-space: nowrap;
 }
 
 .add-patient-cta:hover {
     transform: translateY(-3px) scale(1.03);
     box-shadow:
-        0 8px 25px rgba(102, 126, 234, 0.45),
-        0 4px 10px rgba(118, 75, 162, 0.3);
-    background: linear-gradient(135deg, #7c8ef5 0%, #8a5db5 100%);
+        0 8px 25px rgba(79, 70, 229, 0.35),
+        0 4px 10px rgba(79, 70, 229, 0.2);
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+    filter: brightness(1.08);
 }
 
 .add-patient-cta:active {
     transform: translateY(0) scale(0.98);
     box-shadow:
-        0 2px 8px rgba(102, 126, 234, 0.3),
-        0 1px 3px rgba(118, 75, 162, 0.15);
+        0 2px 8px rgba(79, 70, 229, 0.2),
+        0 1px 3px rgba(79, 70, 229, 0.1);
     transition-duration: 0.1s;
 }
 
@@ -372,7 +373,7 @@
     position: absolute;
     inset: -3px;
     border-radius: 17px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
     opacity: 0;
     z-index: -1;
     transition: opacity 0.35s ease;

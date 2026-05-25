@@ -273,7 +273,7 @@ function viewPatient(patientId) {
     modal.style.zIndex = '2000';
     modal.innerHTML = `
         <div class="modal-content" style="max-width: 550px; padding: 0; border-radius: 15px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.2);">
-            <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px 25px; border-bottom: none;">
+            <div class="modal-header" style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); padding: 20px 25px; border-bottom: none;">
                 <h3 style="color: white; margin: 0; font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px;">
                     <i class="fas fa-id-card"></i> Patient Overview
                 </h3>
@@ -1201,7 +1201,7 @@ function openSurgeryModal(patientId) {
                 </div>                <!-- ACTIONS BUTTONS -->
                 <div style="display:flex; justify-content:flex-end; gap:12px; border-top:1px solid #e2e8f0; padding-top:16px; margin-top:20px;">
                     <button class="btn" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; padding:10px 20px; border-radius:4px; cursor:pointer; font-weight:600; font-size:14px; transition:all 0.2s;" onclick="window.stopSurgeryCameraStream(); this.closest('.modal').remove()">Cancel</button>
-                    <button class="btn btn-primary" style="background:linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%); color:#fff; border:none; padding:10px 20px; border-radius:4px; cursor:pointer; font-weight:600; font-size:14px; transition:all 0.2s; box-shadow:0 4px 12px rgba(79, 70, 229, 0.2);" onclick="saveSurgery('${patientId}', this)">Confirm Surgery Event</button>
+                    <button class="btn btn-primary" style="background:linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color:#fff; border:none; padding:10px 20px; border-radius:4px; cursor:pointer; font-weight:600; font-size:14px; transition:all 0.2s; box-shadow:0 4px 12px var(--primary-light);" onclick="saveSurgery('${patientId}', this)">Confirm Surgery Event</button>
                 </div>
             </div>
         </div>

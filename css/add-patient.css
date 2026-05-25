@@ -1,11 +1,11 @@
 /* ==================== ADD PATIENT — PROFESSIONAL COMPACT FORM ==================== */
 
 .add-patient-container {
-    background: #ffffff;
-    border-radius: 12px;
-    padding: 20px 24px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-    border: 1px solid #e2e8f0;
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 24px 28px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
     animation: fadeIn 0.3s ease;
     max-width: 720px;
     margin: 0 auto;
@@ -16,17 +16,17 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 16px;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--border);
     padding-bottom: 12px;
 }
 
 .add-patient-container .module-header h2 {
-    color: #1e293b;
-    font-size: 18px;
-    font-weight: 700;
+    color: var(--text-main);
+    font-size: 28px;
+    font-weight: 800;
     margin: 0;
     position: relative;
-    padding-left: 12px;
+    padding-left: 15px;
 }
 
 .add-patient-container .module-header h2::before {
@@ -35,8 +35,8 @@
     left: 0;
     top: 50%;
     transform: translateY(-50%);
-    height: 70%;
-    width: 3px;
+    height: 24px;
+    width: 4px;
     background: var(--primary, #4f46e5);
     border-radius: 4px;
 }
@@ -55,16 +55,16 @@
 }
 
 .form-section {
-    background: #f8fafc;
-    border: 1px solid #eef2f7;
-    border-radius: 10px;
-    padding: 14px 16px;
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
     box-shadow: none;
     transition: border-color 0.2s ease;
 }
 
 .form-section:hover {
-    border-color: #cbd5e1;
+    border-color: var(--primary);
     transform: none;
     box-shadow: none;
 }
@@ -75,12 +75,12 @@
     gap: 8px;
     font-size: 13px;
     font-weight: 700;
-    color: #475569;
+    color: var(--text-main);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 12px;
     padding-bottom: 8px;
-    border-bottom: 1px dashed #e2e8f0;
+    border-bottom: 1px dashed var(--border);
 }
 
 .form-section h3 i {
@@ -94,9 +94,9 @@
 }
 
 /* Section icon colors */
-.form-section:nth-child(1) h3 i { background: #eef2ff; color: #6366f1; }
-.form-section:nth-child(2) h3 i { background: #ecfdf5; color: #10b981; }
-.form-section:nth-child(3) h3 i { background: #fef2f2; color: #ef4444; }
+.form-section:nth-child(1) h3 i { background: rgba(99, 102, 241, 0.1); color: #6366f1; }
+.form-section:nth-child(2) h3 i { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+.form-section:nth-child(3) h3 i { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
 
 /* Form Grid */
 .form-grid {
@@ -114,7 +114,7 @@
 .form-group label {
     font-size: 11px;
     font-weight: 600;
-    color: #64748b;
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.3px;
 }
@@ -123,13 +123,13 @@
 .form-group input,
 .form-group select,
 .form-group textarea {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 6px;
-    padding: 8px 10px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
     font-size: 13px;
-    color: #1e293b;
-    transition: border-color 0.2s ease;
+    color: var(--text-main);
+    transition: all 0.2s ease;
     font-family: inherit;
 }
 
@@ -141,9 +141,9 @@
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
-    border-color: #6366f1;
+    border-color: var(--primary);
     outline: none;
-    box-shadow: 0 0 0 2px rgba(99,102,241,0.1);
+    box-shadow: 0 0 0 3px var(--primary-light);
 }
 
 /* Action Buttons */
@@ -164,7 +164,7 @@
 @media (max-width: 768px) {
     .add-patient-container {
         padding: 16px;
-        border-radius: 10px;
+        border-radius: 12px;
     }
 
     .form-grid {
@@ -183,7 +183,7 @@
     }
 
     .add-patient-container .module-header h2 {
-        font-size: 16px;
+        font-size: 20px;
     }
 
     .form-grid {

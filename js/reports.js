@@ -179,8 +179,11 @@ function renderReports() {
             </div>
             
             <!-- Dashboard Title / Header -->
-            <div class="module-header" style="margin-bottom: 25px;">
-                <h2>Reports & Analytics Dashboard</h2>
+            <div class="module-header" style="margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border); padding-bottom: 15px; flex-wrap: wrap; gap: 15px;">
+                <h2 style="font-size: 28px; font-weight: 800; color: var(--text-main); margin: 0; position: relative; padding-left: 15px; display: flex; align-items: center; gap: 8px;">
+                    <span style="position: absolute; left: 0; top: 50%; transform: translateY(-50%); height: 24px; width: 4px; background: var(--primary); border-radius: 4px;"></span>
+                    <i class="fas fa-chart-line" style="color: var(--primary);"></i> Reports & Analytics Dashboard
+                </h2>
                 <div class="header-actions">
                     <button class="btn btn-primary" onclick="updateReportsDashboard()"><i class="fas fa-sync"></i> Refresh Live</button>
                     <button class="btn btn-info" onclick="

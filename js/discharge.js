@@ -294,16 +294,46 @@ function confirmDischarge() {
         return;
     }
 
-    const patientName = document.getElementById('d-name').value || 'this patient';
-    document.getElementById('discharge-confirm-patient-name').textContent = patientName;
-    
-    const confirmModal = document.getElementById('discharge-confirm-modal');
-    confirmModal.classList.add('active');
+    // Check if billing is complete before discharging
+    showLoading('Verifying billing status...');
+    fetch(`${API_BASE}patients/${patientId}`, {
+        headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('token') }
+    })
+    .then(res => res.json())
+    .then(result => {
+        hideLoading();
+        if (result.success && result.patient) {
+            const patient = result.patient;
+            if (patient.payment_status !== 'Paid') {
+                showNotification('Cannot discharge patient: Billing is not complete.', 'error');
+                showModule('billing');
+                setTimeout(() => {
+                    viewBill(patientId);
+                }, 150);
+            } else {
+                const patientName = document.getElementById('d-name').value || 'this patient';
+                document.getElementById('discharge-confirm-patient-name').textContent = patientName;
+                
+                const confirmModal = document.getElementById('discharge-confirm-modal');
+                if (confirmModal) confirmModal.classList.add('active');
 
-    document.getElementById('btn-confirm-discharge-action').onclick = function() {
-        confirmModal.classList.remove('active');
-        executeDischarge(patientId, diagnosis, summary, dischargeDate, dischargeTime);
-    };
+                const confirmBtn = document.getElementById('btn-confirm-discharge-action');
+                if (confirmBtn) {
+                    confirmBtn.onclick = function() {
+                        if (confirmModal) confirmModal.classList.remove('active');
+                        executeDischarge(patientId, diagnosis, summary, dischargeDate, dischargeTime);
+                    };
+                }
+            }
+        } else {
+            showNotification('Error checking patient status', 'error');
+        }
+    })
+    .catch(err => {
+        hideLoading();
+        console.error(err);
+        showNotification('Error checking patient status', 'error');
+    });
 }
 
 function closeDischargeConfirmModal() {

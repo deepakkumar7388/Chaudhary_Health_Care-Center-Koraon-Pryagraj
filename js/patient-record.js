@@ -18,7 +18,7 @@ function fmtTime(val) {
         const [h, m] = val.split(':').map(Number);
         const ampm = h >= 12 ? 'PM' : 'AM';
         const hour = h % 12 || 12;
-        return `${String(hour).padStart(2,'0')}:${String(m).padStart(2,'0')} ${ampm}`;
+        return `${String(hour).padStart(2, '0')}:${String(m).padStart(2, '0')} ${ampm}`;
     }
     try {
         const d = new Date(val);
@@ -35,6 +35,11 @@ function renderPatientRecord() {
 
     moduleEl.innerHTML = `
         <div class="patient-record-layout">
+            <div class="module-header no-print" style="margin-bottom: 20px; display: flex; flex-direction: column; gap: 4px; border-bottom: 2px solid var(--border); padding-bottom: 15px;">
+                <h2 style="margin: 0; font-size: 28px; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 8px;"><i class="fas fa-file-medical" style="color: var(--primary);"></i> In-Patient Record Registry</h2>
+                <p style="margin: 0; color: var(--text-muted); font-size: 12px; font-weight: 500;">Search and view patient medical history, admission vitals, medications, and final billing records</p>
+            </div>
+
             <div class="search-section no-print" style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px;">
                 <h3 style="margin-top:0;"><i class="fas fa-search"></i> Select Patient for Case Record</h3>
                 <div style="position:relative; display:flex; gap:10px;">
@@ -359,7 +364,7 @@ function renderPatientRecord() {
 
 function loadRecordDropdownListener() {
     if (!window.recordDropdownListenerAdded) {
-        document.addEventListener('click', function(e) {
+        document.addEventListener('click', function (e) {
             const dropdown = document.getElementById('record-search-results');
             const input = document.getElementById('record-patient-search');
             if (dropdown && input && e.target !== input && !dropdown.contains(e.target)) {
@@ -382,7 +387,7 @@ async function loadAllPatientsForRecord() {
             // Also sync to localStorage as fallback
             localStorage.setItem('patients', JSON.stringify(allPatientsForRecord));
         }
-    } catch(err) {
+    } catch (err) {
         console.error('Failed to load patients for record search:', err);
         // Fallback to localStorage
         allPatientsForRecord = JSON.parse(localStorage.getItem('patients') || '[]');
@@ -414,7 +419,7 @@ function filterRecordPatients(query) {
         resultsContainer.innerHTML = filtered.map(p => `
             <div class="autocomplete-item" style="padding:12px; border-bottom:1px solid #eee; cursor:pointer;" onclick="loadPatientToRecord('${p.patient_id || p._id}')">
                 <div style="font-weight:bold; color:#2d3748;">${p.name}</div>
-                <div style="font-size:12px; color:#718096;">ID: ${p.patient_id || p._id} &nbsp;|&nbsp; ${p.gender || ''} ${p.age ? '| Age: '+p.age : ''} &nbsp;|&nbsp; Bed: ${p.bed_no || '-'}</div>
+                <div style="font-size:12px; color:#718096;">ID: ${p.patient_id || p._id} &nbsp;|&nbsp; ${p.gender || ''} ${p.age ? '| Age: ' + p.age : ''} &nbsp;|&nbsp; Bed: ${p.bed_no || '-'}</div>
             </div>
         `).join('');
     }
@@ -433,7 +438,7 @@ async function loadPatientToRecord(patientId) {
         if (result.success && result.patient) {
             p = result.patient;
         }
-    } catch(err) {
+    } catch (err) {
         console.error('Failed to fetch latest patient info:', err);
     }
 
@@ -469,7 +474,7 @@ async function loadPatientToRecord(patientId) {
     document.getElementById('rec-mobile').textContent = p.mobile || '';
     document.getElementById('rec-doa').textContent = fmtDate(p.admission_date);
     document.getElementById('rec-toa').textContent = fmtTime(p.admission_time || p.admission_date);
-    
+
     // Logic for Physician/Surgeon-in-Charge + Auto-load Signature from Surgery
     const allSurgeries = JSON.parse(localStorage.getItem('surgeries') || '[]');
     const lsSurgeries = allSurgeries.filter(s => String(s.patient_id) === String(currentRecordPatientId));
@@ -495,7 +500,7 @@ async function loadPatientToRecord(patientId) {
     // 3. Try to fetch from latest Discharge Summary for Diagnosis/Dates
     const dischargeList = JSON.parse(localStorage.getItem('discharge_records') || '[]');
     const latestDischarge = [...dischargeList].reverse().find(d => d.patientId === currentRecordPatientId);
-    
+
     if (latestDischarge) {
         document.getElementById('rec-dod').textContent = fmtDate(latestDischarge.dischargeDate || p.discharge_date);
         document.getElementById('rec-tod').textContent = fmtTime(latestDischarge.dischargeTime || p.discharge_time || '');
@@ -575,7 +580,7 @@ async function loadPatientToRecord(patientId) {
 function handleSignatureUpload(input) {
     if (input.files && input.files[0]) {
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = function (e) {
             const imgEl = document.getElementById('sig-preview-img');
             imgEl.src = e.target.result;
             imgEl.style.display = 'block';
@@ -700,7 +705,7 @@ async function populatePatientJourney(patientId, p) {
         if (p && p.surgeries && p.surgeries.length > 0) {
             surgeryHistoryTbody.innerHTML = p.surgeries.map(s => {
                 const date = fmtDate(s.surgeryDate);
-                const imgProof = s.guardianSignature 
+                const imgProof = s.guardianSignature
                     ? `<img src="${s.guardianSignature}" style="max-height: 35px; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px; background: #fff;" alt="Sign Proof">`
                     : '<span style="color:#cbd5e1; font-style:italic;">No Proof</span>';
                 return `
@@ -756,7 +761,7 @@ async function populatePatientJourney(patientId, p) {
                     meds.sort((a, b) => new Date(a.date + ' ' + a.time) - new Date(b.date + ' ' + b.time));
                     medsTbody.innerHTML = meds.map(m => {
                         const isGiven = m.status !== 'Pending';
-                        const statusText = isGiven 
+                        const statusText = isGiven
                             ? `<span style="color:#10b981; font-weight:bold;"><i class="fas fa-check-double"></i> Given</span>`
                             : `<span style="color:#f59e0b; font-weight:bold;"><i class="fas fa-clock"></i> Scheduled</span>`;
                         const doneDetails = isGiven
@@ -809,9 +814,9 @@ async function populatePatientJourney(patientId, p) {
                 // Billing totals
                 const disc = parseFloat(patientBill.discount) || 0;
                 const totalPaid = (patientBill.payments || []).reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
-                
+
                 let grandTotal = 0;
-                
+
                 // 1. Bed Stay charges
                 if (p && p.bedHistory && p.bedHistory.length > 0) {
                     p.bedHistory.forEach(bed => {
@@ -848,7 +853,7 @@ async function populatePatientJourney(patientId, p) {
                         }
                     });
                 }
-                
+
                 const netPayable = grandTotal - disc;
                 const balDue = netPayable - totalPaid;
 
@@ -856,7 +861,7 @@ async function populatePatientJourney(patientId, p) {
                 document.getElementById('j-discount').textContent = `₹${disc}`;
                 document.getElementById('j-net-payable').textContent = `₹${netPayable}`;
                 document.getElementById('j-total-paid').textContent = `₹${totalPaid}`;
-                
+
                 const balDueEl = document.getElementById('j-balance-due');
                 balDueEl.textContent = `₹${balDue}`;
                 if (balDue > 0) {
@@ -867,7 +872,7 @@ async function populatePatientJourney(patientId, p) {
             } else {
                 // Fallback if no bill exists
                 let grandTotal = 0;
-                
+
                 // 1. Bed Stay charges
                 if (p && p.bedHistory && p.bedHistory.length > 0) {
                     p.bedHistory.forEach(bed => {
@@ -906,7 +911,7 @@ async function populatePatientJourney(patientId, p) {
                 document.getElementById('j-net-payable').textContent = `₹${grandTotal}`;
                 document.getElementById('j-total-paid').textContent = `₹${totalPaid}`;
                 document.getElementById('j-balance-due').textContent = `₹${balDue}`;
-                
+
                 const ledgerTbody = document.getElementById('journey-financial-history');
                 if (ledgerTbody) {
                     ledgerTbody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding:10px; color:#cbd5e1;">No financial ledger recorded in Billing.</td></tr>`;

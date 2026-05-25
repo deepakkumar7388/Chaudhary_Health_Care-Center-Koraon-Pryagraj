@@ -1,12 +1,12 @@
 /* ==================== DISCHARGE & REPORT VIBRANT STYLES ==================== */
 
 .discharge-container {
-    background: #ffffff;
+    background: var(--card-bg);
     border-radius: 20px;
     padding: 30px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    box-shadow: var(--shadow);
     animation: fadeIn 0.5s ease;
-    border: 1px solid rgba(0, 0, 0, 0.02);
+    border: 1px solid var(--border);
     max-width: 900px;
     margin: 0 auto;
 }
@@ -16,13 +16,13 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 25px;
-    border-bottom: 2px solid #f0f2f5;
+    border-bottom: 2px solid var(--border);
     padding-bottom: 15px;
 }
 
 .discharge-container .module-header h2 {
-    color: #2d3436;
-    font-size: 26px;
+    color: var(--text-main);
+    font-size: 28px;
     font-weight: 800;
     margin: 0;
     position: relative;
@@ -37,7 +37,7 @@
     transform: translateY(-50%);
     height: 80%;
     width: 5px;
-    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
     border-radius: 10px;
 }
 
@@ -57,7 +57,7 @@
 .discharge-form label {
     font-size: 13px;
     font-weight: 700;
-    color: #4a5568;
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
@@ -65,20 +65,20 @@
 .discharge-form input,
 .discharge-form select,
 .discharge-form textarea {
-    background: #ffffff;
-    border: 2px solid #e2e8f0;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
     border-radius: 10px;
-    padding: 14px 16px;
-    font-size: 15px;
-    color: #2d3748;
+    padding: 12px 16px;
+    font-size: 14px;
+    color: var(--text-main);
     transition: all 0.3s ease;
 }
 
 .discharge-form input[readonly] {
-    background: #f8fafc;
-    color: #718096;
+    background: var(--background);
+    color: var(--text-muted);
     font-weight: 600;
-    border-color: #edf2f7;
+    border-color: var(--border);
     cursor: not-allowed;
 }
 
@@ -89,17 +89,17 @@
 .discharge-form input:focus:not([readonly]),
 .discharge-form select:focus,
 .discharge-form textarea:focus {
-    border-color: #38ef7d;
+    border-color: var(--primary);
     outline: none;
-    box-shadow: 0 0 0 4px rgba(56, 239, 125, 0.15);
-    background: #fcfcfc;
+    box-shadow: 0 0 0 3px var(--primary-light);
+    background: var(--card-bg);
 }
 
 #discharge-info {
-    background: #f8fafc;
+    background: var(--background);
     padding: 20px;
     border-radius: 12px;
-    border: 1px dashed #cbd5e0;
+    border: 1px dashed var(--border);
     margin-bottom: 10px;
     animation: fadeIn 0.3s;
 }
@@ -117,11 +117,11 @@
 }
 
 .discharge-form .form-actions button {
-    padding: 15px 30px;
-    font-size: 16px;
+    padding: 12px 24px;
+    font-size: 14px;
     font-weight: 700;
     letter-spacing: 0.5px;
-    border-radius: 12px;
+    border-radius: 10px;
 }
 
 /* ================== A4 PRINTABLE REPORT UI ================== */
@@ -129,8 +129,8 @@
     background: white;
     padding: 40px;
     border-radius: 10px;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
-    border: 1px solid #e2e8f0;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    border: 1px solid #cbd5e1;
     color: #1a202c;
 }
 
@@ -304,23 +304,32 @@
     top: 100%;
     left: 0;
     width: 100%;
-    background: white;
-    border: 1px solid #cbd5e0;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: var(--shadow-lg);
     max-height: 250px;
     overflow-y: auto;
     z-index: 100;
     margin-top: 5px;
 }
 
+.autocomplete-dropdown::-webkit-scrollbar {
+    width: 6px;
+}
+.autocomplete-dropdown::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
+}
+
 .autocomplete-item {
     padding: 10px 16px;
     cursor: pointer;
-    border-bottom: 1px solid #edf2f7;
+    border-bottom: 1px solid var(--border);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    transition: background-color 0.2s ease;
 }
 
 .autocomplete-item:last-child {
@@ -328,11 +337,11 @@
 }
 
 .autocomplete-item:hover {
-    background-color: #ebf8ff;
+    background-color: var(--primary-light);
 }
 
 .autocomplete-item.empty {
-    color: #718096;
+    color: var(--text-muted);
     font-style: italic;
     justify-content: center;
     cursor: default;
@@ -340,21 +349,21 @@
 
 .autocomplete-item .patient-name {
     font-weight: 600;
-    color: #2d3748;
+    color: var(--text-main);
 }
 
 .autocomplete-item .patient-id {
     font-size: 13px;
-    color: #718096;
-    background: #edf2f7;
+    color: var(--text-muted);
+    background: var(--background);
     padding: 2px 6px;
-    border-radius: 4px;
+    border-radius: 6px;
 }
 
 /* Advised Medicine Table inside Form */
 .adv-med-section {
-    background: #f8fafc;
-    border: 1px dashed #cbd5e0;
+    background: var(--background);
+    border: 1px dashed var(--border);
     padding: 20px;
     border-radius: 12px;
     margin-top: 10px;
@@ -368,10 +377,10 @@
 
 .med-table th {
     font-size: 13px;
-    color: #4a5568;
+    color: var(--text-muted);
     text-align: left;
     padding: 10px 8px;
-    border-bottom: 2px solid #e2e8f0;
+    border-bottom: 2px solid var(--border);
 }
 
 .med-table td {
@@ -381,22 +390,25 @@
 .med-table input {
     width: 100%;
     padding: 10px 14px;
-    border: 1px solid #cbd5e0;
-    border-radius: 6px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--card-bg);
+    color: var(--text-main);
     font-size: 14px;
+    transition: all 0.2s ease;
 }
 
 .med-table input:focus {
-    border-color: #38ef7d;
+    border-color: var(--primary);
     outline: none;
-    box-shadow: 0 0 0 3px rgba(56, 239, 125, 0.15);
+    box-shadow: 0 0 0 3px var(--primary-light);
 }
 
 .btn-danger {
-    background: #e53e3e;
+    background: var(--danger);
     color: white;
 }
 
 .btn-danger:hover {
-    background: #c53030;
+    filter: brightness(0.9);
 }

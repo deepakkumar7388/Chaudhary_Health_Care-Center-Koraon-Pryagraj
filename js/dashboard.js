@@ -64,7 +64,7 @@ function renderDashboard() {
                     <div class="info-panel-header"><i class="fas fa-clipboard-check"></i><h4>Shift Overview</h4></div>
                     <div class="info-panel-body">
                         <div class="info-row"><span class="info-label">On Duty</span><span class="info-value">${currentUser?.name || 'Staff'}</span></div>
-                        <div class="info-row"><span class="info-label">Date</span><span class="info-value">${new Date().toLocaleDateString('en-IN', {weekday:'short', day:'numeric', month:'short'})}</span></div>
+                        <div class="info-row"><span class="info-label">Date</span><span class="info-value">${new Date().toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}</span></div>
                         <div class="info-row"><span class="info-label">Active Patients</span><span class="info-value" id="staff-active-count">—</span></div>
                         <div class="info-row"><span class="info-label">Notes Pending</span><span class="info-value" style="color:#f59e0b;">Check Daily Notes</span></div>
                     </div>
@@ -82,7 +82,7 @@ function renderDashboard() {
                     <div class="info-panel-header"><i class="fas fa-concierge-bell"></i><h4>Front Desk Status</h4></div>
                     <div class="info-panel-body">
                         <div class="info-row"><span class="info-label">Receptionist</span><span class="info-value">${currentUser?.name || 'Receptionist'}</span></div>
-                        <div class="info-row"><span class="info-label">Date</span><span class="info-value">${new Date().toLocaleDateString('en-IN', {weekday:'short', day:'numeric', month:'short'})}</span></div>
+                        <div class="info-row"><span class="info-label">Date</span><span class="info-value">${new Date().toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}</span></div>
                         <div class="info-row"><span class="info-label">Today's Admissions</span><span class="info-value" id="rec-today-admissions">—</span></div>
                         <div class="info-row"><span class="info-label">Total Patients</span><span class="info-value" id="rec-total-patients">—</span></div>
                     </div>
@@ -207,7 +207,7 @@ async function updateRolePanels(role) {
         const el1 = document.getElementById('doc-active-count');
         if (el1) el1.textContent = admitted.length;
         const el2 = document.getElementById('doc-discharged-today');
-        if (el2) el2.textContent = patients.filter(p => (p.status||'').toLowerCase() === 'discharged').length;
+        if (el2) el2.textContent = patients.filter(p => (p.status || '').toLowerCase() === 'discharged').length;
         const el3 = document.getElementById('doc-surgery-count');
         if (el3) el3.textContent = surgeries.length;
     }
@@ -232,7 +232,7 @@ async function updateRolePanels(role) {
         const femaleTotal = bedList.filter(b => b.startsWith('Female-G')).length || 20;
         const icuTotal = bedList.filter(b => b.startsWith('ICU-')).length || 7;
         const privateTotal = bedList.filter(b => b.startsWith('Private-')).length || 5;
-        
+
         const wards = {
             'General Male': { total: maleTotal, prefix: 'Male-G' },
             'General Female': { total: femaleTotal, prefix: 'Female-G' },
@@ -302,7 +302,7 @@ async function updateDashboardStats() {
     const totalPatients = patients.length;
     let admittedPatients = patients.filter(p => (p.status || '').toLowerCase() === 'admitted').length;
     let dischargedCount = patients.filter(p => (p.status || '').toLowerCase() === 'discharged').length;
-    
+
     if (admittedPatients < 0) admittedPatients = 0;
 
     let totalRevenue = 0;
