@@ -5,6 +5,21 @@ const bodyParser = require('body-parser');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
+// Use Google Public DNS for MongoDB Atlas SRV/TXT record resolution
+// Fixes EREFUSED errors on local networks with restrictive DNS servers
+const dns = require('dns');
+const { Resolver } = require('dns');
+const resolver = new Resolver();
+resolver.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
+
+// Override the default DNS resolution functions used by MongoDB driver
+dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
+dns.resolveTxt = (...args) => resolver.resolveTxt(...args);
+dns.resolveSrv = (...args) => resolver.resolveSrv(...args);
+dns.resolve = (...args) => resolver.resolve(...args);
+dns.resolve4 = (...args) => resolver.resolve4(...args);
+dns.resolve6 = (...args) => resolver.resolve6(...args);
+
 const authRoutes = require('./src/routes/auth');
 const patientRoutes = require('./src/routes/patients');
 const billingRoutes = require('./src/routes/billing');

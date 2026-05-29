@@ -3,7 +3,7 @@ let currentUser = null;
 let currentModule = 'dashboard';
 // Use local IP for same-wifi mobile access, or the Render URL for production
 // Point to local backend for testing new features
-let API_BASE = (window.location.protocol === 'file:')
+let API_BASE = (window.location.protocol === 'file:' || (window.location.hostname === '127.0.0.1' && window.location.port !== '5000'))
     ? 'http://127.0.0.1:5000/api/'
     : '/api/';
 

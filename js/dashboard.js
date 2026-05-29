@@ -310,6 +310,9 @@ async function updateDashboardStats() {
     let pendingBills = 0;
     let totalPendingAmt = 0;
 
+    const role = currentUser?.role || 'admin';
+    const showFinancials = (role === 'admin' || role === 'doctor');
+
     let allActivities = [];
 
     // Parse Patients for Activity
@@ -377,8 +380,7 @@ async function updateDashboardStats() {
 
     const curr = window.currencySymbol || '₹';
 
-    const role = currentUser?.role || 'admin';
-    const showFinancials = (role === 'admin' || role === 'doctor');
+
 
     // 1. Populate Metrics Cards
     document.getElementById('dashboard-metrics').innerHTML = `
