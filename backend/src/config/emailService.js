@@ -48,21 +48,25 @@ async function getTransporter() {
         console.warn('SMTP password is not configured. Email sending might fail.');
     }
 
-    const secure = port === 465;
+    const secure = port === 465; // SSL for 465, STARTTLS for 587
 
     cachedTransporter = nodemailer.createTransport({
         host,
         port,
         secure,
         auth: { user, pass },
+        tls: {
+            rejectUnauthorized: false, // Allow self-signed certs on cloud environments
+            minVersion: 'TLSv1.2'
+        },
         // Connection pooling for faster subsequent sends
         pool: true,
         maxConnections: 3,
         maxMessages: 50,
-        // Faster timeouts
-        connectionTimeout: 5000,
-        greetingTimeout: 5000,
-        socketTimeout: 10000
+        // Longer timeouts for Render cold-start environments
+        connectionTimeout: 15000,
+        greetingTimeout: 15000,
+        socketTimeout: 30000
     });
 
     cachedFromLine = `"${systemName}" <${user}>`;

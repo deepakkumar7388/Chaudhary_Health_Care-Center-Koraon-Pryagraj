@@ -1042,7 +1042,7 @@ function openSurgeryModal(patientId) {
     const savedRecord = records[patientId] || {};
 
     const modal = document.createElement('div');
-    modal.className = 'modal';
+    modal.className = 'modal surgery-modal';
     modal.style.display = 'flex';
     modal.style.alignItems = 'center';
     modal.style.justifyContent = 'center';
@@ -1065,7 +1065,7 @@ function openSurgeryModal(patientId) {
                 <h4 style="margin: 0 0 12px 0; font-size: 13px; color: #4f46e5; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; font-weight:700;">
                     <i class="bi bi-file-earmark-medical"></i> Surgery & Diagnosis Information
                 </h4>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                <div class="surgery-form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
                     <div>
                         <label style="display:block; font-size:12px; font-weight:600; color:#475569; margin-bottom:6px;">Surgery Name / Procedure *</label>
                         <input type="text" id="surgery-name" placeholder="Appendectomy" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background:#fff;">
@@ -1110,7 +1110,7 @@ function openSurgeryModal(patientId) {
                 </div>
 
                 <!-- SECTION 3: WITNESS AND GUARDIAN SIDE-BY-SIDE -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+                <div class="surgery-consent-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
                     
                     <!-- WITNESS COLUMN -->
                     <div style="background: #f8fafc; padding: 16px; border: 1px solid #e2e8f0; border-radius: 8px;">
@@ -1171,13 +1171,13 @@ function openSurgeryModal(patientId) {
                 <h4 style="margin: 0 0 12px 0; font-size: 13px; color: #4f46e5; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; font-weight:700;">
                     <i class="bi bi-pencil"></i> Patient Signature Proof
                 </h4>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; align-items: start;">
+                <div class="surgery-signature-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; align-items: start;">
                     
                     <!-- UPLOAD & WEBCAM TRIGGERS -->
                     <div style="background: #f8fafc; padding: 16px; border: 1px dashed #94a3b8; border-radius: 8px; text-align: center;">
                         <div style="margin-bottom: 12px;">
                             <label style="display:block; font-size:12px; font-weight:600; color:#475569; margin-bottom:6px; text-align:left;">Method 1: Upload Image File</label>
-                            <input type="file" id="surgery-sig-upload" accept="image/*" onchange="handleSurgerySignatureUpload(this)" style="font-size: 12px; width: 100%; padding: 4px; border: 1px solid #cbd5e1; border-radius: 4px; background:#fff;">
+                            <input type="file" id="surgery-sig-upload" accept="image/*" capture="environment" onchange="handleSurgerySignatureUpload(this)" style="font-size: 12px; width: 100%; padding: 4px; border: 1px solid #cbd5e1; border-radius: 4px; background:#fff;">
                         </div>
                         <div style="margin: 10px 0; font-size: 12px; font-weight: 700; color: #64748b;">— OR —</div>
                         <div style="text-align: center;">
@@ -1190,7 +1190,11 @@ function openSurgeryModal(patientId) {
                             </button>
                         </div>
                         <div style="margin-top: 10px;">
-                            <video id="surgery-camera" autoplay playsinline style="display:none; width: 100%; max-height: 180px; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1;"></video>
+                            <div id="surgery-camera-error" style="display:none; background:#fef2f2; border:1px solid #fecaca; border-radius:6px; padding:10px 12px; font-size:12px; color:#dc2626; text-align:left; margin-bottom:8px;">
+                                <i class="bi bi-exclamation-circle"></i> <span id="surgery-camera-error-msg">Camera access denied.</span><br>
+                                <small style="color:#991b1b;">Please use 'Upload Image' above, or allow camera permission in browser settings.</small>
+                            </div>
+                            <video id="surgery-camera" autoplay playsinline muted style="display:none; width: 100%; max-height: 180px; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1;"></video>
                             <canvas id="surgery-canvas" style="display:none;"></canvas>
                         </div>
                     </div>
@@ -1205,7 +1209,7 @@ function openSurgeryModal(patientId) {
                     </div>
 
                 </div>                <!-- ACTIONS BUTTONS -->
-                <div style="display:flex; justify-content:flex-end; gap:12px; border-top:1px solid #e2e8f0; padding-top:16px; margin-top:20px;">
+                <div class="surgery-actions" style="display:flex; justify-content:flex-end; gap:12px; border-top:1px solid #e2e8f0; padding-top:16px; margin-top:20px;">
                     <button class="btn" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; padding:10px 20px; border-radius:4px; cursor:pointer; font-weight:600; font-size:14px; transition:all 0.2s;" onclick="window.stopSurgeryCameraStream(); this.closest('.modal').remove()">Cancel</button>
                     <button class="btn btn-primary" style="background:linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color:#fff; border:none; padding:10px 20px; border-radius:4px; cursor:pointer; font-weight:600; font-size:14px; transition:all 0.2s; box-shadow:0 4px 12px var(--primary-light);" onclick="saveSurgery('${patientId}', this)">Confirm Surgery Event</button>
                 </div>
@@ -1221,26 +1225,63 @@ function openSurgeryModal(patientId) {
         const video = document.getElementById('surgery-camera');
         const snapBtn = document.getElementById('btn-surgery-snap');
         const startBtn = document.getElementById('btn-surgery-camera');
+        const errorDiv = document.getElementById('surgery-camera-error');
+        const errorMsg = document.getElementById('surgery-camera-error-msg');
 
-        try {
-            localStream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: { ideal: "environment" } }
-            });
-            video.srcObject = localStream;
+        // Hide previous errors
+        if (errorDiv) errorDiv.style.display = 'none';
+
+        // Check for HTTPS / secure context
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            if (errorDiv && errorMsg) {
+                errorMsg.textContent = 'Camera not supported. Use HTTPS or try uploading a photo.';
+                errorDiv.style.display = 'block';
+            }
+            return;
+        }
+
+        const showCameraError = (message) => {
+            if (errorDiv && errorMsg) {
+                errorMsg.textContent = message;
+                errorDiv.style.display = 'block';
+            }
+            startBtn.style.display = 'inline-flex';
+            snapBtn.style.display = 'none';
+            video.style.display = 'none';
+        };
+
+        const startVideo = (stream) => {
+            localStream = stream;
+            video.srcObject = stream;
             video.style.display = 'block';
             snapBtn.style.display = 'inline-flex';
             startBtn.style.display = 'none';
+            if (errorDiv) errorDiv.style.display = 'none';
+        };
+
+        try {
+            // Try rear camera first (mobile)
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
+            });
+            startVideo(stream);
         } catch (err) {
-            console.error("Camera access failed", err);
+            console.warn('Rear camera failed:', err.name, err.message);
             try {
-                localStream = await navigator.mediaDevices.getUserMedia({ video: true });
-                video.srcObject = localStream;
-                video.style.display = 'block';
-                snapBtn.style.display = 'inline-flex';
-                startBtn.style.display = 'none';
+                // Fallback: any available camera
+                const fallbackStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                startVideo(fallbackStream);
             } catch (fallbackErr) {
-                console.error("Fallback camera access failed", fallbackErr);
-                showNotification('Unable to access device camera. Please check permissions.', 'error');
+                console.error('Camera access failed:', fallbackErr.name, fallbackErr.message);
+                if (fallbackErr.name === 'NotAllowedError' || fallbackErr.name === 'PermissionDeniedError') {
+                    showCameraError('Camera permission denied. Allow camera access in browser settings.');
+                } else if (fallbackErr.name === 'NotFoundError') {
+                    showCameraError('No camera detected. Please upload an image file instead.');
+                } else if (fallbackErr.name === 'NotReadableError') {
+                    showCameraError('Camera is in use by another app. Close it and try again.');
+                } else {
+                    showCameraError('Camera failed: ' + (fallbackErr.message || fallbackErr.name));
+                }
             }
         }
     };

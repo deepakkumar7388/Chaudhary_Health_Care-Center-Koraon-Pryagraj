@@ -458,8 +458,13 @@ async function updateDashboardStats() {
         `).join('');
     }
 
-    // 3. Render Charts
+    // 3. Render Charts — wrapped in rAF+timeout to ensure canvas is painted in DOM
     if (typeof Chart === 'undefined') return;
+    requestAnimationFrame(() => setTimeout(() => renderDashboardCharts(totalPatients, totalRevenue, totalPendingAmt, paidBills, pendingBills, patients), 100));
+}
+
+function renderDashboardCharts(totalPatients, totalRevenue, totalPendingAmt, paidBills, pendingBills, patients) {
+    const curr = window.currencySymbol || '₹';
 
     const parents = [
         document.getElementById('dashPatientChart')?.parentNode,

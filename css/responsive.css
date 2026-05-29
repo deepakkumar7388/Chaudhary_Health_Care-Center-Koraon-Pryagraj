@@ -1,0 +1,1309 @@
+/* ==========================================================================
+   MOBILE RESPONSIVE OVERRIDES
+   Pages: Settings, Reports, Billing, Surgery Modal
+   Breakpoints: 992px (tablet), 768px (mobile), 480px (small phone)
+   ========================================================================== */
+
+/* ============================================================
+   1. SYSTEM SETTINGS PAGE
+   ============================================================ */
+
+@media (max-width: 992px) {
+    /* Stack settings layout vertically */
+    .settings-layout {
+        flex-direction: column !important;
+    }
+
+    /* Convert sidebar to horizontal scrollable tab bar */
+    .settings-sidebar {
+        width: 100% !important;
+        flex-direction: row !important;
+        overflow-x: auto !important;
+        padding: 12px !important;
+        gap: 8px !important;
+        border-right: none !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    .settings-sidebar::-webkit-scrollbar {
+        display: none;
+    }
+
+    .settings-nav-btn {
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+        padding: 10px 16px !important;
+        font-size: 13px !important;
+        border-radius: 50px !important;
+    }
+
+    /* Hide label text on smaller tablets, show only icons */
+    .settings-nav-btn span {
+        display: inline !important;
+    }
+
+    /* Reduce content panel padding */
+    .settings-content-panel {
+        padding: 20px !important;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Settings form grids to single column */
+    .settings-container .form-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Fix span-2 items that overflow on single column */
+    .settings-container .form-grid > div[style*="grid-column: span 2"],
+    .settings-container .form-grid > div[style*="grid-column:span 2"] {
+        grid-column: span 1 !important;
+    }
+
+    /* Settings header — stack vertically */
+    .settings-container .module-header {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 12px !important;
+    }
+
+    .settings-container .module-header h2 {
+        font-size: 22px !important;
+    }
+
+    .settings-container .module-header > div {
+        display: flex !important;
+        gap: 8px !important;
+        width: 100% !important;
+    }
+
+    .settings-container .module-header .btn {
+        flex: 1 !important;
+        font-size: 12px !important;
+        padding: 10px 12px !important;
+    }
+
+    .settings-content-panel {
+        padding: 16px !important;
+    }
+
+    /* Ward cards grid — single column */
+    .ward-cards-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Bed preview grid — smaller chips */
+    .bed-preview-grid {
+        gap: 4px !important;
+    }
+
+    .bed-chip {
+        font-size: 10px !important;
+        padding: 3px 8px !important;
+    }
+
+    /* Settings nav buttons - smaller on mobile */
+    .settings-nav-btn {
+        padding: 8px 12px !important;
+        font-size: 12px !important;
+    }
+
+    .settings-nav-btn i {
+        font-size: 14px !important;
+    }
+
+    /* Form section spacing */
+    .form-section {
+        margin-bottom: 24px !important;
+    }
+
+    .form-section h3 {
+        font-size: 14px !important;
+    }
+
+    /* Checkbox groups - full width */
+    .form-group-checkbox {
+        padding: 10px 12px !important;
+    }
+
+    .form-group-checkbox label {
+        font-size: 12px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .settings-nav-btn span {
+        display: none !important;
+    }
+
+    .settings-nav-btn {
+        padding: 10px 14px !important;
+        border-radius: 10px !important;
+    }
+
+    .settings-nav-btn i {
+        font-size: 16px !important;
+        width: auto !important;
+    }
+
+    .settings-content-panel {
+        padding: 12px !important;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        font-size: 13px !important;
+        padding: 10px 12px !important;
+    }
+}
+
+
+/* ============================================================
+   2. REPORTS & ANALYTICS PAGE
+   ============================================================ */
+
+@media (max-width: 992px) {
+    /* Charts grid — reduce min-width */
+    .reports-grid {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+        gap: 16px !important;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Reports header — stack */
+    .reports-container .module-header {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 12px !important;
+    }
+
+    .reports-container .module-header h2 {
+        font-size: 20px !important;
+    }
+
+    .reports-container .header-actions {
+        display: flex !important;
+        gap: 8px !important;
+        width: 100% !important;
+    }
+
+    .reports-container .header-actions .btn {
+        flex: 1 !important;
+        font-size: 12px !important;
+        padding: 10px 12px !important;
+        white-space: nowrap !important;
+    }
+
+    /* Filter bar — stack vertically */
+    .filter-bar {
+        flex-direction: column !important;
+        gap: 12px !important;
+        padding: 14px !important;
+    }
+
+    .filter-bar-group {
+        width: 100% !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 6px !important;
+    }
+
+    .filter-bar-select {
+        width: 100% !important;
+    }
+
+    /* Charts grid — single column */
+    .reports-grid {
+        grid-template-columns: 1fr !important;
+        gap: 14px !important;
+    }
+
+    /* Stats grid — 2 columns on mobile */
+    .reports-container .stats-grid,
+    #reports-key-metrics {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px !important;
+    }
+
+    /* Report cards — reduce padding */
+    .report-card {
+        padding: 16px !important;
+        border-radius: 12px !important;
+    }
+
+    .report-card h3 {
+        font-size: 14px !important;
+        margin-bottom: 12px !important;
+    }
+
+    /* Chart containers — reduce height */
+    .chart-container {
+        height: 220px !important;
+    }
+
+    /* Stat cards — compact on mobile */
+    .stat-card {
+        padding: 12px !important;
+    }
+
+    .stat-card-value {
+        font-size: 18px !important;
+    }
+
+    .stat-card-icon {
+        width: 38px !important;
+        height: 38px !important;
+        font-size: 16px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Stats — single column on very small screens */
+    .reports-container .stats-grid,
+    #reports-key-metrics {
+        grid-template-columns: 1fr !important;
+    }
+
+    .chart-container {
+        height: 180px !important;
+    }
+
+    .report-card {
+        padding: 12px !important;
+    }
+}
+
+
+/* ============================================================
+   3. BILLING PAGE
+   ============================================================ */
+
+@media (max-width: 992px) {
+    /* Module header — stack title and dashboard cards */
+    .billing-container .module-header {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+
+    .billing-container .dashboard-cards {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .billing-container .module-header {
+        gap: 14px !important;
+    }
+
+    .billing-container .module-title {
+        font-size: 22px !important;
+    }
+
+    /* Dashboard cards — single column */
+    .billing-container .dashboard-cards {
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+    }
+
+    .dash-card {
+        padding: 14px 16px !important;
+        border-radius: 12px !important;
+    }
+
+    .card-info .value {
+        font-size: 20px !important;
+    }
+
+    .card-icon {
+        width: 40px !important;
+        height: 40px !important;
+        font-size: 18px !important;
+    }
+
+    /* Search panel — reduce padding */
+    .billing-search-panel {
+        padding: 14px !important;
+        border-radius: 12px !important;
+    }
+
+    /* Tabs — horizontal scroll */
+    .billing-tabs {
+        display: flex !important;
+        width: 100% !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        scrollbar-width: none !important;
+        padding: 4px !important;
+    }
+
+    .billing-tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    .tab-btn {
+        padding: 8px 16px !important;
+        font-size: 12px !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* Bills table — horizontal scroll */
+    .bills-list {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+
+    .bills-table {
+        min-width: 600px !important;
+    }
+
+    .bills-table th,
+    .bills-table td {
+        padding: 12px 14px !important;
+        font-size: 13px !important;
+        white-space: nowrap !important;
+    }
+
+    /* Action buttons — larger touch targets */
+    .bill-action-btn {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 15px !important;
+    }
+
+    /* A4 Invoice on mobile */
+    .billing-report-overlay {
+        padding: 16px 8px !important;
+    }
+
+    .a4-bill-container {
+        padding: 16px !important;
+        border-radius: 8px !important;
+    }
+
+    .report-actions-top {
+        top: 10px !important;
+        right: 10px !important;
+        gap: 8px !important;
+    }
+
+    /* Invoice header */
+    .chk-header {
+        gap: 12px !important;
+        padding-bottom: 10px !important;
+    }
+
+    .hospital-logo img {
+        height: 45px !important;
+    }
+
+    .hospital-title {
+        font-size: 16px !important;
+    }
+
+    .hospital-subtitle {
+        font-size: 10px !important;
+    }
+
+    /* Patient info summary in invoice */
+    .patient-info-summary {
+        flex-direction: column !important;
+        padding: 12px !important;
+        gap: 10px !important;
+    }
+
+    .info-column p {
+        font-size: 11px !important;
+    }
+
+    /* Billing table in invoice */
+    .billing-table th {
+        font-size: 10px !important;
+        padding: 6px 8px !important;
+    }
+
+    .billing-table td {
+        font-size: 10px !important;
+        padding: 4px 6px !important;
+    }
+
+    /* Totals — full width on mobile */
+    .bill-footer-section {
+        justify-content: stretch !important;
+    }
+
+    .totals-wrapper {
+        width: 100% !important;
+    }
+
+    /* Auth signature box */
+    .auth-sign-box {
+        margin-top: 30px !important;
+        padding-right: 0 !important;
+        text-align: center !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .billing-container .module-title {
+        font-size: 18px !important;
+    }
+
+    .dash-card {
+        padding: 12px !important;
+    }
+
+    .card-info .label {
+        font-size: 10px !important;
+    }
+
+    .card-info .value {
+        font-size: 18px !important;
+    }
+
+    .card-icon {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 16px !important;
+        border-radius: 10px !important;
+    }
+
+    .status-badge {
+        font-size: 10px !important;
+        padding: 4px 8px !important;
+    }
+}
+
+
+/* ============================================================
+   4. SURGERY MODAL & OPERATION CONSENT
+   ============================================================ */
+
+@media (max-width: 768px) {
+    /* Surgery modal — take full width */
+    .surgery-modal .modal-content {
+        max-width: 100% !important;
+        width: 100% !important;
+        max-height: 95vh !important;
+        margin: 8px !important;
+        border-radius: 12px !important;
+    }
+
+    /* Modal header */
+    .surgery-modal .modal-header {
+        padding: 12px 16px !important;
+    }
+
+    .surgery-modal .modal-header h3 {
+        font-size: 15px !important;
+    }
+
+    /* Modal body padding */
+    .surgery-modal .modal-content > div:last-child {
+        padding: 16px !important;
+    }
+
+    /* Surgery form grid — single column */
+    .surgery-form-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Span-2 items in surgery form → single column */
+    .surgery-form-grid > div[style*="grid-column: span 2"] {
+        grid-column: span 1 !important;
+    }
+
+    /* Witness & Guardian grid — stack */
+    .surgery-consent-grid {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+    }
+
+    /* Signature upload + preview — stack */
+    .surgery-signature-grid {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+    }
+
+    /* Form inputs — larger touch targets */
+    .surgery-modal input[type="text"],
+    .surgery-modal input[type="number"],
+    .surgery-modal input[type="date"],
+    .surgery-modal input[type="file"] {
+        font-size: 14px !important;
+        padding: 12px !important;
+        min-height: 44px !important;
+    }
+
+    /* Action buttons — stack on mobile */
+    .surgery-actions {
+        flex-direction: column !important;
+        gap: 8px !important;
+    }
+
+    .surgery-actions .btn {
+        width: 100% !important;
+        justify-content: center !important;
+        padding: 14px 20px !important;
+        font-size: 14px !important;
+        min-height: 48px !important;
+    }
+
+    /* Camera button — full width */
+    #btn-surgery-camera,
+    #btn-surgery-snap {
+        width: 100% !important;
+        justify-content: center !important;
+    }
+
+    /* Video preview */
+    #surgery-camera {
+        max-height: 200px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .surgery-modal .modal-content {
+        margin: 4px !important;
+        border-radius: 10px !important;
+        max-height: 98vh !important;
+    }
+
+    .surgery-modal .modal-header h3 {
+        font-size: 14px !important;
+    }
+
+    .surgery-modal .modal-content > div:last-child {
+        padding: 12px !important;
+    }
+
+    /* Section headings */
+    .surgery-modal h4 {
+        font-size: 12px !important;
+    }
+
+    .surgery-modal h5 {
+        font-size: 12px !important;
+    }
+
+    /* Labels */
+    .surgery-modal label {
+        font-size: 11px !important;
+    }
+}
+
+
+/* ============================================================
+   5. SHARED / GLOBAL RESPONSIVE HELPERS
+   ============================================================ */
+
+@media (max-width: 768px) {
+    /* Module headers — consistent stacking */
+    .module-header {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 12px !important;
+    }
+
+    .module-header h2 {
+        font-size: 20px !important;
+    }
+
+    /* Prevent horizontal overflow globally */
+    .main-content {
+        overflow-x: hidden !important;
+    }
+
+    /* Tables — always scrollable */
+    .table-responsive {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+}
+
+
+/* ==========================================================================
+   6. DARK THEME — COMPREHENSIVE OVERRIDES
+   Targets all page-specific containers that use hardcoded inline colors
+   ========================================================================== */
+
+/* --- Global dark body & containers --- */
+body.dark-theme {
+    background: #090d16 !important;
+    color: #cbd5e1 !important;
+    font-family: 'Outfit', sans-serif !important;
+}
+
+body.dark-theme .app-container {
+    background: #090d16 !important;
+}
+
+body.dark-theme .main-content {
+    background: #090d16 !important;
+}
+
+/* --- Smooth Transitions for All Interactive Elements in Dark Mode --- */
+body.dark-theme .menu-item,
+body.dark-theme .tab-btn,
+body.dark-theme .settings-nav-btn,
+body.dark-theme .action-btn-pro,
+body.dark-theme .action-btn,
+body.dark-theme .stat-card,
+body.dark-theme .ward-card,
+body.dark-theme .report-card,
+body.dark-theme .dash-card,
+body.dark-theme .billing-search-panel,
+body.dark-theme .btn,
+body.dark-theme tr,
+body.dark-theme input,
+body.dark-theme select,
+body.dark-theme textarea {
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* --- Cards & panels --- */
+body.dark-theme .report-card,
+body.dark-theme .info-panel-card,
+body.dark-theme .dash-card,
+body.dark-theme .billing-search-panel,
+body.dark-theme .stat-card,
+body.dark-theme .quick-actions,
+body.dark-theme .recent-activity,
+body.dark-theme .activity-item,
+body.dark-theme .ward-card,
+body.dark-theme .settings-card,
+body.dark-theme .form-section-card {
+    background: #111827 !important;
+    border: 1px solid #1f2937 !important;
+    color: #e5e7eb !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* --- Interactive Card Hovers (Card Elevation & Glow) --- */
+body.dark-theme .stat-card:hover,
+body.dark-theme .ward-card:hover,
+body.dark-theme .report-card:hover,
+body.dark-theme .settings-card:hover,
+body.dark-theme .dash-card:hover,
+body.dark-theme .recent-activity:hover {
+    background: #172033 !important;
+    border-color: #374151 !important;
+    transform: translateY(-3px) !important;
+    box-shadow: 0 12px 25px -5px rgba(0, 0, 0, 0.5), 0 0 15px rgba(56, 189, 248, 0.1) !important;
+}
+
+/* --- Dashboard stat cards --- */
+body.dark-theme .stat-card {
+    background: #111827 !important;
+    border-color: #1f2937 !important;
+}
+
+body.dark-theme .stat-card h3 {
+    color: #f3f4f6 !important;
+}
+
+body.dark-theme .stat-card p {
+    color: #9ca3af !important;
+}
+
+/* --- Dashboard charts section --- */
+body.dark-theme #admin-charts-section .report-card,
+body.dark-theme #admin-charts-section .card {
+    background: #111827 !important;
+    border-color: #1f2937 !important;
+}
+
+body.dark-theme #admin-charts-section h3 {
+    color: #e5e7eb !important;
+}
+
+/* --- Activity items --- */
+body.dark-theme .activity-item {
+    background: #111827 !important;
+    border-color: #1f2937 !important;
+}
+
+body.dark-theme .activity-item p,
+body.dark-theme .activity-text {
+    color: #e5e7eb !important;
+}
+
+/* --- Filter bar & Search Panels --- */
+body.dark-theme .filter-bar,
+body.dark-theme .filter-bar-group,
+body.dark-theme .patients-container .search-filter {
+    background: #111827 !important;
+    border-color: #1f2937 !important;
+}
+
+body.dark-theme .filter-bar label,
+body.dark-theme .filter-bar span,
+body.dark-theme .patients-container .search-filter label {
+    color: #9ca3af !important;
+}
+
+/* --- Settings page --- */
+body.dark-theme .settings-layout {
+    background: #090d16 !important;
+}
+
+body.dark-theme .settings-sidebar {
+    background: #111827 !important;
+    border-color: #1f2937 !important;
+}
+
+body.dark-theme .settings-nav-btn {
+    color: #9ca3af !important;
+    background: transparent !important;
+    border-left: 3px solid transparent !important;
+}
+
+body.dark-theme .settings-nav-btn:hover {
+    background: rgba(255, 255, 255, 0.04) !important;
+    color: #f3f4f6 !important;
+}
+
+body.dark-theme .settings-nav-btn.active {
+    background: rgba(56, 189, 248, 0.08) !important;
+    color: #38bdf8 !important;
+    border-left-color: #38bdf8 !important;
+}
+
+body.dark-theme .settings-content-panel {
+    background: #111827 !important;
+    border-color: #1f2937 !important;
+}
+
+body.dark-theme .settings-content-panel h3,
+body.dark-theme .settings-content-panel h4,
+body.dark-theme .settings-content-panel label {
+    color: #e5e7eb !important;
+}
+
+body.dark-theme .form-group label {
+    color: #9ca3af !important;
+}
+
+/* --- Bed chips --- */
+body.dark-theme .bed-chip {
+    background: #1f2937 !important;
+    color: #9ca3af !important;
+    border-color: #374151 !important;
+}
+
+body.dark-theme .bed-chip.occupied {
+    background: #4c1d95 !important; /* Premium purple tint instead of pure dark red */
+    color: #f5f3ff !important;
+    border-color: #6d28d9 !important;
+}
+
+body.dark-theme .bed-chip:hover {
+    transform: scale(1.05) !important;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.15) !important;
+}
+
+/* --- Reports page --- */
+body.dark-theme .reports-container {
+    background: #090d16 !important;
+}
+
+body.dark-theme .report-card h3 {
+    color: #e5e7eb !important;
+}
+
+/* --- Billing page --- */
+body.dark-theme .billing-container {
+    background: #090d16 !important;
+}
+
+body.dark-theme .card-info .label {
+    color: #9ca3af !important;
+}
+
+body.dark-theme .card-info .value {
+    color: #f9fafb !important;
+}
+
+body.dark-theme .billing-tabs {
+    background: #111827 !important;
+    border-color: #1f2937 !important;
+}
+
+body.dark-theme .bills-list,
+body.dark-theme .bills-table {
+    background: #111827 !important;
+}
+
+body.dark-theme .bills-table th {
+    background: #090d16 !important;
+    color: #9ca3af !important;
+    border-bottom-color: #1f2937 !important;
+}
+
+body.dark-theme .bills-table td {
+    color: #e5e7eb !important;
+    border-bottom-color: #1f2937 !important;
+}
+
+/* --- Table Row Elegant Hover (including child cell overrides) --- */
+body.dark-theme tr:hover,
+body.dark-theme tr:hover td,
+body.dark-theme .patients-table tbody tr:hover,
+body.dark-theme .patients-table tbody tr:hover td,
+body.dark-theme .bills-table tbody tr:hover,
+body.dark-theme .bills-table tbody tr:hover td,
+body.dark-theme .users-table tbody tr:hover,
+body.dark-theme .users-table tbody tr:hover td,
+body.dark-theme .register-table tbody tr:hover,
+body.dark-theme .register-table tbody tr:hover td {
+    background: rgba(31, 41, 55, 0.6) !important;
+}
+
+/* --- Action Buttons in Tables (Glow tints instead of stark white overlays) --- */
+body.dark-theme .action-btn-pro {
+    background: transparent !important;
+    color: #9ca3af !important;
+    border: 1px solid #374151 !important;
+}
+
+body.dark-theme .action-btn-pro.view-btn:hover {
+    background: rgba(59, 130, 246, 0.15) !important;
+    color: #60a5fa !important;
+    border-color: #60a5fa !important;
+    box-shadow: 0 0 12px rgba(59, 130, 246, 0.3) !important;
+}
+
+body.dark-theme .action-btn-pro.edit-btn:hover {
+    background: rgba(245, 158, 11, 0.15) !important;
+    color: #fbbf24 !important;
+    border-color: #fbbf24 !important;
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.3) !important;
+}
+
+body.dark-theme .action-btn-pro.transfer-btn:hover {
+    background: rgba(107, 114, 128, 0.15) !important;
+    color: #f3f4f6 !important;
+    border-color: #9ca3af !important;
+    box-shadow: 0 0 12px rgba(107, 114, 128, 0.3) !important;
+}
+
+body.dark-theme .action-btn-pro.delete-btn:hover {
+    background: rgba(239, 68, 68, 0.15) !important;
+    color: #f87171 !important;
+    border-color: #f87171 !important;
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.3) !important;
+}
+
+body.dark-theme .action-btn-pro.notes-btn:hover {
+    background: rgba(16, 185, 129, 0.15) !important;
+    color: #34d399 !important;
+    border-color: #34d399 !important;
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.3) !important;
+}
+
+body.dark-theme .action-btn-pro.surgery-btn:hover {
+    background: rgba(139, 92, 246, 0.15) !important;
+    color: #a78bfa !important;
+    border-color: #a78bfa !important;
+    box-shadow: 0 0 12px rgba(139, 92, 246, 0.3) !important;
+}
+
+/* --- Dashboard Quick Action Buttons Hover --- */
+body.dark-theme .action-btn {
+    background: #111827 !important;
+    border: 1px solid #1f2937 !important;
+    color: #9ca3af !important;
+}
+
+body.dark-theme .action-btn:hover {
+    background: #172033 !important;
+    transform: translateY(-4px) !important;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+body.dark-theme .action-btn:nth-child(1):hover { border-color: #6366f1 !important; color: #818cf8 !important; }
+body.dark-theme .action-btn:nth-child(2):hover { border-color: #3b82f6 !important; color: #60a5fa !important; }
+body.dark-theme .action-btn:nth-child(3):hover { border-color: #ef4444 !important; color: #f87171 !important; }
+body.dark-theme .action-btn:nth-child(4):hover { border-color: #10b981 !important; color: #34d399 !important; }
+
+/* --- Sidebar Menu Styling & Hover --- */
+body.dark-theme .sidebar {
+    background: #0a0f1d !important;
+    border-right: 1px solid #111827 !important;
+}
+
+body.dark-theme .sidebar-header {
+    border-bottom: 2px dashed #1f2937 !important;
+}
+
+body.dark-theme .user-info {
+    background: linear-gradient(180deg, #111827 0%, #0a0f1d 100%) !important;
+    border-bottom: 2px dashed #1f2937 !important;
+}
+
+body.dark-theme .time-display {
+    background: #1f2937 !important;
+    color: #d1d5db !important;
+    border: 1px solid #374151 !important;
+}
+
+body.dark-theme .hospital-name,
+body.dark-theme .menu-item {
+    color: #9ca3af !important;
+}
+
+body.dark-theme .menu-item {
+    border-left: 3px solid transparent;
+}
+
+body.dark-theme .menu-item:hover {
+    background: rgba(255, 255, 255, 0.03) !important;
+    color: #38bdf8 !important;
+}
+
+body.dark-theme .menu-item:hover i {
+    color: #38bdf8 !important;
+    transform: scale(1.1) !important;
+}
+
+body.dark-theme .menu-item.active {
+    background: rgba(56, 189, 248, 0.08) !important;
+    color: #38bdf8 !important;
+    border-left-color: #38bdf8 !important;
+}
+
+body.dark-theme .menu-item.active i {
+    color: #38bdf8 !important;
+}
+
+/* --- Modals in dark mode --- */
+body.dark-theme .modal-content {
+    background: #111827 !important;
+    border: 1px solid #1f2937 !important;
+    color: #e5e7eb !important;
+}
+
+body.dark-theme .modal-header {
+    background: #090d16 !important;
+    border-bottom: 1px solid #1f2937 !important;
+}
+
+body.dark-theme .modal-header h3,
+body.dark-theme .modal-content h3,
+body.dark-theme .modal-content h4,
+body.dark-theme .modal-content h5 {
+    color: #f3f4f6 !important;
+}
+
+body.dark-theme .modal-content label {
+    color: #9ca3af !important;
+}
+
+body.dark-theme .modal-content p {
+    color: #d1d5db !important;
+}
+
+/* --- Form Fields (Text inputs, select dropdowns & focus styles) --- */
+body.dark-theme input[type="text"],
+body.dark-theme input[type="number"],
+body.dark-theme input[type="date"],
+body.dark-theme input[type="email"],
+body.dark-theme input[type="password"],
+body.dark-theme input[type="tel"],
+body.dark-theme select,
+body.dark-theme textarea,
+body.dark-theme .modal-content input[type="text"],
+body.dark-theme .modal-content input[type="number"],
+body.dark-theme .modal-content input[type="date"],
+body.dark-theme .modal-content input[type="email"],
+body.dark-theme .modal-content textarea {
+    background: #090d16 !important;
+    border: 1px solid #1f2937 !important;
+    color: #f3f4f6 !important;
+    border-radius: 8px !important;
+}
+
+body.dark-theme input:focus,
+body.dark-theme select:focus,
+body.dark-theme textarea:focus {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important;
+    background: #090d16 !important;
+    outline: none !important;
+}
+
+body.dark-theme input:hover,
+body.dark-theme select:hover,
+body.dark-theme textarea:hover {
+    border-color: #374151 !important;
+}
+
+/* --- Surgery modal specific --- */
+body.dark-theme .surgery-modal .modal-content > div {
+    background: #111827 !important;
+}
+
+body.dark-theme .surgery-consent-grid > div,
+body.dark-theme .surgery-signature-grid > div {
+    background: #090d16 !important;
+    border-color: #1f2937 !important;
+}
+
+/* --- General text & headings in dark mode --- */
+body.dark-theme h1,
+body.dark-theme h2,
+body.dark-theme h3,
+body.dark-theme h4,
+body.dark-theme h5,
+body.dark-theme h6 {
+    color: #f9fafb !important;
+}
+
+body.dark-theme p,
+body.dark-theme span,
+body.dark-theme small,
+body.dark-theme td,
+body.dark-theme li {
+    color: #d1d5db !important;
+}
+
+body.dark-theme strong {
+    color: #f9fafb !important;
+}
+
+/* --- Notification in dark mode --- */
+body.dark-theme .notification {
+    background: rgba(17, 24, 39, 0.95) !important;
+    border-color: #1f2937 !important;
+    color: #e5e7eb !important;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5) !important;
+}
+
+body.dark-theme .notification-text {
+    color: #e5e7eb !important;
+}
+
+/* --- Professional Buttons & Glows --- */
+body.dark-theme .btn-primary {
+    background: #2563eb !important;
+    border-color: #2563eb !important;
+    color: #ffffff !important;
+}
+
+body.dark-theme .btn-primary:hover {
+    background: #1d4ed8 !important;
+    border-color: #1d4ed8 !important;
+    box-shadow: 0 0 12px rgba(37, 99, 235, 0.35) !important;
+}
+
+body.dark-theme .btn-success {
+    background: #059669 !important;
+    border-color: #059669 !important;
+    color: #ffffff !important;
+}
+
+body.dark-theme .btn-success:hover {
+    background: #047857 !important;
+    border-color: #047857 !important;
+    box-shadow: 0 0 12px rgba(5, 150, 105, 0.35) !important;
+}
+
+body.dark-theme .btn-danger {
+    background: #dc2626 !important;
+    border-color: #dc2626 !important;
+    color: #ffffff !important;
+}
+
+body.dark-theme .btn-danger:hover {
+    background: #b91c1c !important;
+    border-color: #b91c1c !important;
+    box-shadow: 0 0 12px rgba(220, 38, 38, 0.35) !important;
+}
+
+body.dark-theme .btn-warning {
+    background: #d97706 !important;
+    border-color: #d97706 !important;
+    color: #ffffff !important;
+}
+
+body.dark-theme .btn-warning:hover {
+    background: #b45309 !important;
+    border-color: #b45309 !important;
+    box-shadow: 0 0 12px rgba(217, 119, 6, 0.35) !important;
+}
+
+body.dark-theme .btn:not(.btn-primary):not(.btn-success):not(.btn-warning):not(.btn-danger):not(.btn-info) {
+    background: #1f2937 !important;
+    color: #e5e7eb !important;
+    border: 1px solid #374151 !important;
+}
+
+body.dark-theme .btn:not(.btn-primary):not(.btn-success):not(.btn-warning):not(.btn-danger):not(.btn-info):hover {
+    background: #374151 !important;
+    border-color: #4b5563 !important;
+    color: #f3f4f6 !important;
+}
+
+/* --- Dividers & borders --- */
+body.dark-theme hr {
+    border-color: #1f2937 !important;
+}
+
+body.dark-theme .border,
+body.dark-theme [class*="border-"] {
+    border-color: #1f2937 !important;
+}
+
+/* --- Custom Sleek Dark Scrollbar --- */
+body.dark-theme *::-webkit-scrollbar {
+    width: 6px !important;
+    height: 6px !important;
+}
+
+body.dark-theme *::-webkit-scrollbar-track {
+    background: #090d16 !important;
+}
+
+body.dark-theme *::-webkit-scrollbar-thumb {
+    background: #1f2937 !important;
+    border-radius: 3px !important;
+}
+
+body.dark-theme *::-webkit-scrollbar-thumb:hover {
+    background: #374151 !important;
+}
+
+/* --- Welcome card stays gradient --- */
+body.dark-theme .welcome-card {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%) !important;
+    color: white !important;
+}
+
+body.dark-theme .welcome-card h2,
+body.dark-theme .welcome-card p {
+    color: white !important;
+}
+
+/* ==========================================================================
+   7. PREMIUM DARK MODE REFINEMENTS & CRITICAL BUG FIXES
+   Overrides hardcoded light mode leakage & styles untargeted modules
+   ========================================================================== */
+
+/* --- Critical Fix: Overriding inline white background on Code tags (Users Panel) --- */
+body.dark-theme code[style*="background"],
+body.dark-theme code {
+    background: #1f2937 !important;
+    color: #38bdf8 !important;
+    border: 1px solid #374151 !important;
+    font-family: 'Courier New', Courier, monospace !important;
+}
+
+/* --- Critical Fix: Status & Role Badges Contrast Overrides (Table Contrast Bugs) --- */
+body.dark-theme .status-badge,
+body.dark-theme .payment-paid,
+body.dark-theme .payment-pending,
+body.dark-theme .role-pill,
+body.dark-theme .badge-you {
+    font-weight: 700 !important;
+    border-radius: 50px !important;
+}
+
+body.dark-theme .status-badge.admitted,
+body.dark-theme .status-badge.discharged,
+body.dark-theme .payment-paid,
+body.dark-theme .status-active {
+    background: rgba(16, 185, 129, 0.15) !important;
+    color: #34d399 !important;
+    border: 1px solid rgba(16, 185, 129, 0.3) !important;
+}
+
+body.dark-theme .status-badge.pending,
+body.dark-theme .payment-pending,
+body.dark-theme .status-pending {
+    background: rgba(245, 158, 11, 0.15) !important;
+    color: #fbbf24 !important;
+    border: 1px solid rgba(245, 158, 11, 0.3) !important;
+}
+
+body.dark-theme .status-badge.inactive,
+body.dark-theme .status-rejected {
+    background: rgba(239, 68, 68, 0.15) !important;
+    color: #f87171 !important;
+    border: 1px solid rgba(239, 68, 68, 0.3) !important;
+}
+
+body.dark-theme .role-pill {
+    border-radius: 6px !important;
+}
+
+body.dark-theme .role-admin {
+    background: rgba(99, 102, 241, 0.15) !important;
+    color: #818cf8 !important;
+    border: 1px solid rgba(99, 102, 241, 0.3) !important;
+}
+
+body.dark-theme .role-doctor {
+    background: rgba(6, 182, 212, 0.15) !important;
+    color: #22d3ee !important;
+    border: 1px solid rgba(6, 182, 212, 0.3) !important;
+}
+
+body.dark-theme .role-staff {
+    background: rgba(148, 163, 184, 0.15) !important;
+    color: #cbd5e1 !important;
+    border: 1px solid rgba(148, 163, 184, 0.3) !important;
+}
+
+body.dark-theme .role-receptionist {
+    background: rgba(236, 72, 153, 0.15) !important;
+    color: #f472b6 !important;
+    border: 1px solid rgba(236, 72, 153, 0.3) !important;
+}
+
+/* --- Critical Fix: Patient Overview Modal Dark Theme Overrides (White Modal Bug) --- */
+body.dark-theme .modal-content div {
+    background-color: transparent !important;
+    color: #cbd5e1 !important;
+    border-color: #1f2937 !important;
+}
+
+body.dark-theme .modal-content > div[style*="background: #f8fafc"],
+body.dark-theme .modal-content > div[style*="background:#f8fafc"],
+body.dark-theme .modal-content > div[style*="background-color: #f8fafc"] {
+    background: #111827 !important;
+}
+
+body.dark-theme .modal-content div[style*="background: white"],
+body.dark-theme .modal-content div[style*="background:white"],
+body.dark-theme .modal-content div[style*="background: rgb(255, 255, 255)"],
+body.dark-theme .modal-content div[style*="background-color: white"],
+body.dark-theme .modal-content div[style*="background:  white"] {
+    background: #090d16 !important;
+    border: 1px solid #1f2937 !important;
+}
+
+body.dark-theme .modal-content h2,
+body.dark-theme .modal-content h2 span,
+body.dark-theme .modal-content strong {
+    color: #f9fafb !important;
+}
+
+body.dark-theme .modal-content i {
+    color: #38bdf8 !important;
+}
+
+body.dark-theme .modal-content .modal-close {
+    background: transparent !important;
+    color: #f3f4f6 !important;
+}
+
+body.dark-theme .modal-content button.btn-secondary,
+body.dark-theme .modal-content button.btn-secondary:hover {
+    background: #1f2937 !important;
+    color: #f3f4f6 !important;
+    border-color: #374151 !important;
+}
