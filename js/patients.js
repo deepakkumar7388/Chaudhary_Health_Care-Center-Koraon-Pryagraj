@@ -1203,12 +1203,12 @@ function openSurgeryModal(patientId) {
                     <!-- UPLOAD & WEBCAM TRIGGERS -->
                     <div style="background: #f8fafc; padding: 16px; border: 1px dashed #94a3b8; border-radius: 8px; text-align: center;">
                         <div style="margin-bottom: 12px;">
-                            <label style="display:block; font-size:12px; font-weight:600; color:#475569; margin-bottom:6px; text-align:left;">Method 1: Upload Image File</label>
-                            <input type="file" id="surgery-sig-upload" accept="image/*" capture="environment" onchange="handleSurgerySignatureUpload(this)" style="font-size: 12px; width: 100%; padding: 4px; border: 1px solid #cbd5e1; border-radius: 4px; background:#fff;">
+                            <label style="display:block; font-size:12px; font-weight:600; color:#475569; margin-bottom:6px; text-align:left;">Method 1: Upload Image (Gallery / Native Camera)</label>
+                            <input type="file" id="surgery-sig-upload" accept="image/*" onchange="handleSurgerySignatureUpload(this)" style="font-size: 12px; width: 100%; padding: 4px; border: 1px solid #cbd5e1; border-radius: 4px; background:#fff;">
                         </div>
                         <div style="margin: 10px 0; font-size: 12px; font-weight: 700; color: #64748b;">— OR —</div>
                         <div style="text-align: center;">
-                            <label style="display:block; font-size:12px; font-weight:600; color:#475569; margin-bottom:6px; text-align:left;">Method 2: Take Instant Photo via Camera</label>
+                            <label style="display:block; font-size:12px; font-weight:600; color:#475569; margin-bottom:6px; text-align:left;">Method 2: Take Instant Photo via Web Camera</label>
                             <button id="btn-surgery-camera" class="btn" style="background:#4f46e5; color:#fff; border:none; padding:10px 16px; border-radius:6px; cursor:pointer; font-weight:600; font-size:13px; display:inline-flex; align-items:center; gap:6px; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.15);" onclick="window.startSurgeryCamera()">
                                 <i class="bi bi-camera"></i> 📷 Open Camera (कैमरा खोलें)
                             </button>
@@ -1219,7 +1219,7 @@ function openSurgeryModal(patientId) {
                         <div style="margin-top: 10px;">
                             <div id="surgery-camera-error" style="display:none; background:#fef2f2; border:1px solid #fecaca; border-radius:6px; padding:10px 12px; font-size:12px; color:#dc2626; text-align:left; margin-bottom:8px;">
                                 <i class="bi bi-exclamation-circle"></i> <span id="surgery-camera-error-msg">Camera access denied.</span><br>
-                                <small style="color:#991b1b;">Please use 'Upload Image' above, or allow camera permission in browser settings.</small>
+                                <small style="color:#991b1b;">Please use 'Method 1' above to select an existing photo of the signature from your gallery, or to take a photo using your native camera.</small>
                             </div>
                             <video id="surgery-camera" autoplay playsinline muted style="display:none; width: 100%; max-height: 180px; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1;"></video>
                             <canvas id="surgery-canvas" style="display:none;"></canvas>
