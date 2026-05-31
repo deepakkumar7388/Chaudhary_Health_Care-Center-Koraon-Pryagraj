@@ -121,9 +121,11 @@ function renderDashboard() {
         </style>
 
         <div class="dashboard-container">
-            <div class="welcome-card">
-                <h2>Welcome, ${currentUser?.name || 'User'}!</h2>
-                <p style="margin:4px 0 0; opacity:0.85; font-size:12px;">${roleSubtitle[role] || ''}</p>
+            <div class="welcome-card hero-section" style="padding: 25px; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                <h1 style="margin: 0; font-size: 26px; font-weight: 800; color: white;">Chaudhary Health Care Center Koraon</h1>
+                <p style="margin: 4px 0 10px; opacity: 0.9; font-size: 14px; font-weight: 500;">Hospital Management System</p>
+                <div style="height: 1px; background: rgba(255,255,255,0.2); margin: 10px 0;"></div>
+                <p style="margin: 4px 0 0; opacity: 0.85; font-size: 12px;">Welcome back, <strong>${currentUser?.name || 'User'}</strong> (${roleSubtitle[role] || ''})</p>
             </div>
             
             <div class="stats-grid" id="dashboard-metrics"></div>

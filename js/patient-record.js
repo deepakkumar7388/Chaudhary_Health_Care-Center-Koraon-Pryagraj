@@ -64,7 +64,7 @@ function renderPatientRecord() {
                          <div style="display:flex; align-items:center; justify-content:center; gap:20px;">
                              <img src="hlogo.png" alt="Logo" style="height: 80px;">
                              <div>
-                                 <h1 class="hospital-name" style="margin: 0; color: #2b6cb0; font-size: 28px; font-weight: 900;">Chaudhary Health Care Centre</h1>
+                                 <h1 class="hospital-name" style="margin: 0; color: #2b6cb0; font-size: 28px; font-weight: 900;">Chaudhary Health Care Center Koraon</h1>
                                  <p style="margin: 5px 0; font-weight: bold; color: #2d3748;">A Complete Healthcare Point</p>
                                  <p style="margin: 2px 0;">Koraon-Prayagraj</p>
                                  <p style="margin: 2px 0; font-weight: bold;">Mob.: 9918333370, 8896017340</p>

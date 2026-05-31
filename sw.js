@@ -18,7 +18,7 @@ self.addEventListener('push', function(event) {
     }
 
     // Default values if notification properties are missing
-    const title = data.notification?.title || data.title || 'Chaudhary Health Care Alert';
+    const title = data.notification?.title || data.title || 'Chaudhary Health Care Center Koraon Alert';
     const options = {
         body: data.notification?.body || data.body || 'You have a new update.',
         icon: '/hlogo.png',

@@ -24,7 +24,7 @@ async function getTransporter() {
     let port = parseInt(process.env.EMAIL_PORT) || 587;
     let user = process.env.EMAIL_USER;
     let pass = process.env.EMAIL_PASS;
-    let systemName = 'Chaudhary Health Care';
+    let systemName = 'Chaudhary Health Care Center Koraon';
 
     try {
         // Single bulk query instead of 5 separate queries
@@ -115,7 +115,7 @@ async function sendOtpEmail(to, otp, userName) {
             <p style="font-size: 12px; color: #999;">If you did not request this, please ignore this email or contact support.</p>
         </div>
     `;
-    return sendEmail({ to, subject: 'Password Reset OTP - Chaudhary Health Care', html });
+    return sendEmail({ to, subject: 'Password Reset OTP - Chaudhary Health Care Center Koraon', html });
 }
 
 /**
@@ -184,7 +184,7 @@ async function sendDischargeEmail(to, patientData, summary) {
             
             <p>Please refer to the attached discharge summary and prescription provided at the counter for recovery instructions.</p>
             <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-            <p style="font-size: 12px; color: #999;">Thank you for choosing Chaudhary Health Care.</p>
+            <p style="font-size: 12px; color: #999;">Thank you for choosing Chaudhary Health Care Center Koraon.</p>
         </div>
     `;
     return sendEmail({ to, subject: `Discharge Confirmation: ${patientData.name} (${patientData.patient_id})`, html });

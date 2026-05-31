@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://chaudhary-health-care-center-koraon.onrender.com/sitemap.xml
