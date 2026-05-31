@@ -1051,13 +1051,42 @@ window.handleSurgerySignatureUpload = function (input) {
     if (input.files && input.files[0]) {
         const reader = new FileReader();
         reader.onload = function (e) {
-            const imgEl = document.getElementById('surgery-sig-preview-img');
-            const placeholder = document.getElementById('surgery-sig-placeholder');
-            if (imgEl && placeholder) {
-                imgEl.src = e.target.result;
-                imgEl.style.display = 'block';
-                placeholder.style.display = 'none';
-            }
+            const img = new Image();
+            img.onload = function () {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Limit maximum dimensions to 1000px for performance and size
+                const maxDim = 1000;
+                let width = img.width;
+                let height = img.height;
+                
+                if (width > maxDim || height > maxDim) {
+                    if (width > height) {
+                        height = Math.round((height * maxDim) / width);
+                        width = maxDim;
+                    } else {
+                        width = Math.round((width * maxDim) / height);
+                        height = maxDim;
+                    }
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                // Compress to JPEG with 0.7 quality (typically reduces size by 90-95%)
+                const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                
+                const imgEl = document.getElementById('surgery-sig-preview-img');
+                const placeholder = document.getElementById('surgery-sig-placeholder');
+                if (imgEl && placeholder) {
+                    imgEl.src = compressedDataUrl;
+                    imgEl.style.display = 'block';
+                    placeholder.style.display = 'none';
+                }
+            };
+            img.src = e.target.result;
         };
         reader.readAsDataURL(input.files[0]);
     }
@@ -1334,11 +1363,27 @@ function openSurgeryModal(patientId) {
 
         if (video && canvas && previewImg) {
             const ctx = canvas.getContext('2d');
-            canvas.width = video.videoWidth || 640;
-            canvas.height = video.videoHeight || 480;
+            
+            // Limit snap dimensions as well (max 1000px)
+            const maxDim = 1000;
+            let width = video.videoWidth || 640;
+            let height = video.videoHeight || 480;
+            
+            if (width > maxDim || height > maxDim) {
+                if (width > height) {
+                    height = Math.round((height * maxDim) / width);
+                    width = maxDim;
+                } else {
+                    width = Math.round((width * maxDim) / height);
+                    height = maxDim;
+                }
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            const dataUrl = canvas.toDataURL('image/jpeg');
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
             previewImg.src = dataUrl;
             previewImg.style.display = 'block';
             if (placeholder) placeholder.style.display = 'none';

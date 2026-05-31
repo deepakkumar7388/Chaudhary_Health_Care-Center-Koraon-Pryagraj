@@ -34,8 +34,8 @@ console.log("\x1b[31m%s\x1b[0m", "HMS Server Version: 2.0 - Transfer Ready");
 
 // Middleware
 app.use(cors());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
 // Serve static files from the frontend (parent directory)
 app.use(express.static(path.join(__dirname, '../')));

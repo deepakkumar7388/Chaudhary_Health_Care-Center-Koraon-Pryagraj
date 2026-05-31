@@ -589,19 +589,48 @@ function handleSignatureUpload(input) {
     if (input.files && input.files[0]) {
         const reader = new FileReader();
         reader.onload = function(e) {
-            const imgEl = document.getElementById('sig-preview-img');
-            imgEl.src = e.target.result;
-            imgEl.style.display = 'block';
-            document.getElementById('sig-placeholder').style.display = 'none';
+            const img = new Image();
+            img.onload = function () {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Limit maximum dimensions to 1000px
+                const maxDim = 1000;
+                let width = img.width;
+                let height = img.height;
+                
+                if (width > maxDim || height > maxDim) {
+                    if (width > height) {
+                        height = Math.round((height * maxDim) / width);
+                        width = maxDim;
+                    } else {
+                        width = Math.round((width * maxDim) / height);
+                        height = maxDim;
+                    }
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                // Compress to JPEG with 0.7 quality
+                const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                
+                const imgEl = document.getElementById('sig-preview-img');
+                imgEl.src = compressedDataUrl;
+                imgEl.style.display = 'block';
+                document.getElementById('sig-placeholder').style.display = 'none';
 
-            // Auto-save signature to localStorage
-            if (currentRecordPatientId) {
-                const records = JSON.parse(localStorage.getItem('patient_records') || '{}');
-                if (!records[currentRecordPatientId]) records[currentRecordPatientId] = {};
-                records[currentRecordPatientId].signature = e.target.result;
-                localStorage.setItem('patient_records', JSON.stringify(records));
-                showNotification('Signature saved!', 'success');
-            }
+                // Auto-save signature to localStorage
+                if (currentRecordPatientId) {
+                    const records = JSON.parse(localStorage.getItem('patient_records') || '{}');
+                    if (!records[currentRecordPatientId]) records[currentRecordPatientId] = {};
+                    records[currentRecordPatientId].signature = compressedDataUrl;
+                    localStorage.setItem('patient_records', JSON.stringify(records));
+                    showNotification('Signature saved!', 'success');
+                }
+            };
+            img.src = e.target.result;
         };
         reader.readAsDataURL(input.files[0]);
     }
