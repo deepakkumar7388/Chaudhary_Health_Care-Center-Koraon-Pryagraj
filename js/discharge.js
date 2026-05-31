@@ -59,11 +59,6 @@ function renderDischarge() {
                 </div>
                 
                 <div class="form-group">
-                    <label>Diagnosis *</label>
-                    <textarea rows="3" id="discharge-diagnosis" required></textarea>
-                </div>
-                
-                <div class="form-group">
                     <label>Treatment Summary *</label>
                     <textarea rows="4" id="discharge-summary" required></textarea>
                 </div>
@@ -144,9 +139,6 @@ function renderDischarge() {
                             <td>Doctor:</td><td id="rpt-doctor" colspan="3" style="font-weight:bold;">-</td>
                         </tr>
                     </table>
-                    
-                    <div class="section-title">DIAGNOSIS</div>
-                    <div class="content-box" id="rpt-diagnosis">-</div>
                     
                     <div class="section-title">TREATMENT SUMMARY</div>
                     <div class="content-box" id="rpt-summary">-</div>
@@ -284,13 +276,32 @@ function addMedicineRow() {
 
 function confirmDischarge() {
     const patientId = document.getElementById('discharge-patient').value;
-    const diagnosis = document.getElementById('discharge-diagnosis').value.trim();
     const summary = document.getElementById('discharge-summary').value.trim();
     const dischargeDate = document.getElementById('discharge-date').value;
     const dischargeTime = document.getElementById('discharge-time').value;
 
-    if (!patientId || !diagnosis || !summary || !dischargeDate || !dischargeTime) {
+    if (!patientId || !summary || !dischargeDate || !dischargeTime) {
         showNotification('Please fill all required fields', 'error');
+        return;
+    }
+
+    const patientObj = dischargePatientsList?.find(p => String(p.patient_id) === String(patientId) || String(p._id) === String(patientId));
+    const isAlreadyDischarged = patientObj && (patientObj.status || '').toLowerCase() === 'discharged';
+
+    if (isAlreadyDischarged) {
+        const patientName = document.getElementById('d-name').value || 'this patient';
+        document.getElementById('discharge-confirm-patient-name').textContent = patientName;
+        
+        const confirmModal = document.getElementById('discharge-confirm-modal');
+        if (confirmModal) confirmModal.classList.add('active');
+
+        const confirmBtn = document.getElementById('btn-confirm-discharge-action');
+        if (confirmBtn) {
+            confirmBtn.onclick = function() {
+                if (confirmModal) confirmModal.classList.remove('active');
+                executeDischarge(patientId, summary, dischargeDate, dischargeTime);
+            };
+        }
         return;
     }
 
@@ -314,7 +325,7 @@ function confirmDischarge() {
             if (confirmBtn) {
                 confirmBtn.onclick = function() {
                     if (confirmModal) confirmModal.classList.remove('active');
-                    executeDischarge(patientId, diagnosis, summary, dischargeDate, dischargeTime);
+                    executeDischarge(patientId, summary, dischargeDate, dischargeTime);
                 };
             }
         } else {
@@ -339,7 +350,7 @@ function closeDischargeConfirmModal() {
 }
 window.closeDischargeConfirmModal = closeDischargeConfirmModal;
 
-function executeDischarge(patientId, diagnosis, summary, dischargeDate, dischargeTime) {
+function executeDischarge(patientId, summary, dischargeDate, dischargeTime) {
     showLoading('Processing discharge...');
 
     const advisedMedicines = [];
@@ -359,7 +370,7 @@ function executeDischarge(patientId, diagnosis, summary, dischargeDate, discharg
         doctorName: "Dr. Bhoopendra Chaudhary",
         dischargeDate,
         dischargeTime,
-        diagnosis,
+        diagnosis: "",
         summary,
         advisedMedicines
     };
@@ -395,7 +406,6 @@ function displayDischargeReport(data) {
     document.getElementById('rpt-admission-date').textContent = document.getElementById('d-admit').value;
 
     document.getElementById('rpt-doctor').textContent = data.doctorName;
-    document.getElementById('rpt-diagnosis').textContent = data.diagnosis;
     document.getElementById('rpt-summary').textContent = data.summary;
 
     document.getElementById('rpt-doctor-sign').textContent = data.doctorName;
@@ -442,16 +452,16 @@ function displayDischargeReport(data) {
     // Attach Surgery Details Dynamically
     const surgerySection = document.getElementById('surgery-report-section');
     const surgeryList = document.getElementById('rpt-surgery-list');
-    const allSurgeries = JSON.parse(localStorage.getItem('surgeries') || '[]');
     const patientIdStr = document.getElementById('d-id').value;
-    const patientSurgeries = allSurgeries.filter(s => String(s.patient_id) === String(patientIdStr));
+    const patientObj = dischargePatientsList?.find(p => String(p.patient_id) === String(patientIdStr) || String(p._id) === String(patientIdStr));
+    const patientSurgeries = (patientObj && patientObj.surgeries) || [];
 
     if (patientSurgeries && patientSurgeries.length > 0) {
         surgeryList.innerHTML = patientSurgeries.map(s => `
             <tr>
                 <td style="padding:10px; border:1px solid #e2e8f0; color:#2d3748;">${s.surgeryName}</td>
                 <td style="padding:10px; border:1px solid #e2e8f0; color:#2d3748;">${s.surgeonName}</td>
-                <td style="padding:10px; border:1px solid #e2e8f0; color:#2d3748;">${s.surgeryDate}</td>
+                <td style="padding:10px; border:1px solid #e2e8f0; color:#2d3748;">${new Date(s.surgeryDate).toLocaleDateString('en-IN')}</td>
             </tr>
         `).join('');
         surgerySection.style.display = 'block';
@@ -475,7 +485,6 @@ function closeDischargeReport() {
     document.getElementById('discharge-search-input').value = '';
     document.getElementById('discharge-patient').value = '';
     document.getElementById('discharge-info').style.display = 'none';
-    document.getElementById('discharge-diagnosis').value = '';
     document.getElementById('discharge-summary').value = '';
     document.querySelector('#advised-med-table tbody').innerHTML = '';
     addMedicineRow();

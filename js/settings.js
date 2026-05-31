@@ -961,9 +961,15 @@ async function applyGlobalSettings() {
     applyTheme(localColor, localMode);
     updateThemeToggleButtons();
     
+    const token = sessionStorage.getItem('token');
+    if (!token || token === 'null') {
+        console.log("No authentication token found. Skipping backend settings fetch.");
+        return;
+    }
+
     try {
         const response = await fetch(`${API_BASE}settings`, {
-            headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('token') }
+            headers: { 'Authorization': 'Bearer ' + token }
         });
         const result = await response.json();
         if (result.success) {

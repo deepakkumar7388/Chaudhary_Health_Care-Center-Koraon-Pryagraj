@@ -412,22 +412,23 @@ function initializeBillingTable(items = [], bedHistory = [], surgeries = []) {
             const diffTime = Math.abs(endDate - startDate);
             let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-            // ── Smart Minimum Day Logic ──
-            // First bed (admission) always gets minimum 1 day (initial charge was already paid at admission)
-            // ICU / Private upgraded stay: always minimum 1 day
-            // General ward re-entry (after ICU/Private): if 0 days → skip, patient paid general on admission day
-            const wardType = (bed.ward_type || '').toLowerCase();
-            const isGeneralReEntry = bedIndex > 0 && (wardType === 'general' || wardType === '');
-            
-            if (isGeneralReEntry) {
-                // Only apply minimum 1 if they actually stayed at least 1 day in general again
-                if (diffDays < 1) diffDays = 0; // 0 days = free (admission day already charged)
+            // Same-day transfer logic to prevent double charging on the same day
+            const startCal = startDate.toDateString();
+            const endCal = endDate.toDateString();
+            const isSameDay = startCal === endCal;
+
+            if (isSameDay) {
+                const hasSubsequentStay = bedIndex < bedHistory.length - 1;
+                if (hasSubsequentStay) {
+                    diffDays = 0; // Same-day transfer: free for this bed, charged in the subsequent bed stay
+                } else {
+                    if (diffDays < 1) diffDays = 1; // Only/last stay on the same day: minimum 1 day
+                }
             } else {
-                // First stay OR ICU/Private: always bill minimum 1 day
                 if (diffDays < 1) diffDays = 1;
             }
 
-            // Skip rows with 0 days (same-day re-entry to general)
+            // Skip rows with 0 days (same-day transfer out of this bed)
             if (diffDays === 0) return;
 
             const itemName = `Bed Charge (${bed.ward_type} - ${bed.bed_no})`;

@@ -194,6 +194,10 @@ exports.transferBed = async (req, res) => {
         const patient = await Patient.findOne({ patient_id: patient_id, isDeleted: false });
         if (!patient) return res.status(404).json({ success: false, message: 'Patient not found' });
 
+        if (patient.status === 'Discharged') {
+            return res.status(400).json({ success: false, message: 'Cannot transfer bed of a discharged patient' });
+        }
+
         // Ensure bedHistory exists
         if (!patient.bedHistory) {
             patient.bedHistory = [];
@@ -235,6 +239,10 @@ exports.updatePatient = async (req, res) => {
     try {
         const patient = await Patient.findOne({ patient_id: req.params.id, isDeleted: false });
         if (!patient) return res.status(404).json({ success: false, message: 'Patient not found' });
+
+        if (patient.status === 'Discharged') {
+            return res.status(400).json({ success: false, message: 'Cannot edit or modify details of a discharged patient' });
+        }
 
         const oldBedNo = patient.bed_no;
         const newBedNo = req.body.bed_no;
@@ -304,6 +312,10 @@ exports.uploadPatientFiles = async (req, res) => {
         const patient = await Patient.findOne({ patient_id: id });
         if (!patient) return res.status(404).json({ success: false, message: 'Patient not found' });
 
+        if (patient.status === 'Discharged') {
+            return res.status(400).json({ success: false, message: 'Cannot upload files for a discharged patient' });
+        }
+
         if (!req.files || req.files.length === 0) {
             return res.status(400).json({ success: false, message: 'No files uploaded' });
         }
@@ -362,6 +374,10 @@ exports.addSurgery = async (req, res) => {
     try {
         const patient = await Patient.findOne({ patient_id: req.params.id, isDeleted: false });
         if (!patient) return res.status(404).json({ success: false, message: 'Patient not found' });
+
+        if (patient.status === 'Discharged') {
+            return res.status(400).json({ success: false, message: 'Cannot add surgery events for a discharged patient' });
+        }
 
         patient.surgeries.push(req.body);
         await patient.save();

@@ -43,6 +43,9 @@ function renderDailyNotes() {
                                     <th>Temp</th>
                                     <th>SpO2</th>
                                     <th>RBS</th>
+                                    <th>Urine (ml)</th>
+                                    <th>Drain (ml)</th>
+                                    <th>Pain Score</th>
                                     <th>Added By</th>
                                 </tr>
                             </thead>
@@ -161,6 +164,18 @@ function renderDailyNotes() {
                             <div class="input-group">
                                 <label>RBS (mg/dL)</label>
                                 <input type="number" id="vitals-rbs" placeholder="110" class="compact-input">
+                            </div>
+                            <div class="input-group">
+                                <label>Urine Output (ml)</label>
+                                <input type="number" id="vitals-urine" placeholder="Optional" class="compact-input">
+                            </div>
+                            <div class="input-group">
+                                <label>Drain Output (ml)</label>
+                                <input type="number" id="vitals-drain" placeholder="Optional" class="compact-input">
+                            </div>
+                            <div class="input-group">
+                                <label>Pain Score (1-10)</label>
+                                <input type="number" min="1" max="10" id="vitals-pain" placeholder="Optional" class="compact-input">
                             </div>
                         </div>
                         <div class="modal-actions mt-3">
@@ -358,7 +373,7 @@ function renderVitalsTable(vitals) {
     if (!tbody) return;
     tbody.innerHTML = '';
     if (vitals.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center empty-message">No observations recorded yet.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="11" class="text-center empty-message">No observations recorded yet.</td></tr>';
         return;
     }
     vitals.sort((a, b) => new Date(b.date + ' ' + b.time) - new Date(a.date + ' ' + a.time));
@@ -372,6 +387,9 @@ function renderVitalsTable(vitals) {
             <td>${v.temp || '-'}</td>
             <td>${v.spo2 || '-'}</td>
             <td>${v.rbs || '-'}</td>
+            <td>${v.urineOutput || '-'}</td>
+            <td>${v.drainOutput || '-'}</td>
+            <td>${v.painScore || '-'}</td>
             <td><span class="added-by-text">${v.addedBy}</span></td>
         `;
         tbody.appendChild(tr);
@@ -418,6 +436,9 @@ async function addVitalsEntry() {
     const temp = document.getElementById('vitals-temp').value;
     const spo2 = document.getElementById('vitals-spo2').value;
     const rbs = document.getElementById('vitals-rbs').value;
+    const urineOutput = document.getElementById('vitals-urine').value;
+    const drainOutput = document.getElementById('vitals-drain').value;
+    const painScore = document.getElementById('vitals-pain').value;
 
     if (!patientId || !date || !time) return;
 
@@ -432,7 +453,7 @@ async function addVitalsEntry() {
             body: JSON.stringify({
                 patient_id: patientId,
                 type: 'vitals',
-                date, time, pulse, bp, temp, spo2, rbs,
+                date, time, pulse, bp, temp, spo2, rbs, urineOutput, drainOutput, painScore,
                 addedBy: currentUser ? currentUser.name : 'Staff'
             })
         });

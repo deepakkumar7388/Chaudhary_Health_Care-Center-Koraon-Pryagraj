@@ -151,17 +151,17 @@ function renderPatientsTable(patientsList) {
                 <button class="action-btn-pro view-btn" onclick="viewPatient('${patient.patient_id}')" title="View Info"><i class="fas fa-eye"></i></button>
                 
                 ${(currentUser && (currentUser.role === 'admin' || currentUser.role === 'doctor')) ?
-                `<button class="action-btn-pro edit-btn" onclick="editPatient('${patient.patient_id}')" title="Edit Patient"><i class="fas fa-edit"></i></button>` : ''}
+                `<button class="action-btn-pro edit-btn" onclick="editPatient('${patient.patient_id}')" title="${isDischarged ? 'View Details (Discharged)' : 'Edit Patient'}"><i class="${isDischarged ? 'fas fa-info-circle' : 'fas fa-edit'}"></i></button>` : ''}
                 
                 ${!isDischarged ? `<button class="action-btn-pro transfer-btn" onclick="openTransferBedModal('${patient.patient_id}')" title="Transfer Bed"><i class="fas fa-exchange-alt"></i></button>` : ''}
                 
                 ${(currentUser && currentUser.role === 'admin') ?
                 `<button class="action-btn-pro delete-btn" onclick="deletePatient('${patient.patient_id}')" title="Delete Patient"><i class="fas fa-trash"></i></button>` : ''}
                 
-                ${(currentUser && currentUser.role !== 'receptionist') ?
+                ${(currentUser && currentUser.role !== 'receptionist' && !isDischarged) ?
                 `<button class="action-btn-pro notes-btn" onclick="addNoteForPatient('${patient.patient_id}')" title="Daily Notes"><i class="fas fa-notes-medical"></i></button>` : ''}
                 
-                <button class="action-btn-pro surgery-btn" onclick="openSurgeryModal('${patient.patient_id}')" title="Add Surgery Event"><i class="fas fa-procedures"></i></button>
+                ${!isDischarged ? `<button class="action-btn-pro surgery-btn" onclick="openSurgeryModal('${patient.patient_id}')" title="Add Surgery Event"><i class="fas fa-procedures"></i></button>` : ''}
             </td>
         </tr>
     `;
@@ -414,10 +414,7 @@ function editPatient(patientId) {
         return;
     }
 
-    if ((patient.status || '').toLowerCase() === 'discharged') {
-        showNotification('Cannot edit a discharged patient.', 'warning');
-        return;
-    }
+    const isReadOnly = (patient.status || '').toLowerCase() === 'discharged';
 
     // Try to determine current ward type for the dropdown
     const currentWardType = patient.bed_no?.toUpperCase().includes('ICU') ? 'ICU' : 'General';
@@ -428,30 +425,30 @@ function editPatient(patientId) {
     modal.style.zIndex = '3000';
     modal.innerHTML = `
         <div class="modal-content" style="max-width: 500px; padding: 0; border-radius: 15px; overflow: hidden; box-shadow: 0 20px 45px rgba(0,0,0,0.3);">
-            <div class="modal-header" style="background: #2d3748; padding: 15px 25px;">
+            <div class="modal-header" style="background: ${isReadOnly ? '#4a5568' : '#2d3748'}; padding: 15px 25px;">
                 <h3 style="color: white; margin: 0; display: flex; align-items: center; gap: 10px;">
-                    <i class="bi bi-pencil-square"></i> Edit Patient Details
+                    <i class="bi ${isReadOnly ? 'bi-eye' : 'bi-pencil-square'}"></i> ${isReadOnly ? 'View Patient Details (Discharged)' : 'Edit Patient Details'}
                 </h3>
                 <button class="modal-close" style="color: white;" onclick="this.closest('.modal').remove()">&times;</button>
             </div>
             <div style="padding: 25px; background: white; max-height: 80vh; overflow-y: auto;">
-                <form id="edit-patient-form" onsubmit="event.preventDefault(); savePatientEdit('${patient.patient_id || patient.id}')">
+                <form id="edit-patient-form" onsubmit="event.preventDefault(); ${isReadOnly ? 'this.closest(\'.modal\').remove()' : `savePatientEdit('${patient.patient_id || patient.id}')`}">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
                         <div>
                             <label style="display:block; font-size:11px; font-weight:700; color:#a0aec0; text-transform:uppercase; margin-bottom:5px;">Patient Name</label>
-                            <input type="text" id="edit-p-name" value="${patient.name}" class="search-input" style="width:100%;" required>
+                            <input type="text" id="edit-p-name" value="${patient.name}" class="search-input" style="width:100%;" ${isReadOnly ? 'disabled' : 'required'}>
                         </div>
                         <div>
                             <label style="display:block; font-size:11px; font-weight:700; color:#a0aec0; text-transform:uppercase; margin-bottom:5px;">Guardian Name</label>
-                            <input type="text" id="edit-p-guardian" value="${patient.guardian_name || ''}" class="search-input" style="width:100%;">
+                            <input type="text" id="edit-p-guardian" value="${patient.guardian_name || ''}" class="search-input" style="width:100%;" ${isReadOnly ? 'disabled' : ''}>
                         </div>
                         <div>
                             <label style="display:block; font-size:11px; font-weight:700; color:#a0aec0; text-transform:uppercase; margin-bottom:5px;">Age (Yrs)</label>
-                            <input type="number" id="edit-p-age" value="${patient.age}" class="search-input" style="width:100%;">
+                            <input type="number" id="edit-p-age" value="${patient.age}" class="search-input" style="width:100%;" ${isReadOnly ? 'disabled' : ''}>
                         </div>
                         <div>
                             <label style="display:block; font-size:11px; font-weight:700; color:#a0aec0; text-transform:uppercase; margin-bottom:5px;">Gender</label>
-                            <select id="edit-p-gender" class="filter-select" style="width:100%;" onchange="loadAvailableBedsForEdit('${patient.bed_no}', this.value)">
+                            <select id="edit-p-gender" class="filter-select" style="width:100%;" ${isReadOnly ? 'disabled' : ''} onchange="loadAvailableBedsForEdit('${patient.bed_no}', this.value)">
                                 <option value="Male" ${patient.gender === 'Male' ? 'selected' : ''}>Male</option>
                                 <option value="Female" ${patient.gender === 'Female' ? 'selected' : ''}>Female</option>
                                 <option value="Other" ${patient.gender === 'Other' ? 'selected' : ''}>Other</option>
@@ -462,58 +459,88 @@ function editPatient(patientId) {
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
                         <div>
                             <label style="display:block; font-size:11px; font-weight:700; color:#a0aec0; text-transform:uppercase; margin-bottom:5px;">Mobile / Contact</label>
-                            <input type="text" id="edit-p-mobile" value="${patient.mobile || ''}" class="search-input" style="width:100%;">
+                            <input type="text" id="edit-p-mobile" value="${patient.mobile || ''}" class="search-input" style="width:100%;" ${isReadOnly ? 'disabled' : ''}>
                         </div>
                         <div>
                             <label style="display:block; font-size:11px; font-weight:700; color:#a0aec0; text-transform:uppercase; margin-bottom:5px;">Email Address</label>
-                            <input type="email" id="edit-p-email" value="${patient.email || ''}" class="search-input" style="width:100%;" placeholder="patient@example.com">
+                            <input type="email" id="edit-p-email" value="${patient.email || ''}" class="search-input" style="width:100%;" placeholder="patient@example.com" ${isReadOnly ? 'disabled' : ''}>
                         </div>
                     </div>
 
                     <div style="margin-bottom: 20px;">
                         <label style="display:block; font-size:11px; font-weight:700; color:#a0aec0; text-transform:uppercase; margin-bottom:5px;">Address</label>
-                        <textarea id="edit-p-address" class="search-input" style="width:100%; height:60px; padding:10px;">${patient.address || ''}</textarea>
+                        <textarea id="edit-p-address" class="search-input" style="width:100%; height:60px; padding:10px;" ${isReadOnly ? 'disabled' : ''}>${patient.address || ''}</textarea>
                     </div>
 
                     <hr style="border: none; border-top: 1px dashed #e2e8f0; margin: 25px 0;">
                     
                     <div style="background: #edf2f7; padding: 15px; border-radius: 10px;">
                         <h4 style="margin: 0 0 10px 0; font-size: 14px; display: flex; align-items: center; gap: 8px;">
-                            <i class="fa-solid fa-bed"></i> Change Ward / Bed
+                            <i class="fa-solid fa-bed"></i> Ward / Bed Stay Details
                         </h4>
                         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
                             <div>
                                 <label style="display:block; font-size:10px; color:#718096; margin-bottom:3px;">Ward Type</label>
-                                <select id="edit-p-ward-type" class="filter-select" style="width:100%; height: 35px;">
+                                <select id="edit-p-ward-type" class="filter-select" style="width:100%; height: 35px;" ${isReadOnly ? 'disabled' : ''}>
                                     <option value="General" ${currentWardType === 'General' ? 'selected' : ''}>General Ward</option>
                                     <option value="ICU" ${currentWardType === 'ICU' ? 'selected' : ''}>ICU (Intensive Care)</option>
                                 </select>
                             </div>
                             <div>
                                 <label style="display:block; font-size:10px; color:#718096; margin-bottom:3px;">Bed Number</label>
-                                <select id="edit-p-bed-no" class="filter-select" style="width:100%; height: 35px;" onchange="handleEditBedChange(this.value)">
+                                <select id="edit-p-bed-no" class="filter-select" style="width:100%; height: 35px;" ${isReadOnly ? 'disabled' : ''} onchange="handleEditBedChange(this.value)">
                                     <option value="${patient.bed_no || ''}">${patient.bed_no || 'Select Bed'}</option>
                                 </select>
                             </div>
                             <div>
                                 <label style="display:block; font-size:10px; color:#718096; margin-bottom:3px;">Daily Charge (${window.currencySymbol || '₹'})</label>
-                                <input type="number" id="edit-p-daily-charge" value="${patient.wardChargePerDay || 0}" class="search-input" style="width:100%; height: 35px; padding: 5px;">
+                                <input type="number" id="edit-p-daily-charge" value="${patient.wardChargePerDay || 0}" class="search-input" style="width:100%; height: 35px; padding: 5px;" ${isReadOnly ? 'disabled' : ''}>
                             </div>
                         </div>
                     </div>
 
+                    <!-- Surgery Details Section -->
+                    ${patient.surgeries && patient.surgeries.length > 0 ? `
+                    <div style="background: #f3e8ff; padding: 15px; border-radius: 12px; border: 1px solid #e9d5ff; margin-top: 20px;">
+                        <h4 style="margin: 0 0 10px 0; font-size: 13px; color: #7e22ce; display: flex; align-items: center; gap: 8px; font-weight: 700;">
+                            <i class="bi bi-hospital"></i> Surgery History
+                        </h4>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            ${patient.surgeries.map(s => `
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 8px; border-bottom: 1px dashed #cbd5e1; font-size: 13px;">
+                                    <div>
+                                        <div style="font-weight: 700; color: #1e293b;">${s.surgeryName}</div>
+                                        <div style="font-size: 11px; color: #64748b; margin-top: 2px;">
+                                            Surgeon: <strong>${s.surgeonName}</strong> | Date: <strong>${new Date(s.surgeryDate).toLocaleDateString('en-IN')}</strong>
+                                        </div>
+                                    </div>
+                                    <div style="font-weight: 700; color: #7e22ce;">${window.currencySymbol || '₹'}${s.cost}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    ` : ''}
+
                     <div style="margin-top: 30px; display: flex; gap: 10px; justify-content: center;">
+                        ${isReadOnly ? `
+                        <button type="button" class="btn btn-primary" style="padding: 10px 40px; border-radius: 8px; font-weight: 700;" onclick="this.closest('.modal').remove()">
+                            <i class="bi bi-x-circle"></i> Close
+                        </button>
+                        ` : `
                         <button type="submit" class="btn-primary" style="padding: 10px 40px; border-radius: 8px; font-weight: 700;">
                             <i class="bi bi-floppy"></i> Save All Changes
                         </button>
                         <button type="button" class="btn" style="background:#f1f5f9;" onclick="this.closest('.modal').remove()">Cancel</button>
+                        `}
                     </div>
                 </form>
             </div>
         </div>
     `;
     document.body.appendChild(modal);
-    loadAvailableBedsForEdit(patient.bed_no, patient.gender);
+    if (!isReadOnly) {
+        loadAvailableBedsForEdit(patient.bed_no, patient.gender);
+    }
 }
 
 function openTransferBedModal(patientId) {
@@ -1234,8 +1261,13 @@ function openSurgeryModal(patientId) {
         // Check for HTTPS / secure context
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
             if (errorDiv && errorMsg) {
-                errorMsg.textContent = 'Camera not supported. Use HTTPS or try uploading a photo.';
+                errorMsg.textContent = 'Webcam stream requires HTTPS. Opening native camera instead...';
                 errorDiv.style.display = 'block';
+            }
+            // Fallback: Trigger native file click (opens camera on mobile)
+            const fileInput = document.getElementById('surgery-sig-upload');
+            if (fileInput) {
+                fileInput.click();
             }
             return;
         }
@@ -1274,13 +1306,19 @@ function openSurgeryModal(patientId) {
             } catch (fallbackErr) {
                 console.error('Camera access failed:', fallbackErr.name, fallbackErr.message);
                 if (fallbackErr.name === 'NotAllowedError' || fallbackErr.name === 'PermissionDeniedError') {
-                    showCameraError('Camera permission denied. Allow camera access in browser settings.');
+                    showCameraError('Camera permission denied. Opening native camera...');
                 } else if (fallbackErr.name === 'NotFoundError') {
-                    showCameraError('No camera detected. Please upload an image file instead.');
+                    showCameraError('No camera detected. Opening native camera...');
                 } else if (fallbackErr.name === 'NotReadableError') {
-                    showCameraError('Camera is in use by another app. Close it and try again.');
+                    showCameraError('Camera is in use by another app. Opening native camera...');
                 } else {
-                    showCameraError('Camera failed: ' + (fallbackErr.message || fallbackErr.name));
+                    showCameraError('Camera failed: ' + (fallbackErr.message || fallbackErr.name) + '. Opening native camera...');
+                }
+
+                // Fallback: Trigger native file click (opens camera on mobile)
+                const fileInput = document.getElementById('surgery-sig-upload');
+                if (fileInput) {
+                    fileInput.click();
                 }
             }
         }
@@ -1437,6 +1475,12 @@ async function saveSurgery(patientId, btnEl) {
 }
 
 async function savePatientEdit(patientId) {
+    const patientObj = window.allPatientsData?.find(p => String(p.patient_id) === String(patientId) || String(p.id) === String(patientId));
+    if (patientObj && (patientObj.status || '').toLowerCase() === 'discharged') {
+        showNotification('Cannot edit details of a discharged patient.', 'error');
+        return;
+    }
+
     const name = document.getElementById('edit-p-name').value.trim();
     const guardian = document.getElementById('edit-p-guardian').value.trim();
     const age = document.getElementById('edit-p-age').value;

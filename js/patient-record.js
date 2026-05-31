@@ -241,6 +241,9 @@ function renderPatientRecord() {
                                         <th style="padding: 5px; border: 1px solid #cbd5e1;">Temp</th>
                                         <th style="padding: 5px; border: 1px solid #cbd5e1;">SpO2</th>
                                         <th style="padding: 5px; border: 1px solid #cbd5e1;">RBS</th>
+                                        <th style="padding: 5px; border: 1px solid #cbd5e1;">Urine (ml)</th>
+                                        <th style="padding: 5px; border: 1px solid #cbd5e1;">Drain (ml)</th>
+                                        <th style="padding: 5px; border: 1px solid #cbd5e1;">Pain Score</th>
                                         <th style="padding: 5px; border: 1px solid #cbd5e1;">Observer</th>
                                     </tr>
                                 </thead>
@@ -757,11 +760,14 @@ async function populatePatientJourney(patientId, p) {
                             <td style="padding:5px; border:1px solid #cbd5e1;">${v.temp || '-'}</td>
                             <td style="padding:5px; border:1px solid #cbd5e1;">${v.spo2 || '-'}</td>
                             <td style="padding:5px; border:1px solid #cbd5e1;">${v.rbs || '-'}</td>
+                            <td style="padding:5px; border:1px solid #cbd5e1;">${v.urineOutput || '-'}</td>
+                            <td style="padding:5px; border:1px solid #cbd5e1;">${v.drainOutput || '-'}</td>
+                            <td style="padding:5px; border:1px solid #cbd5e1;">${v.painScore || '-'}</td>
                             <td style="padding:5px; border:1px solid #cbd5e1; color:#4a5568;">${v.addedBy}</td>
                         </tr>
                     `).join('');
                 } else {
-                    vitalsTbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:10px; color:#cbd5e1;">No clinical observations charted.</td></tr>`;
+                    vitalsTbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:10px; color:#cbd5e1;">No clinical observations charted.</td></tr>`;
                 }
             }
 
@@ -863,11 +869,18 @@ async function populatePatientJourney(patientId, p) {
                         const diffTime = Math.abs(endDate - startDate);
                         let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-                        // Smart logic: General re-entry same day → 0 charge
-                        const wardType = (bed.ward_type || '').toLowerCase();
-                        const isGeneralReEntry = bedIndex > 0 && (wardType === 'general' || wardType === '');
-                        if (isGeneralReEntry) {
-                            if (diffDays < 1) diffDays = 0;
+                        // Same-day transfer logic to prevent double charging on the same day
+                        const startCal = startDate.toDateString();
+                        const endCal = endDate.toDateString();
+                        const isSameDay = startCal === endCal;
+
+                        if (isSameDay) {
+                            const hasSubsequentStay = bedIndex < p.bedHistory.length - 1;
+                            if (hasSubsequentStay) {
+                                diffDays = 0; // Same-day transfer: free for this bed, charged in the subsequent bed stay
+                            } else {
+                                if (diffDays < 1) diffDays = 1; // Only/last stay on the same day: minimum 1 day
+                            }
                         } else {
                             if (diffDays < 1) diffDays = 1;
                         }

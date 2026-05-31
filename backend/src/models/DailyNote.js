@@ -12,6 +12,9 @@ const dailyNoteSchema = new mongoose.Schema({
     temp: String,
     spo2: String,
     rbs: String,
+    urineOutput: String,
+    drainOutput: String,
+    painScore: String,
     
     // Medication fields
     medType: String,

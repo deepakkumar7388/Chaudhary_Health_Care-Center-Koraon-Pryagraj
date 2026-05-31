@@ -1,4 +1,5 @@
 const DailyNote = require('../models/DailyNote');
+const Patient = require('../models/Patient');
 
 exports.getNotesByPatient = async (req, res) => {
     try {
@@ -11,6 +12,11 @@ exports.getNotesByPatient = async (req, res) => {
 
 exports.addNote = async (req, res) => {
     try {
+        const patient = await Patient.findOne({ patient_id: req.params.patientId, isDeleted: false });
+        if (patient && patient.status === 'Discharged') {
+            return res.status(400).json({ success: false, message: 'Cannot add clinical notes for a discharged patient' });
+        }
+
         const newNote = new DailyNote({ ...req.body, patient_id: req.params.patientId });
         await newNote.save();
         res.status(201).json({ success: true, note: newNote });
