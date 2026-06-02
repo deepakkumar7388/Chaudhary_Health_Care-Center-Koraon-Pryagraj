@@ -1,1 +1,0 @@
-rem Clean ActRec.cmd 
