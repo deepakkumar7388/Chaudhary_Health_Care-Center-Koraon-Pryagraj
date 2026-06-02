@@ -207,7 +207,9 @@ function renderDailyNotes() {
     `;
 
     // Load necessary initial data
-    loadPatientsForRegister();
+    loadPatientsForRegister().then(() => {
+        restoreDailyNotesDraft();
+    });
     applyRoleBasedUI();
     setDefaultDateTimes();
 
@@ -262,15 +264,36 @@ function applyRoleBasedUI() {
  * Data Loading: Load patients from local storage for autocomplete
  */
 async function loadPatientsForRegister() {
+    // Step 1: Memory se instant load (patients.js ne pehle se load kar rakha hai)
+    if (window.allPatientsData && window.allPatientsData.length > 0) {
+        registerPatientsList = window.allPatientsData;
+        return; // No API call needed!
+    }
+
+    // Step 2: localStorage cache se load karo
+    const cached = localStorage.getItem('patients');
+    if (cached) {
+        try {
+            const list = JSON.parse(cached);
+            if (list.length > 0) {
+                registerPatientsList = list;
+                window.allPatientsData = list; // global memory mein bhi daal do
+                return;
+            }
+        } catch (e) { /* cache invalid */ }
+    }
+
+    // Step 3: Pehli baar hi server se fetch karo
     try {
         const response = await fetch(`${API_BASE}patients`, {
-            headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('token') }
+            headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('token') },
+            credentials: 'include'
         });
         const result = await response.json();
         if (result.success) {
             registerPatientsList = result.patients;
-        } else {
-            registerPatientsList = JSON.parse(localStorage.getItem('patients') || '[]');
+            window.allPatientsData = result.patients;
+            localStorage.setItem('patients', JSON.stringify(result.patients));
         }
     } catch (e) {
         console.error("Error loading patients from API", e);
@@ -581,4 +604,50 @@ async function confirmMarkDose() {
     }
 
     closeDoseConfirmModal();
+}
+
+function saveDailyNotesDraft() {
+    const patientId = document.getElementById('register-patient')?.value || '';
+    const patientSearch = document.getElementById('patient-search-input')?.value || '';
+    
+    const medName = document.getElementById('med-name')?.value || '';
+    const medDose = document.getElementById('med-dose')?.value || '';
+    const medType = document.getElementById('med-type')?.value || 'Injection';
+    
+    const draft = { patientId, patientSearch, medName, medDose, medType };
+    sessionStorage.setItem('dailyNotesDraft', JSON.stringify(draft));
+}
+
+function restoreDailyNotesDraft() {
+    const draftStr = sessionStorage.getItem('dailyNotesDraft');
+    if (!draftStr) return;
+
+    try {
+        const draft = JSON.parse(draftStr);
+        if (!draft.patientId) return;
+
+        const searchInput = document.getElementById('patient-search-input');
+        const hiddenInput = document.getElementById('register-patient');
+        if (searchInput && hiddenInput) {
+            searchInput.value = draft.patientSearch;
+            hiddenInput.value = draft.patientId;
+            loadPatientRegister(); // Loads records automatically
+        }
+
+        // Restore typed medication values
+        if (draft.medName) {
+            const medNameEl = document.getElementById('med-name');
+            if (medNameEl) medNameEl.value = draft.medName;
+        }
+        if (draft.medDose) {
+            const medDoseEl = document.getElementById('med-dose');
+            if (medDoseEl) medDoseEl.value = draft.medDose;
+        }
+        if (draft.medType) {
+            const medTypeEl = document.getElementById('med-type');
+            if (medTypeEl) medTypeEl.value = draft.medType;
+        }
+    } catch (e) {
+        console.error("Error restoring daily notes draft:", e);
+    }
 }

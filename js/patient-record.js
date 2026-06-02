@@ -367,7 +367,9 @@ function renderPatientRecord() {
         </style>
     `;
     loadRecordDropdownListener();
-    loadAllPatientsForRecord();
+    loadAllPatientsForRecord().then(() => {
+        restorePatientRecordState();
+    });
 }
 
 function loadRecordDropdownListener() {
@@ -926,7 +928,7 @@ async function populatePatientJourney(patientId, p) {
                 }
 
                 // Default Consultation/Doctor fee fallback
-                const drFee = parseFloat(p ? p.doctorFees : 0) || 500;
+                const drFee = parseFloat(p ? p.doctorFees : 0) || parseFloat(window.hospitalSettings?.['doctor-fees']) || parseFloat(window.hospitalSettings?.['consultation-fee']) || 500;
                 grandTotal += drFee;
 
                 const totalPaid = 0;
@@ -946,6 +948,31 @@ async function populatePatientJourney(patientId, p) {
         }
     } catch (err) {
         console.error("Error populating billing journey history:", err);
+    }
+}
+
+function savePatientRecordState() {
+    const patientId = currentRecordPatientId || '';
+    const searchVal = document.getElementById('record-patient-search')?.value || '';
+    const state = { patientId, searchVal };
+    sessionStorage.setItem('patientRecordState', JSON.stringify(state));
+}
+
+function restorePatientRecordState() {
+    const stateStr = sessionStorage.getItem('patientRecordState');
+    if (!stateStr) return;
+
+    try {
+        const state = JSON.parse(stateStr);
+        if (!state.patientId) return;
+
+        const searchInput = document.getElementById('record-patient-search');
+        if (searchInput) {
+            searchInput.value = state.searchVal;
+            loadPatientToRecord(state.patientId); // Loads patient record and details automatically
+        }
+    } catch (e) {
+        console.error("Error restoring patient record state:", e);
     }
 }
 

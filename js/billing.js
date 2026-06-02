@@ -84,6 +84,7 @@ function renderBilling() {
             <div id="billing-report-wrap" class="billing-report-overlay" style="display:none;">
                 <div class="report-actions-top no-print">
                     <button class="btn btn-primary" onclick="window.print()"><i class="bi bi-printer"></i> Print Invoice</button>
+                    <button id="btn-return-discharge" class="btn btn-success" style="display:none;" onclick="showModule('discharge')"><i class="bi bi-box-arrow-left"></i> Return to Discharge</button>
                     <button class="btn btn-secondary" onclick="closeBillingReport()"><i class="bi bi-x-lg"></i> Close</button>
                 </div>
                 
@@ -184,62 +185,107 @@ function renderBilling() {
     loadBillingData();
 }
 
+// Helper: billing stats + table render karo
+function _renderBillingFromData(patients, billings) {
+    const billingMap = {};
+    billings.forEach(b => { billingMap[b.patient_id] = b; });
+
+    let stats = { total: patients.length, bills: 0, paid: 0, pending: 0 };
+    let pendingList = [], paidList = [];
+
+    patients.forEach(p => {
+        const rec = billingMap[p.patient_id];
+        if (p.status === 'Admitted' || (rec && rec.items?.length > 0)) {
+            stats.bills++;
+            let grandTotal = 0;
+            if (rec?.items) rec.items.forEach(i => grandTotal += ((parseFloat(i.fee) || 0) * (parseFloat(i.days) || 1)));
+            let net = Math.max(0, grandTotal - (parseFloat(rec?.discount) || 0));
+            let paid = 0;
+            if (rec?.payments) rec.payments.forEach(pay => paid += (parseFloat(pay.amount) || 0));
+            let due = Math.max(0, net - paid);
+            let isPaid = (due <= 0 && net > 0);
+            let status = isPaid ? 'Paid' : (paid > 0 ? 'Partial' : 'Pending');
+            let billObj = { id: p.patient_id, patient: p.name, amount: net, remaining: due, bill_date: p.admission_date, status };
+            if (isPaid) { paidList.push(billObj); stats.paid++; }
+            else { pendingList.push(billObj); stats.pending++; }
+        }
+    });
+
+    const totalEl = document.getElementById('stat-total-patients');
+    const billsEl = document.getElementById('stat-total-bills');
+    const paidEl = document.getElementById('stat-paid-bills');
+    const pendingEl = document.getElementById('stat-pending-bills');
+    if (totalEl) totalEl.textContent = stats.total;
+    if (billsEl) billsEl.textContent = stats.bills;
+    if (paidEl) paidEl.textContent = stats.paid;
+    if (pendingEl) pendingEl.textContent = stats.pending;
+
+    window.currentBillsData = { pending: pendingList, paid: paidList };
+    showBillingTab('pending');
+}
+
 async function loadBillingData() {
     const token = sessionStorage.getItem('token');
     if (!token) return;
 
+    // Step 1: Cache se instant render (memory + localStorage)
+    const cachedPatients = window.allPatientsData || JSON.parse(localStorage.getItem('patients') || '[]');
+    const cachedBillings = JSON.parse(localStorage.getItem('billings') || '[]');
+
+    if (cachedPatients.length > 0) {
+        _renderBillingFromData(cachedPatients, cachedBillings);
+        // Background mein fresh data lo
+        _fetchBillingFresh(token, cachedPatients);
+        return;
+    }
+
+    // Step 2: Pehli baar server se lo (no cache)
+    await _fetchBillingFresh(token, null);
+}
+
+// Background billing fetch
+async function _fetchBillingFresh(token, existingPatients) {
     try {
-        // 1. Fetch patients and billings in parallel
-        const [pRes, bRes] = await Promise.all([
-            fetch(`${API_BASE}patients`, { headers: { 'Authorization': 'Bearer ' + token } }),
-            fetch(`${API_BASE}billing`, { headers: { 'Authorization': 'Bearer ' + token } })
-        ]);
+        const fetches = [];
 
-        const pData = await pRes.json();
-        const bData = await bRes.json();
-        
-        const patients = pData.patients || [];
-        const billings = bData.billings || [];
-        window.allPatientsData = patients;
+        // Patients fetch karo agar cache nahi hai
+        if (!existingPatients) {
+            fetches.push(fetch(`${API_BASE}patients`, {
+                headers: { 'Authorization': 'Bearer ' + token },
+                credentials: 'include'
+            }));
+        }
+        fetches.push(fetch(`${API_BASE}billing`, {
+            headers: { 'Authorization': 'Bearer ' + token },
+            credentials: 'include'
+        }));
 
-        const billingMap = {};
-        billings.forEach(b => { billingMap[b.patient_id] = b; });
+        const results = await Promise.all(fetches);
+        let patients = existingPatients;
+        let bRes;
 
-        let stats = { total: patients.length, bills: 0, paid: 0, pending: 0 };
-        let pendingList = [], paidList = [];
+        if (!existingPatients) {
+            const pData = await results[0].json();
+            bRes = await results[1].json();
+            patients = pData.patients || [];
+            window.allPatientsData = patients;
+            localStorage.setItem('patients', JSON.stringify(patients));
+        } else {
+            bRes = await results[0].json();
+        }
 
-        patients.forEach(p => {
-            const rec = billingMap[p.patient_id];
-            if (p.status === 'Admitted' || (rec && rec.items?.length > 0)) {
-                stats.bills++;
-                let grandTotal = 0;
-                if (rec?.items) rec.items.forEach(i => grandTotal += ((parseFloat(i.fee) || 0) * (parseFloat(i.days) || 1)));
-                
-                let net = Math.max(0, grandTotal - (parseFloat(rec?.discount) || 0));
-                let paid = 0;
-                if (rec?.payments) rec.payments.forEach(pay => paid += (parseFloat(pay.amount) || 0));
-                
-                let due = Math.max(0, net - paid);
-                let isPaid = (due <= 0 && net > 0);
-                let status = isPaid ? 'Paid' : (paid > 0 ? 'Partial' : 'Pending');
+        const billings = bRes.billings || [];
+        localStorage.setItem('billings', JSON.stringify(billings));
 
-                let billObj = { id: p.patient_id, patient: p.name, amount: net, remaining: due, bill_date: p.admission_date, status };
-                if (isPaid) { paidList.push(billObj); stats.paid++; }
-                else { pendingList.push(billObj); stats.pending++; }
-            }
-        });
-
-        document.getElementById('stat-total-patients').textContent = stats.total;
-        document.getElementById('stat-total-bills').textContent = stats.bills;
-        document.getElementById('stat-paid-bills').textContent = stats.paid;
-        document.getElementById('stat-pending-bills').textContent = stats.pending;
-
-        window.currentBillsData = { pending: pendingList, paid: paidList };
-        showBillingTab('pending');
+        // DOM update karo (silently)
+        const container = document.getElementById('bills-list');
+        if (container) _renderBillingFromData(patients, billings);
 
     } catch (err) {
         console.error("Billing load error:", err);
-        showNotification('Error connecting to billing server', 'error');
+        if (!window.currentBillsData) {
+            showNotification('Error connecting to billing server', 'error');
+        }
     }
 }
 
@@ -368,8 +414,14 @@ async function viewBill(patientId) {
                 row.querySelector('.days-input').value = savedItem.days !== undefined ? savedItem.days : '';
                 
                 // Fallback for consultation fee defaults if saved empty
-                if ((itemName === 'CONSULTATION FEE' || itemName === 'DR. FEES') && !savedItem.fee) {
-                    row.querySelector('.fee-input').value = p?.doctorFees || 500;
+                if (itemName === 'DR. FEES' && !savedItem.fee) {
+                    const defaultDrFees = parseFloat(window.hospitalSettings?.['doctor-fees']) || parseFloat(window.hospitalSettings?.['consultation-fee']) || 500;
+                    row.querySelector('.fee-input').value = p?.doctorFees || defaultDrFees;
+                    row.querySelector('.days-input').value = 1;
+                }
+                if (itemName === 'CONSULTATION FEE' && !savedItem.fee) {
+                    const defaultConsultFee = parseFloat(window.hospitalSettings?.['consultation-fee']) || 500;
+                    row.querySelector('.fee-input').value = defaultConsultFee;
                     row.querySelector('.days-input').value = 1;
                 }
             } else {
@@ -378,9 +430,16 @@ async function viewBill(patientId) {
                     // Populate total admitted days for static items
                     row.querySelector('.days-input').value = totalAdmittedDays;
 
-                    // Auto-populate default consultation fee if it's DR. FEES or CONSULTATION FEE
-                    if (itemName === 'CONSULTATION FEE' || itemName === 'DR. FEES') {
-                        row.querySelector('.fee-input').value = p?.doctorFees || 500;
+                    // Auto-populate default consultation fee if it's DR. FEES
+                    if (itemName === 'DR. FEES') {
+                        const defaultDrFees = parseFloat(window.hospitalSettings?.['doctor-fees']) || parseFloat(window.hospitalSettings?.['consultation-fee']) || 500;
+                        row.querySelector('.fee-input').value = p?.doctorFees || defaultDrFees;
+                        row.querySelector('.days-input').value = 1;
+                    }
+                    // Auto-populate default consultation fee if it's CONSULTATION FEE
+                    if (itemName === 'CONSULTATION FEE') {
+                        const defaultConsultFee = parseFloat(window.hospitalSettings?.['consultation-fee']) || 500;
+                        row.querySelector('.fee-input').value = defaultConsultFee;
                         row.querySelector('.days-input').value = 1;
                     }
                 }
@@ -389,6 +448,10 @@ async function viewBill(patientId) {
         });
 
         calculateBillingTotals();
+        const returnBtn = document.getElementById('btn-return-discharge');
+        if (returnBtn) {
+            returnBtn.style.display = sessionStorage.getItem('dischargeDraft') ? 'inline-block' : 'none';
+        }
         document.getElementById('billing-report-wrap').style.display = 'block';
         hideLoading();
     } catch (err) {
@@ -546,6 +609,22 @@ async function addPaymentToBill() {
         renderPaymentHistory(currentBillData.payments);
         calculateBillingTotals();
         document.getElementById('pay-amt').value = '';
+
+        // Check if fully paid and has discharge draft for THIS patient
+        const dueAmtText = document.getElementById('due-amt')?.textContent || '0';
+        const dueAmt = parseFloat(dueAmtText.replace(/,/g, '')) || 0;
+        const draftStr = sessionStorage.getItem('dischargeDraft');
+        if (dueAmt <= 0 && draftStr) {
+            try {
+                const draftObj = JSON.parse(draftStr);
+                if (draftObj.patientId && String(draftObj.patientId) === String(currentBillPatientId)) {
+                    showNotification('Payment complete! Returning to Discharge page...', 'success');
+                    setTimeout(() => {
+                        showModule('discharge');
+                    }, 1500);
+                }
+            } catch(e) {}
+        }
     }
     hideLoading();
 }
@@ -588,6 +667,20 @@ async function markBillPaid(patientId, remaining) {
             body: JSON.stringify({ amount: remaining, mode: 'Cash', date: new Date().toISOString().split('T')[0] })
         });
         if (response.ok) {
+            // Check if there's a discharge draft waiting — redirect back automatically
+            const draft = sessionStorage.getItem('dischargeDraft');
+            if (draft) {
+                try {
+                    const draftObj = JSON.parse(draft);
+                    if (draftObj.patientId && String(draftObj.patientId) === String(patientId)) {
+                        showNotification('Payment complete! Returning to Discharge page...', 'success');
+                        setTimeout(() => {
+                            showModule('discharge');
+                        }, 1500);
+                        return;
+                    }
+                } catch(e) {}
+            }
             loadBillingData();
             if (currentBillPatientId === patientId) viewBill(patientId);
         }

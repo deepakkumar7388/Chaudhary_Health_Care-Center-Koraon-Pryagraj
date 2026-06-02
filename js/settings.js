@@ -467,6 +467,10 @@ async function renderSettings() {
                                     <input type="number" id="consultation-fee" value="500" min="0">
                                 </div>
                                 <div class="form-group">
+                                    <label>Doctor Fees (₹)</label>
+                                    <input type="number" id="doctor-fees" value="500" min="0">
+                                </div>
+                                <div class="form-group">
                                     <label>General Ward Charge/Day (₹)</label>
                                     <input type="number" id="ward-charge" value="2000" min="0">
                                 </div>
@@ -952,59 +956,71 @@ function toggleTheme() {
     }
 }
 
+// Helper: DOM mein hospital details apply karo (cache aur server dono ke liye)
+function applySettingsToDOM(settings) {
+    if (!settings) return;
+    window.hospitalSettings = settings;
+    window.currencySymbol = settings['currency-symbol'] || '₹';
+
+    const hName = settings['hospital-name'] || 'Chaudhary Health Care Center';
+    document.querySelectorAll('.hospital-name').forEach(el => { el.textContent = hName; });
+
+    const hAddress = settings['hospital-address'] || 'Gandhi Chauraha, Meja wali road, Koraon-Prayagraj';
+    document.querySelectorAll('.hospital-address').forEach(el => { el.textContent = hAddress; });
+
+    const hContact = settings['hospital-contact'] || '(0542) 123456';
+    document.querySelectorAll('.hospital-contact').forEach(el => { el.textContent = hContact; });
+
+    const hEmail = settings['hospital-email'] || 'contact@chc-koraon.com';
+    document.querySelectorAll('.hospital-email').forEach(el => { el.textContent = hEmail; });
+
+    const mode = settings['theme-mode'] || 'light';
+    const color = settings['theme-color'] || 'indigo';
+    localStorage.setItem('theme-mode', mode);
+    localStorage.setItem('theme-color', color);
+    applyTheme(color, mode);
+    updateThemeToggleButtons();
+}
+
 async function applyGlobalSettings() {
     console.log("Applying global settings...");
-    
-    // Load from localStorage first to prevent flash
+
+    // Step 1: Theme pehle lagao (flash rokne ke liye)
     const localMode = localStorage.getItem('theme-mode') || 'light';
     const localColor = localStorage.getItem('theme-color') || 'indigo';
     applyTheme(localColor, localMode);
     updateThemeToggleButtons();
-    
+
+    // Step 2: Cached settings se INSTANT DOM update (0ms — no server wait)
+    const cachedSettings = localStorage.getItem('hospitalSettings');
+    if (cachedSettings) {
+        try {
+            applySettingsToDOM(JSON.parse(cachedSettings));
+            console.log("Settings loaded from cache instantly.");
+        } catch (e) {
+            console.warn("Cache parse error, fetching from server...");
+        }
+    }
+
+    // Step 3: Token check
     const token = sessionStorage.getItem('token');
     if (!token || token === 'null') {
         console.log("No authentication token found. Skipping backend settings fetch.");
         return;
     }
 
+    // Step 4: Background mein server se fresh data lo (UI block nahi hogi)
     try {
         const response = await fetch(`${API_BASE}settings`, {
-            headers: { 'Authorization': 'Bearer ' + token }
+            headers: { 'Authorization': 'Bearer ' + token },
+            credentials: 'include'
         });
         const result = await response.json();
         if (result.success) {
-            window.hospitalSettings = result.settings;
-            window.currencySymbol = result.settings['currency-symbol'] || '₹';
-
-            const hName = result.settings['hospital-name'] || 'Chaudhary Health Care Center';
-            document.querySelectorAll('.hospital-name').forEach(el => {
-                el.textContent = hName;
-            });
-
-            const hAddress = result.settings['hospital-address'] || 'Gandhi Chauraha, Meja wali road, Koraon-Prayagraj';
-            document.querySelectorAll('.hospital-address').forEach(el => {
-                el.textContent = hAddress;
-            });
-
-            const hContact = result.settings['hospital-contact'] || '(0542) 123456';
-            document.querySelectorAll('.hospital-contact').forEach(el => {
-                el.textContent = hContact;
-            });
-
-            const hEmail = result.settings['hospital-email'] || 'contact@chc-koraon.com';
-            document.querySelectorAll('.hospital-email').forEach(el => {
-                el.textContent = hEmail;
-            });
-
-            const backendMode = result.settings['theme-mode'] || 'light';
-            const backendColor = result.settings['theme-color'] || 'indigo';
-            
-            // Sync to local storage
-            localStorage.setItem('theme-mode', backendMode);
-            localStorage.setItem('theme-color', backendColor);
-
-            applyTheme(backendColor, backendMode);
-            updateThemeToggleButtons();
+            // Cache update karo silently
+            localStorage.setItem('hospitalSettings', JSON.stringify(result.settings));
+            // DOM silently update karo
+            applySettingsToDOM(result.settings);
 
             if (typeof calculateBillingTotals === 'function' && document.getElementById('billing-items')) {
                 if (typeof renderBilling === 'function' && currentModule === 'billing') {

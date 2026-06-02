@@ -123,15 +123,27 @@ function renderUsers() {
 }
 
 async function loadUsers() {
+    // Step 1: Cache se instant load
+    const cached = localStorage.getItem('users');
+    if (cached) {
+        try {
+            localUsers = JSON.parse(cached);
+            displayUsers();
+        } catch (e) { /* cache invalid */ }
+    }
+
+    // Step 2: Background mein fresh data lo
     try {
         const response = await fetch(`${API_BASE}auth/users`, {
-            headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('token') }
+            headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('token') },
+            credentials: 'include'
         });
         const result = await response.json();
         if (result.success) {
             localUsers = result.users;
-            displayUsers();
-        } else {
+            localStorage.setItem('users', JSON.stringify(result.users));
+            displayUsers(); // silently update
+        } else if (!cached) {
             showNotification(result.message || 'Failed to load user database', 'error');
         }
     } catch (error) {

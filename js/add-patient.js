@@ -91,8 +91,10 @@ function renderAddPatient() {
         </div>
     `;
 
-    // Load available beds
-    loadAvailableBeds();
+    // Load available beds and restore draft
+    loadAvailableBeds().then(() => {
+        restoreAddPatientDraft();
+    });
 }
 
 async function loadAvailableBeds() {
@@ -213,7 +215,7 @@ async function addPatient() {
         const settings = window.hospitalSettings || {};
         const isICU = bed.toLowerCase().includes('icu');
         const dailyCharge = isICU ? (parseFloat(settings['icu-charge']) || 5000) : (parseFloat(settings['ward-charge']) || 2000);
-        const doctorFee = parseFloat(settings['consultation-fee']) || 500;
+        const doctorFee = parseFloat(settings['doctor-fees']) || parseFloat(settings['consultation-fee']) || 500;
         const baseTotal = dailyCharge + doctorFee;
 
         const newPatient = {
@@ -242,6 +244,7 @@ async function addPatient() {
         hideLoading();
 
         if (result.success) {
+            sessionStorage.removeItem('addPatientDraft');
             showNotification(`Patient ${name} admitted successfully! ID: ${result.patient.patient_id}`, 'success');
             document.getElementById('patient-form').reset();
             showModule('patients');
@@ -252,5 +255,54 @@ async function addPatient() {
         console.error('Error adding patient:', error);
         hideLoading();
         showNotification('Network error', 'error');
+    }
+}
+
+function saveAddPatientDraft() {
+    const name = document.getElementById('p-name')?.value || '';
+    const age = document.getElementById('p-age')?.value || '';
+    const gender = document.getElementById('p-gender')?.value || '';
+    const mobile = document.getElementById('p-mobile')?.value || '';
+    const email = document.getElementById('p-email')?.value || '';
+    const guardian = document.getElementById('p-guardian')?.value || '';
+    const bed = document.getElementById('p-bed')?.value || '';
+    const address = document.getElementById('p-address')?.value || '';
+    const problem = document.getElementById('p-problem')?.value || '';
+    const doctor = document.getElementById('p-doctor')?.value || '';
+
+    const draft = { name, age, gender, mobile, email, guardian, bed, address, problem, doctor };
+    sessionStorage.setItem('addPatientDraft', JSON.stringify(draft));
+}
+
+function restoreAddPatientDraft() {
+    const draftStr = sessionStorage.getItem('addPatientDraft');
+    if (!draftStr) return;
+
+    try {
+        const draft = JSON.parse(draftStr);
+        if (draft.name) document.getElementById('p-name').value = draft.name;
+        if (draft.age) document.getElementById('p-age').value = draft.age;
+        if (draft.gender) {
+            document.getElementById('p-gender').value = draft.gender;
+            if (typeof window.filterBedsByGender === 'function') window.filterBedsByGender();
+        }
+        if (draft.mobile) document.getElementById('p-mobile').value = draft.mobile;
+        if (draft.email) document.getElementById('p-email').value = draft.email;
+        if (draft.guardian) document.getElementById('p-guardian').value = draft.guardian;
+        
+        // Restore bed select (requires bed list to be populated)
+        if (draft.bed) {
+            const bedSelect = document.getElementById('p-bed');
+            if (bedSelect) {
+                bedSelect.disabled = false;
+                bedSelect.value = draft.bed;
+            }
+        }
+        
+        if (draft.address) document.getElementById('p-address').value = draft.address;
+        if (draft.problem) document.getElementById('p-problem').value = draft.problem;
+        if (draft.doctor) document.getElementById('p-doctor').value = draft.doctor;
+    } catch (e) {
+        console.error("Error restoring add patient draft:", e);
     }
 }

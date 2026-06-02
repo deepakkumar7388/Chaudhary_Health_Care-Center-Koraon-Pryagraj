@@ -71,9 +71,18 @@ exports.login = async (req, res) => {
             { expiresIn: '24h' }
         );
 
+        // Cookie mein JWT token set karo (httpOnly = JS nahi chhoo sakta)
+        const isProduction = process.env.NODE_ENV === 'production';
+        res.cookie('token', token, {
+            httpOnly: true,                  // XSS se bachao
+            secure: isProduction,            // HTTPS par hi chalega (production mein)
+            sameSite: isProduction ? 'strict' : 'lax', // CSRF se bachao
+            maxAge: 24 * 60 * 60 * 1000     // 24 ghante
+        });
+
         res.status(200).json({
             success: true,
-            token,
+            token, // Purana frontend ka support bana raha hai (Hybrid)
             user_id: user._id,
             username: user.username || user.email.split('@')[0],
             name: user.name,
@@ -85,6 +94,16 @@ exports.login = async (req, res) => {
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
+};
+
+// Logout - Cookie clear karo
+exports.logout = (req, res) => {
+    res.clearCookie('token', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax'
+    });
+    res.status(200).json({ success: true, message: 'Logged out successfully' });
 };
 
 // Verify Current Password

@@ -182,7 +182,9 @@ function renderDischarge() {
         </div>
     `;
 
-    loadDischargePatients();
+    loadDischargePatients().then(() => {
+        restoreDischargeDraft();
+    });
     addMedicineRow();
 
     if (!window.dischargeDropdownListenerAdded) {
@@ -198,15 +200,34 @@ function renderDischarge() {
 }
 
 async function loadDischargePatients() {
-    try {
-        const response = await fetch(`${API_BASE}patients`, {
-            headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('token') }
-        });
-        const result = await response.json();
-        dischargePatientsList = result.patients || [];
-    } catch (e) {
-        console.error("Error loading patients for discharge:", e);
+    // Step 1: Memory cache se instant load
+    if (window.allPatientsData && window.allPatientsData.length > 0) {
+        dischargePatientsList = window.allPatientsData;
+    } else {
+        // Step 2: localStorage cache se load karo
+        const cached = localStorage.getItem('patients');
+        if (cached) {
+            try {
+                dischargePatientsList = JSON.parse(cached);
+                window.allPatientsData = dischargePatientsList;
+            } catch (e) { dischargePatientsList = []; }
+        } else {
+            // Step 3: Pehli baar server se lo
+            try {
+                const response = await fetch(`${API_BASE}patients`, {
+                    headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('token') },
+                    credentials: 'include'
+                });
+                const result = await response.json();
+                dischargePatientsList = result.patients || [];
+                window.allPatientsData = dischargePatientsList;
+                localStorage.setItem('patients', JSON.stringify(dischargePatientsList));
+            } catch (e) {
+                console.error("Error loading patients for discharge:", e);
+            }
+        }
     }
+
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('discharge-date').value = today;
     const now = new Date();
@@ -330,6 +351,7 @@ function confirmDischarge() {
             }
         } else {
             hideLoading();
+            saveDischargeDraft();
             showNotification('Cannot discharge patient: Billing is not complete. Pending: ₹' + (syncResult.pending_amount || 0), 'error');
             showModule('billing');
             setTimeout(() => {
@@ -387,6 +409,7 @@ function executeDischarge(patientId, summary, dischargeDate, dischargeTime) {
     .then(result => {
         hideLoading();
         if (result.success) {
+            sessionStorage.removeItem('dischargeDraft');
             showNotification('Patient discharged successfully!', 'success');
             displayDischargeReport(dischargeData);
         } else {
@@ -478,6 +501,7 @@ function displayDischargeReport(data) {
 }
 
 function closeDischargeReport() {
+    sessionStorage.removeItem('dischargeDraft');
     document.getElementById('discharge-report-section').style.display = 'none';
     document.getElementById('discharge-form-wrap').style.display = 'block';
     document.getElementById('discharge-header-nav').style.display = 'flex';
@@ -490,4 +514,93 @@ function closeDischargeReport() {
     addMedicineRow();
 
     showModule('patients');
+}
+
+function saveDischargeDraft() {
+    const patientId = document.getElementById('discharge-patient')?.value || '';
+    const patientName = document.getElementById('d-name')?.value || '';
+    const admitDate = document.getElementById('d-admit')?.value || '';
+    const dischargeDate = document.getElementById('discharge-date')?.value || '';
+    const dischargeTime = document.getElementById('discharge-time')?.value || '';
+    const summary = document.getElementById('discharge-summary')?.value || '';
+
+    const advisedMedicines = [];
+    document.querySelectorAll('#advised-med-table tbody tr').forEach(tr => {
+        const name = tr.querySelector('.med-name')?.value || '';
+        const dose = tr.querySelector('.med-dose')?.value || '';
+        const freq = tr.querySelector('.med-freq')?.value || '';
+        const dur = tr.querySelector('.med-dur')?.value || '';
+        if (name || dose || freq || dur) {
+            advisedMedicines.push({ name, dose, freq, duration: dur });
+        }
+    });
+
+    const draft = {
+        patientId,
+        patientName,
+        admitDate,
+        dischargeDate,
+        dischargeTime,
+        summary,
+        advisedMedicines
+    };
+    sessionStorage.setItem('dischargeDraft', JSON.stringify(draft));
+}
+
+function restoreDischargeDraft() {
+    const draftStr = sessionStorage.getItem('dischargeDraft');
+    if (!draftStr) return;
+
+    try {
+        const draft = JSON.parse(draftStr);
+        if (!draft.patientId) return;
+
+        // Set inputs
+        const searchInput = document.getElementById('discharge-search-input');
+        const hiddenInput = document.getElementById('discharge-patient');
+        
+        if (searchInput && hiddenInput) {
+            searchInput.value = draft.patientName ? `${draft.patientName} | ${draft.patientId}` : draft.patientId;
+            hiddenInput.value = draft.patientId;
+        }
+
+        const dId = document.getElementById('d-id');
+        const dName = document.getElementById('d-name');
+        const dAdmit = document.getElementById('d-admit');
+        if (dId && dName && dAdmit) {
+            dId.value = draft.patientId;
+            dName.value = draft.patientName;
+            dAdmit.value = draft.admitDate;
+            document.getElementById('discharge-info').style.display = 'block';
+        }
+
+        if (draft.dischargeDate) {
+            document.getElementById('discharge-date').value = draft.dischargeDate;
+        }
+        if (draft.dischargeTime) {
+            document.getElementById('discharge-time').value = draft.dischargeTime;
+        }
+        if (draft.summary) {
+            document.getElementById('discharge-summary').value = draft.summary;
+        }
+
+        // Restore medicines table
+        const tbody = document.querySelector('#advised-med-table tbody');
+        if (tbody && draft.advisedMedicines && draft.advisedMedicines.length > 0) {
+            tbody.innerHTML = ''; // clear initial empty row
+            draft.advisedMedicines.forEach(m => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><input type="text" class="med-name" value="${m.name || ''}" placeholder="E.g. Paracetamol 500mg"></td>
+                    <td><input type="text" class="med-dose" value="${m.dose || ''}" placeholder="E.g. 1 Tab"></td>
+                    <td><input type="text" class="med-freq" value="${m.freq || ''}" placeholder="E.g. BD (Twice/day)"></td>
+                    <td><input type="text" class="med-dur" value="${m.duration || ''}" placeholder="E.g. 5 Days"></td>
+                    <td style="text-align:center;"><button type="button" class="btn btn-danger btn-small" onclick="this.closest('tr').remove()" style="padding:6px 10px; background:#e53e3e; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;"><i class="bi bi-x-lg"></i></button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+    } catch (e) {
+        console.error("Error restoring discharge draft:", e);
+    }
 }

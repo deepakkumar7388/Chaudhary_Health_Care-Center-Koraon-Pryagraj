@@ -85,32 +85,61 @@ function renderPatients() {
 }
 
 async function loadPatients() {
-    showLoading('Loading patients...');
+    // Step 1: Memory cache check (agar pehle se load hai)
+    if (window.allPatientsData && window.allPatientsData.length > 0) {
+        renderPatientsTable(window.allPatientsData);
+        // Background mein silently fresh data lo
+        _fetchPatientsFresh();
+        return;
+    }
 
+    // Step 2: localStorage cache check (instant render, no spinner)
+    const cached = localStorage.getItem('patients');
+    if (cached) {
+        try {
+            const cachedList = JSON.parse(cached);
+            if (cachedList.length > 0) {
+                window.allPatientsData = cachedList;
+                renderPatientsTable(cachedList);
+                // Background mein silently update karo
+                _fetchPatientsFresh();
+                return;
+            }
+        } catch (e) { /* cache invalid, server se lo */ }
+    }
+
+    // Step 3: Pehli baar — server se lo (spinner dikhao)
+    showLoading('Loading patients...');
+    await _fetchPatientsFresh();
+    hideLoading();
+}
+
+// Background fetch — silently patients update karta hai bina UI block kiye
+async function _fetchPatientsFresh() {
     try {
         const response = await fetch(`${API_BASE}patients?_t=${Date.now()}`, {
             headers: {
                 'Authorization': 'Bearer ' + sessionStorage.getItem('token'),
-                'Cache-Control': 'no-cache, no-store, must-revalidate',
-                'Pragma': 'no-cache'
+                'Cache-Control': 'no-cache'
             },
+            credentials: 'include',
             cache: 'no-store'
         });
         const result = await response.json();
 
         if (result.success && result.patients) {
             window.allPatientsData = result.patients;
-        } else {
-            throw new Error('Fallback to LocalStorage');
+            // Cache update karo
+            localStorage.setItem('patients', JSON.stringify(result.patients));
+            // Table silently update karo (agar patients module active hai)
+            const tbody = document.getElementById('patients-table-body');
+            if (tbody) renderPatientsTable(result.patients);
         }
     } catch (error) {
-        console.log('Loading from LocalStorage...');
-        window.allPatientsData = JSON.parse(localStorage.getItem('patients') || '[]');
+        console.log('Background patient sync failed, using cache.');
     }
-
-    renderPatientsTable(window.allPatientsData);
-    hideLoading();
 }
+
 
 function renderPatientsTable(patientsList) {
     const tbody = document.getElementById('patients-table-body');
@@ -416,8 +445,33 @@ function editPatient(patientId) {
 
     const isReadOnly = (patient.status || '').toLowerCase() === 'discharged';
 
-    // Try to determine current ward type for the dropdown
-    const currentWardType = patient.bed_no?.toUpperCase().includes('ICU') ? 'ICU' : 'General';
+    const draftStr = sessionStorage.getItem('editPatientDraft');
+    let draft = null;
+    if (draftStr) {
+        try {
+            const parsed = JSON.parse(draftStr);
+            if (String(parsed.patientId) === String(patientId)) {
+                draft = parsed;
+            }
+        } catch (e) {
+            console.error("Error parsing editPatientDraft:", e);
+        }
+    }
+
+    const pName = draft ? draft.name : patient.name;
+    const pGuardian = draft ? draft.guardian_name : (patient.guardian_name || '');
+    const pAge = draft ? draft.age : patient.age;
+    const pGender = draft ? draft.gender : patient.gender;
+    const pMobile = draft ? draft.mobile : (patient.mobile || '');
+    const pEmail = draft ? draft.email : (patient.email || '');
+    const pAddress = draft ? draft.address : (patient.address || '');
+    const pBedNo = draft ? draft.bed_no : (patient.bed_no || '');
+    const pWardCharge = draft ? draft.wardChargePerDay : (patient.wardChargePerDay || 0);
+    const pWardType = draft ? draft.wardType : (patient.bed_no?.toUpperCase().includes('ICU') ? 'ICU' : 'General');
+
+    if (!isReadOnly) {
+        window.currentOpenPatientModal = { type: 'edit', patientId: patientId };
+    }
 
     const modal = document.createElement('div');
     modal.className = 'modal';
@@ -429,29 +483,29 @@ function editPatient(patientId) {
                 <h3 style="color: white; margin: 0; display: flex; align-items: center; gap: 10px;">
                     <i class="bi ${isReadOnly ? 'bi-eye' : 'bi-pencil-square'}"></i> ${isReadOnly ? 'View Patient Details (Discharged)' : 'Edit Patient Details'}
                 </h3>
-                <button class="modal-close" style="color: white;" onclick="this.closest('.modal').remove()">&times;</button>
+                <button class="modal-close" style="color: white;" onclick="window.closePatientModal(this.closest('.modal'))">&times;</button>
             </div>
             <div style="padding: 25px; background: white; max-height: 80vh; overflow-y: auto;">
                 <form id="edit-patient-form" onsubmit="event.preventDefault(); ${isReadOnly ? 'this.closest(\'.modal\').remove()' : `savePatientEdit('${patient.patient_id || patient.id}')`}">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
                         <div>
                             <label style="display:block; font-size:11px; font-weight:700; color:#a0aec0; text-transform:uppercase; margin-bottom:5px;">Patient Name</label>
-                            <input type="text" id="edit-p-name" value="${patient.name}" class="search-input" style="width:100%;" ${isReadOnly ? 'disabled' : 'required'}>
+                            <input type="text" id="edit-p-name" value="${pName}" class="search-input" style="width:100%;" ${isReadOnly ? 'disabled' : 'required'}>
                         </div>
                         <div>
                             <label style="display:block; font-size:11px; font-weight:700; color:#a0aec0; text-transform:uppercase; margin-bottom:5px;">Guardian Name</label>
-                            <input type="text" id="edit-p-guardian" value="${patient.guardian_name || ''}" class="search-input" style="width:100%;" ${isReadOnly ? 'disabled' : ''}>
+                            <input type="text" id="edit-p-guardian" value="${pGuardian}" class="search-input" style="width:100%;" ${isReadOnly ? 'disabled' : ''}>
                         </div>
                         <div>
                             <label style="display:block; font-size:11px; font-weight:700; color:#a0aec0; text-transform:uppercase; margin-bottom:5px;">Age (Yrs)</label>
-                            <input type="number" id="edit-p-age" value="${patient.age}" class="search-input" style="width:100%;" ${isReadOnly ? 'disabled' : ''}>
+                            <input type="number" id="edit-p-age" value="${pAge}" class="search-input" style="width:100%;" ${isReadOnly ? 'disabled' : ''}>
                         </div>
                         <div>
                             <label style="display:block; font-size:11px; font-weight:700; color:#a0aec0; text-transform:uppercase; margin-bottom:5px;">Gender</label>
-                            <select id="edit-p-gender" class="filter-select" style="width:100%;" ${isReadOnly ? 'disabled' : ''} onchange="loadAvailableBedsForEdit('${patient.bed_no}', this.value)">
-                                <option value="Male" ${patient.gender === 'Male' ? 'selected' : ''}>Male</option>
-                                <option value="Female" ${patient.gender === 'Female' ? 'selected' : ''}>Female</option>
-                                <option value="Other" ${patient.gender === 'Other' ? 'selected' : ''}>Other</option>
+                            <select id="edit-p-gender" class="filter-select" style="width:100%;" ${isReadOnly ? 'disabled' : ''} onchange="loadAvailableBedsForEdit('${pBedNo}', this.value)">
+                                <option value="Male" ${pGender === 'Male' ? 'selected' : ''}>Male</option>
+                                <option value="Female" ${pGender === 'Female' ? 'selected' : ''}>Female</option>
+                                <option value="Other" ${pGender === 'Other' ? 'selected' : ''}>Other</option>
                             </select>
                         </div>
                     </div>
@@ -459,17 +513,17 @@ function editPatient(patientId) {
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
                         <div>
                             <label style="display:block; font-size:11px; font-weight:700; color:#a0aec0; text-transform:uppercase; margin-bottom:5px;">Mobile / Contact</label>
-                            <input type="text" id="edit-p-mobile" value="${patient.mobile || ''}" class="search-input" style="width:100%;" ${isReadOnly ? 'disabled' : ''}>
+                            <input type="text" id="edit-p-mobile" value="${pMobile}" class="search-input" style="width:100%;" ${isReadOnly ? 'disabled' : ''}>
                         </div>
                         <div>
                             <label style="display:block; font-size:11px; font-weight:700; color:#a0aec0; text-transform:uppercase; margin-bottom:5px;">Email Address</label>
-                            <input type="email" id="edit-p-email" value="${patient.email || ''}" class="search-input" style="width:100%;" placeholder="patient@example.com" ${isReadOnly ? 'disabled' : ''}>
+                            <input type="email" id="edit-p-email" value="${pEmail}" class="search-input" style="width:100%;" placeholder="patient@example.com" ${isReadOnly ? 'disabled' : ''}>
                         </div>
                     </div>
 
                     <div style="margin-bottom: 20px;">
                         <label style="display:block; font-size:11px; font-weight:700; color:#a0aec0; text-transform:uppercase; margin-bottom:5px;">Address</label>
-                        <textarea id="edit-p-address" class="search-input" style="width:100%; height:60px; padding:10px;" ${isReadOnly ? 'disabled' : ''}>${patient.address || ''}</textarea>
+                        <textarea id="edit-p-address" class="search-input" style="width:100%; height:60px; padding:10px;" ${isReadOnly ? 'disabled' : ''}>${pAddress}</textarea>
                     </div>
 
                     <hr style="border: none; border-top: 1px dashed #e2e8f0; margin: 25px 0;">
@@ -482,19 +536,19 @@ function editPatient(patientId) {
                             <div>
                                 <label style="display:block; font-size:10px; color:#718096; margin-bottom:3px;">Ward Type</label>
                                 <select id="edit-p-ward-type" class="filter-select" style="width:100%; height: 35px;" ${isReadOnly ? 'disabled' : ''}>
-                                    <option value="General" ${currentWardType === 'General' ? 'selected' : ''}>General Ward</option>
-                                    <option value="ICU" ${currentWardType === 'ICU' ? 'selected' : ''}>ICU (Intensive Care)</option>
+                                    <option value="General" ${pWardType === 'General' ? 'selected' : ''}>General Ward</option>
+                                    <option value="ICU" ${pWardType === 'ICU' ? 'selected' : ''}>ICU (Intensive Care)</option>
                                 </select>
                             </div>
                             <div>
                                 <label style="display:block; font-size:10px; color:#718096; margin-bottom:3px;">Bed Number</label>
                                 <select id="edit-p-bed-no" class="filter-select" style="width:100%; height: 35px;" ${isReadOnly ? 'disabled' : ''} onchange="handleEditBedChange(this.value)">
-                                    <option value="${patient.bed_no || ''}">${patient.bed_no || 'Select Bed'}</option>
+                                    <option value="${pBedNo}">${pBedNo || 'Select Bed'}</option>
                                 </select>
                             </div>
                             <div>
                                 <label style="display:block; font-size:10px; color:#718096; margin-bottom:3px;">Daily Charge (${window.currencySymbol || '₹'})</label>
-                                <input type="number" id="edit-p-daily-charge" value="${patient.wardChargePerDay || 0}" class="search-input" style="width:100%; height: 35px; padding: 5px;" ${isReadOnly ? 'disabled' : ''}>
+                                <input type="number" id="edit-p-daily-charge" value="${pWardCharge}" class="search-input" style="width:100%; height: 35px; padding: 5px;" ${isReadOnly ? 'disabled' : ''}>
                             </div>
                         </div>
                     </div>
@@ -523,14 +577,14 @@ function editPatient(patientId) {
 
                     <div style="margin-top: 30px; display: flex; gap: 10px; justify-content: center;">
                         ${isReadOnly ? `
-                        <button type="button" class="btn btn-primary" style="padding: 10px 40px; border-radius: 8px; font-weight: 700;" onclick="this.closest('.modal').remove()">
+                        <button type="button" class="btn btn-primary" style="padding: 10px 40px; border-radius: 8px; font-weight: 700;" onclick="window.closePatientModal(this.closest('.modal'))">
                             <i class="bi bi-x-circle"></i> Close
                         </button>
                         ` : `
                         <button type="submit" class="btn-primary" style="padding: 10px 40px; border-radius: 8px; font-weight: 700;">
                             <i class="bi bi-floppy"></i> Save All Changes
                         </button>
-                        <button type="button" class="btn" style="background:#f1f5f9;" onclick="this.closest('.modal').remove()">Cancel</button>
+                        <button type="button" class="btn" style="background:#f1f5f9;" onclick="window.closePatientModal(this.closest('.modal'))">Cancel</button>
                         `}
                     </div>
                 </form>
@@ -539,7 +593,7 @@ function editPatient(patientId) {
     `;
     document.body.appendChild(modal);
     if (!isReadOnly) {
-        loadAvailableBedsForEdit(patient.bed_no, patient.gender);
+        loadAvailableBedsForEdit(pBedNo, pGender);
     }
 }
 
@@ -552,6 +606,24 @@ function openTransferBedModal(patientId) {
         return;
     }
 
+    const draftStr = sessionStorage.getItem('bedTransferDraft');
+    let draft = null;
+    if (draftStr) {
+        try {
+            const parsed = JSON.parse(draftStr);
+            if (String(parsed.patientId) === String(patientId)) {
+                draft = parsed;
+            }
+        } catch (e) {
+            console.error("Error parsing bedTransferDraft:", e);
+        }
+    }
+
+    const tBedNo = draft ? draft.new_bed_no : '';
+    const tCharge = draft ? draft.new_daily_charge : (patient.wardChargePerDay || 0);
+
+    window.currentOpenPatientModal = { type: 'transfer', patientId: patientId };
+
     const modal = document.createElement('div');
     modal.className = 'modal';
     modal.style.display = 'flex';
@@ -562,7 +634,7 @@ function openTransferBedModal(patientId) {
                 <h3 style="color: white; margin: 0; display: flex; align-items: center; gap: 10px;">
                     <i class="bi bi-arrow-left-right"></i> Transfer Bed
                 </h3>
-                <button class="modal-close" style="color: white;" onclick="this.closest('.modal').remove()">&times;</button>
+                <button class="modal-close" style="color: white;" onclick="window.closePatientModal(this.closest('.modal'))">&times;</button>
             </div>
             <div style="padding: 25px; background: white;">
                 <form id="transfer-bed-form" onsubmit="event.preventDefault(); saveTransferBed('${patient.patient_id || patient.id}')">
@@ -580,14 +652,14 @@ function openTransferBedModal(patientId) {
 
                     <div style="margin-bottom: 20px;">
                         <label style="display:block; font-size:11px; font-weight:700; color:#a0aec0; text-transform:uppercase; margin-bottom:5px;">New Daily Charge (${window.currencySymbol || '₹'})</label>
-                        <input type="number" id="transfer-daily-charge" value="${patient.wardChargePerDay || 0}" class="search-input" style="width:100%;" required>
+                        <input type="number" id="transfer-daily-charge" value="${tCharge}" class="search-input" style="width:100%;" required>
                     </div>
 
                     <div style="display: flex; gap: 10px; justify-content: center;">
                         <button type="submit" class="btn-primary" style="padding: 10px 30px; border-radius: 8px; font-weight: 700; background: #4b5563;">
                             <i class="bi bi-arrow-left-right"></i> Confirm Transfer
                         </button>
-                        <button type="button" class="btn" style="background:#f1f5f9;" onclick="this.closest('.modal').remove()">Cancel</button>
+                        <button type="button" class="btn" style="background:#f1f5f9;" onclick="window.closePatientModal(this.closest('.modal'))">Cancel</button>
                     </div>
                 </form>
             </div>
@@ -604,6 +676,10 @@ function openTransferBedModal(patientId) {
         select.innerHTML = '<option value="" disabled selected>Select New Bed</option>';
 
         if (result.success && result.beds && result.beds.length > 0) {
+            const allBeds = result.beds;
+            if (tBedNo && !allBeds.includes(tBedNo)) {
+                allBeds.unshift(tBedNo);
+            }
             const gender = patient.gender || 'Male';
             const groups = {
                 'General Ward (Male)': [],
@@ -613,12 +689,12 @@ function openTransferBedModal(patientId) {
                 'Others': []
             };
 
-            result.beds.forEach(bed => {
+            allBeds.forEach(bed => {
                 if (bed.startsWith('Male-G')) {
-                    if (gender === 'Male') groups['General Ward (Male)'].push(bed);
+                    if (gender === 'Male' || bed === tBedNo) groups['General Ward (Male)'].push(bed);
                 }
                 else if (bed.startsWith('Female-G')) {
-                    if (gender === 'Female') groups['General Ward (Female)'].push(bed);
+                    if (gender === 'Female' || bed === tBedNo) groups['General Ward (Female)'].push(bed);
                 }
                 else if (bed.startsWith('ICU-')) groups['ICU Ward'].push(bed);
                 else if (bed.startsWith('Private-')) groups['Private Room'].push(bed);
@@ -633,6 +709,7 @@ function openTransferBedModal(patientId) {
                         const option = document.createElement('option');
                         option.value = bed;
                         option.textContent = bed;
+                        if (bed === tBedNo) option.selected = true;
                         optgroup.appendChild(option);
                     });
                     select.appendChild(optgroup);
@@ -683,6 +760,8 @@ async function saveTransferBed(patientId) {
 
         if (result.success) {
             showNotification('Patient successfully transferred to new bed.', 'success');
+            sessionStorage.removeItem('bedTransferDraft');
+            window.currentOpenPatientModal = null;
             document.querySelector('#transfer-bed-form').closest('.modal').remove();
             loadPatients(); // Refresh the list
         } else {
@@ -1097,6 +1176,41 @@ function openSurgeryModal(patientId) {
     const records = JSON.parse(localStorage.getItem('patient_records') || '{}');
     const savedRecord = records[patientId] || {};
 
+    const draftStr = sessionStorage.getItem('surgeryDraft');
+    let draft = null;
+    if (draftStr) {
+        try {
+            const parsed = JSON.parse(draftStr);
+            if (String(parsed.patientId) === String(patientId)) {
+                draft = parsed;
+            }
+        } catch (e) {
+            console.error("Error parsing surgeryDraft:", e);
+        }
+    }
+
+    const sName = draft ? draft.surgeryName : '';
+    const sSurgeon = draft ? draft.surgeonName : '';
+    const sDate = draft ? draft.surgeryDate : new Date().toISOString().split('T')[0];
+    const sCost = draft ? draft.cost : '';
+    const sIndoorNo = draft ? draft.indoorNo : (savedRecord.indoor_no || '');
+    const sWardNo = draft ? draft.wardNo : (savedRecord.ward_no || '');
+    const sProvisional = draft ? draft.provisional : (savedRecord.provisional || '');
+    const sFinal = draft ? draft.finalDiag : (savedRecord.final || '');
+    
+    const sWitnessName = draft ? draft.witnessName : '';
+    const sWitnessAddress = draft ? draft.witnessAddress : '';
+    const sWitnessDate = draft ? draft.witnessDate : new Date().toISOString().split('T')[0];
+    const sWitnessPlace = draft ? draft.witnessPlace : '';
+    
+    const sGuardianName = draft ? draft.guardianName : '';
+    const sGuardianAddress = draft ? draft.guardianAddress : '';
+    const sGuardianDate = draft ? draft.guardianDate : new Date().toISOString().split('T')[0];
+    const sGuardianPlace = draft ? draft.guardianPlace : '';
+    const sSignature = draft ? draft.guardianSignature : '';
+
+    window.currentOpenPatientModal = { type: 'surgery', patientId: patientId };
+
     const modal = document.createElement('div');
     modal.className = 'modal surgery-modal';
     modal.style.display = 'flex';
@@ -1110,7 +1224,7 @@ function openSurgeryModal(patientId) {
                 <h3 style="margin: 0; font-size: 18px; color: #1e293b; display: flex; align-items: center; gap: 8px;">
                     <i class="bi bi-hospital" style="color:#805ad5;"></i> Add Surgery Event & Operation Consent
                 </h3>
-                <button class="modal-close" style="font-size: 24px; color: #94a3b8; background: none; border: none; cursor: pointer;" onclick="window.stopSurgeryCameraStream(); this.closest('.modal').remove()">&times;</button>
+                <button class="modal-close" style="font-size: 24px; color: #94a3b8; background: none; border: none; cursor: pointer;" onclick="window.closePatientModal(this.closest('.modal'))">&times;</button>
             </div>
             <div style="padding: 24px;">
                 <p style="margin-top:0; color:#475569; font-size:14px; margin-bottom:20px; padding: 10px 14px; background: #f1f5f9; border-radius: 6px; border-left: 4px solid #6366f1;">
@@ -1124,35 +1238,35 @@ function openSurgeryModal(patientId) {
                 <div class="surgery-form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
                     <div>
                         <label style="display:block; font-size:12px; font-weight:600; color:#475569; margin-bottom:6px;">Surgery Name / Procedure *</label>
-                        <input type="text" id="surgery-name" placeholder="Appendectomy" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background:#fff;">
+                        <input type="text" id="surgery-name" value="${sName}" placeholder="Appendectomy" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background:#fff;">
                     </div>
                     <div>
                         <label style="display:block; font-size:12px; font-weight:600; color:#475569; margin-bottom:6px;">Surgeon Name *</label>
-                        <input type="text" id="surgeon-name" placeholder="Dr. Bhoopendra Chaudhary" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background:#fff;">
+                        <input type="text" id="surgeon-name" value="${sSurgeon}" placeholder="Dr. Bhoopendra Chaudhary" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background:#fff;">
                     </div>
                     <div>
                         <label style="display:block; font-size:12px; font-weight:600; color:#475569; margin-bottom:6px;">Surgery Date *</label>
-                        <input type="date" id="surgery-date" value="${new Date().toISOString().split('T')[0]}" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background:#fff;">
+                        <input type="date" id="surgery-date" value="${sDate}" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background:#fff;">
                     </div>
                     <div>
                         <label style="display:block; font-size:12px; font-weight:600; color:#475569; margin-bottom:6px;">Surgery Base Charges (${window.currencySymbol || '₹'}) *</label>
-                        <input type="number" id="surgery-cost" placeholder="0" min="0" onfocus="this.select()" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background:#fff;">
+                        <input type="number" id="surgery-cost" value="${sCost}" placeholder="0" min="0" onfocus="this.select()" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background:#fff;">
                     </div>
                     <div>
                         <label style="display:block; font-size:12px; font-weight:600; color:#475569; margin-bottom:6px;">INDOOR No. (IPD No.) <span style="font-weight: normal; color: #94a3b8;">(Optional)</span></label>
-                        <input type="text" id="surgery-indoor-no" placeholder="Indoor No. (Optional)" value="${savedRecord.indoor_no || ''}" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background:#fff;">
+                        <input type="text" id="surgery-indoor-no" placeholder="Indoor No. (Optional)" value="${sIndoorNo}" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background:#fff;">
                     </div>
                     <div>
                         <label style="display:block; font-size:12px; font-weight:600; color:#475569; margin-bottom:6px;">WARD No. <span style="font-weight: normal; color: #94a3b8;">(Optional)</span></label>
-                        <input type="text" id="surgery-ward-no" placeholder="Ward No. (Optional)" value="${savedRecord.ward_no || ''}" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background:#fff;">
+                        <input type="text" id="surgery-ward-no" placeholder="Ward No. (Optional)" value="${sWardNo}" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background:#fff;">
                     </div>
                     <div style="grid-column: span 2;">
                         <label style="display:block; font-size:12px; font-weight:600; color:#475569; margin-bottom:6px;">Provisional Diagnosis <span style="font-weight: normal; color: #94a3b8;">(Optional)</span></label>
-                        <input type="text" id="surgery-provisional" placeholder="Provisional Diagnosis (Optional)" value="${savedRecord.provisional || ''}" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background:#fff;">
+                        <input type="text" id="surgery-provisional" placeholder="Provisional Diagnosis (Optional)" value="${sProvisional}" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background:#fff;">
                     </div>
                     <div style="grid-column: span 2;">
                         <label style="display:block; font-size:12px; font-weight:600; color:#475569; margin-bottom:6px;">Final Diagnosis <span style="font-weight: normal; color: #94a3b8;">(Optional)</span></label>
-                        <input type="text" id="surgery-final" placeholder="Final Diagnosis (Optional)" value="${savedRecord.final || ''}" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background:#fff;">
+                        <input type="text" id="surgery-final" placeholder="Final Diagnosis (Optional)" value="${sFinal}" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background:#fff;">
                     </div>
                 </div>
 
@@ -1176,20 +1290,20 @@ function openSurgeryModal(patientId) {
                         <div style="display:flex; flex-direction:column; gap:10px;">
                             <div>
                                 <label style="display:block; font-size:11px; font-weight:600; color:#64748b; margin-bottom:4px;">गवाह का नाम (Witness Name)</label>
-                                <input type="text" id="surgery-witness-name" autocomplete="off" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background:#fff;">
+                                <input type="text" id="surgery-witness-name" value="${sWitnessName}" autocomplete="off" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background:#fff;">
                             </div>
                             <div>
                                 <label style="display:block; font-size:11px; font-weight:600; color:#64748b; margin-bottom:4px;">वर्तमान पता (Address)</label>
-                                <input type="text" id="surgery-witness-address" autocomplete="off" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background:#fff;">
+                                <input type="text" id="surgery-witness-address" value="${sWitnessAddress}" autocomplete="off" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background:#fff;">
                             </div>
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                                 <div>
                                     <label style="display:block; font-size:11px; font-weight:600; color:#64748b; margin-bottom:4px;">दिनांक (Date)</label>
-                                    <input type="date" id="surgery-witness-date" value="${new Date().toISOString().split('T')[0]}" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background:#fff;">
+                                    <input type="date" id="surgery-witness-date" value="${sWitnessDate}" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background:#fff;">
                                 </div>
                                 <div>
                                     <label style="display:block; font-size:11px; font-weight:600; color:#64748b; margin-bottom:4px;">स्थान (Place)</label>
-                                    <input type="text" id="surgery-witness-place" placeholder="" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background:#fff;">
+                                    <input type="text" id="surgery-witness-place" value="${sWitnessPlace}" placeholder="" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background:#fff;">
                                 </div>
                             </div>
                         </div>
@@ -1203,20 +1317,20 @@ function openSurgeryModal(patientId) {
                         <div style="display:flex; flex-direction:column; gap:10px;">
                             <div>
                                 <label style="display:block; font-size:11px; font-weight:600; color:#64748b; margin-bottom:4px;">अभिभावक का नाम (Guardian Name)</label>
-                                <input type="text" id="surgery-guardian-name" value="" autocomplete="off" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background:#fff;">
+                                <input type="text" id="surgery-guardian-name" value="${sGuardianName}" autocomplete="off" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background:#fff;">
                             </div>
                             <div>
                                 <label style="display:block; font-size:11px; font-weight:600; color:#64748b; margin-bottom:4px;">वर्तमान पता (Address)</label>
-                                <input type="text" id="surgery-guardian-address" value="" autocomplete="off" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background:#fff;">
+                                <input type="text" id="surgery-guardian-address" value="${sGuardianAddress}" autocomplete="off" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background:#fff;">
                             </div>
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                                 <div>
                                     <label style="display:block; font-size:11px; font-weight:600; color:#64748b; margin-bottom:4px;">दिनांक (Date)</label>
-                                    <input type="date" id="surgery-guardian-date" value="${new Date().toISOString().split('T')[0]}" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background:#fff;">
+                                    <input type="date" id="surgery-guardian-date" value="${sGuardianDate}" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background:#fff;">
                                 </div>
                                 <div>
                                     <label style="display:block; font-size:11px; font-weight:600; color:#64748b; margin-bottom:4px;">स्थान (Place)</label>
-                                    <input type="text" id="surgery-guardian-place" placeholder="" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background:#fff;">
+                                    <input type="text" id="surgery-guardian-place" value="${sGuardianPlace}" placeholder="" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background:#fff;">
                                 </div>
                             </div>
                         </div>
@@ -1257,8 +1371,8 @@ function openSurgeryModal(patientId) {
 
                     <!-- PREVIEW BOX -->
                     <div style="background: #ffffff; padding: 12px; border: 1px solid #94a3b8; border-radius: 8px; text-align: center; height: 185px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; overflow: hidden;">
-                        <img id="surgery-sig-preview-img" style="max-height: 100%; max-width: 100%; display: none; object-fit: contain;">
-                        <div id="surgery-sig-placeholder" style="color: #94a3b8; display:flex; flex-direction:column; align-items:center; gap:8px;">
+                        <img id="surgery-sig-preview-img" src="${sSignature || ''}" style="max-height: 100%; max-width: 100%; display: ${sSignature ? 'block' : 'none'}; object-fit: contain;">
+                        <div id="surgery-sig-placeholder" style="color: #94a3b8; display:${sSignature ? 'none' : 'flex'}; flex-direction:column; align-items:center; gap:8px;">
                             <i class="bi bi-file-earmark-ruled" style="font-size:32px;"></i>
                             <span style="font-style: italic; font-size: 13px;">Signature Preview<br>(हस्ताक्षर का लाइव प्रीव्यू)</span>
                         </div>
@@ -1266,7 +1380,7 @@ function openSurgeryModal(patientId) {
 
                 </div>                <!-- ACTIONS BUTTONS -->
                 <div class="surgery-actions" style="display:flex; justify-content:flex-end; gap:12px; border-top:1px solid #e2e8f0; padding-top:16px; margin-top:20px;">
-                    <button class="btn" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; padding:10px 20px; border-radius:4px; cursor:pointer; font-weight:600; font-size:14px; transition:all 0.2s;" onclick="window.stopSurgeryCameraStream(); this.closest('.modal').remove()">Cancel</button>
+                    <button class="btn" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; padding:10px 20px; border-radius:4px; cursor:pointer; font-weight:600; font-size:14px; transition:all 0.2s;" onclick="window.closePatientModal(this.closest('.modal'))">Cancel</button>
                     <button class="btn btn-primary" style="background:linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color:#fff; border:none; padding:10px 20px; border-radius:4px; cursor:pointer; font-weight:600; font-size:14px; transition:all 0.2s; box-shadow:0 4px 12px var(--primary-light);" onclick="saveSurgery('${patientId}', this)">Confirm Surgery Event</button>
                 </div>
             </div>
@@ -1504,6 +1618,8 @@ async function saveSurgery(patientId, btnEl) {
 
         if (result.success) {
             showNotification('Surgery details and bill updated in Cloud!', 'success');
+            sessionStorage.removeItem('surgeryDraft');
+            window.currentOpenPatientModal = null;
             btnEl.closest('.modal').remove();
             loadPatients();
         } else {
@@ -1558,6 +1674,8 @@ async function savePatientEdit(patientId) {
         hideLoading();
         if (result.success) {
             showNotification('Patient details updated successfully!', 'success');
+            sessionStorage.removeItem('editPatientDraft');
+            window.currentOpenPatientModal = null;
             document.querySelectorAll('.modal').forEach(m => m.remove());
             loadPatients();
         } else {
@@ -1571,3 +1689,111 @@ async function savePatientEdit(patientId) {
 }
 
 window.savePatientEdit = savePatientEdit;
+
+// ==================== MODAL DRAFT SYSTEM ====================
+window.currentOpenPatientModal = null;
+
+window.savePatientModalDraft = function () {
+    if (!window.currentOpenPatientModal) return;
+
+    const { type, patientId } = window.currentOpenPatientModal;
+
+    if (type === 'surgery') {
+        const name = document.getElementById('surgery-name')?.value.trim() || '';
+        const surgeon = document.getElementById('surgeon-name')?.value.trim() || '';
+        const date = document.getElementById('surgery-date')?.value || '';
+        const cost = parseFloat(document.getElementById('surgery-cost')?.value) || 0;
+        const signature = document.getElementById('surgery-sig-preview-img')?.src || '';
+        const indoorNo = document.getElementById('surgery-indoor-no')?.value.trim() || '';
+        const wardNo = document.getElementById('surgery-ward-no')?.value.trim() || '';
+        const provisional = document.getElementById('surgery-provisional')?.value.trim() || '';
+        const finalDiag = document.getElementById('surgery-final')?.value.trim() || '';
+        const witnessName = document.getElementById('surgery-witness-name')?.value.trim() || '';
+        const witnessAddress = document.getElementById('surgery-witness-address')?.value.trim() || '';
+        const witnessDate = document.getElementById('surgery-witness-date')?.value || '';
+        const witnessPlace = document.getElementById('surgery-witness-place')?.value.trim() || '';
+        const guardianName = document.getElementById('surgery-guardian-name')?.value.trim() || '';
+        const guardianAddress = document.getElementById('surgery-guardian-address')?.value.trim() || '';
+        const guardianDate = document.getElementById('surgery-guardian-date')?.value || '';
+        const guardianPlace = document.getElementById('surgery-guardian-place')?.value.trim() || '';
+
+        const isDefaultSig = signature.includes('window.snapSurgeryPhoto') || !signature || signature.startsWith('data:,') || (signature.includes('localhost') && signature.endsWith('/'));
+        const cleanSig = isDefaultSig ? '' : signature;
+
+        if (name || surgeon || cost || cleanSig || indoorNo || wardNo || provisional || finalDiag || witnessName || guardianName) {
+            const draft = {
+                patientId,
+                surgeryName: name,
+                surgeonName: surgeon,
+                surgeryDate: date,
+                cost,
+                guardianSignature: cleanSig,
+                indoorNo,
+                wardNo,
+                provisional,
+                finalDiag,
+                witnessName,
+                witnessAddress,
+                witnessDate,
+                witnessPlace,
+                guardianName,
+                guardianAddress,
+                guardianDate,
+                guardianPlace
+            };
+            sessionStorage.setItem('surgeryDraft', JSON.stringify(draft));
+        }
+    } else if (type === 'edit') {
+        const name = document.getElementById('edit-p-name')?.value.trim() || '';
+        const guardian = document.getElementById('edit-p-guardian')?.value.trim() || '';
+        const age = document.getElementById('edit-p-age')?.value || '';
+        const gender = document.getElementById('edit-p-gender')?.value || '';
+        const mobile = document.getElementById('edit-p-mobile')?.value.trim() || '';
+        const email = document.getElementById('edit-p-email')?.value.trim() || '';
+        const address = document.getElementById('edit-p-address')?.value.trim() || '';
+        const wardType = document.getElementById('edit-p-ward-type')?.value || '';
+        const bedNo = document.getElementById('edit-p-bed-no')?.value.trim() || '';
+        const dailyCharge = parseFloat(document.getElementById('edit-p-daily-charge')?.value) || 0;
+
+        if (name || guardian || age || mobile || address) {
+            const draft = {
+                patientId,
+                name, guardian_name: guardian, age: parseInt(age) || '',
+                gender, mobile, email, address, bed_no: bedNo,
+                wardChargePerDay: dailyCharge, wardType
+            };
+            sessionStorage.setItem('editPatientDraft', JSON.stringify(draft));
+        }
+    } else if (type === 'transfer') {
+        const newBed = document.getElementById('transfer-new-bed')?.value || '';
+        const newCharge = parseFloat(document.getElementById('transfer-daily-charge')?.value) || 0;
+
+        if (newBed || newCharge) {
+            const draft = {
+                patientId,
+                new_bed_no: newBed,
+                new_daily_charge: newCharge
+            };
+            sessionStorage.setItem('bedTransferDraft', JSON.stringify(draft));
+        }
+    }
+};
+
+window.closePatientModal = function (modalEl) {
+    if (typeof window.stopSurgeryCameraStream === 'function') {
+        try {
+            window.stopSurgeryCameraStream();
+        } catch (e) {
+            console.error("Error stopping surgery camera on close:", e);
+        }
+    }
+    if (typeof window.savePatientModalDraft === 'function') {
+        window.savePatientModalDraft();
+    }
+    window.currentOpenPatientModal = null;
+    if (modalEl) {
+        modalEl.remove();
+    } else {
+        document.querySelectorAll('.modal').forEach(m => m.remove());
+    }
+};

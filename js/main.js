@@ -262,8 +262,19 @@ function confirmLogout() {
     });
 
     document.getElementById('logout-modal').classList.remove('active');
-    sessionStorage.removeItem('user');
-    sessionStorage.removeItem('token');
+
+    // Server se cookie clear karo (background mein)
+    fetch(`${API_BASE}auth/logout`, {
+        method: 'POST',
+        credentials: 'include'
+    }).catch(() => {}); // Silent fail — UI rok nahi sakta
+
+    // Frontend cache + session clear karo
+    sessionStorage.clear();
+    localStorage.removeItem('hospitalSettings'); // Settings cache clear
+    localStorage.removeItem('patients');          // Patient list cache clear
+    localStorage.removeItem('billings');          // Billing cache clear
+    localStorage.removeItem('users');             // Users cache clear
     currentUser = null;
 
     document.getElementById('app-container').style.display = 'none';
@@ -296,9 +307,9 @@ function updateUserInfo() {
                 const baseUrl = API_BASE.replace('/api/', '');
                 const fullUrl = currentUser.avatar.startsWith('http') || currentUser.avatar.startsWith('data:') ? currentUser.avatar : `${baseUrl}${currentUser.avatar}`;
                 console.log("Loading Sidebar Avatar from:", fullUrl);
-                avatarDiv.innerHTML = `<img src="${fullUrl}" alt="User" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
-                avatarDiv.style.cursor = 'pointer';
-                avatarDiv.onclick = function(e) { e.stopPropagation(); openLightbox(fullUrl, currentUser.name); };
+                avatarDiv.innerHTML = `<img src="${fullUrl}" alt="User" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; pointer-events: none;">`;
+                avatarDiv.style.cursor = 'default';
+                avatarDiv.onclick = null;
             } else if (currentUser.name && currentUser.name.trim().length > 0) {
                 const initials = currentUser.name.trim().split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
                 avatarDiv.textContent = initials;
@@ -431,6 +442,21 @@ function showModule(moduleName, preventHashUpdate = false) {
         return;
     }
 
+    // Save draft of the module we are navigating away from
+    if (typeof currentModule !== 'undefined') {
+        if (currentModule === 'add-patient' && typeof saveAddPatientDraft === 'function') {
+            saveAddPatientDraft();
+        } else if (currentModule === 'daily-notes' && typeof saveDailyNotesDraft === 'function') {
+            saveDailyNotesDraft();
+        } else if (currentModule === 'discharge' && typeof saveDischargeDraft === 'function') {
+            saveDischargeDraft();
+        } else if (currentModule === 'patient-record' && typeof savePatientRecordState === 'function') {
+            savePatientRecordState();
+        } else if (currentModule === 'patients' && typeof window.savePatientModalDraft === 'function') {
+            window.savePatientModalDraft();
+        }
+    }
+
     currentModule = moduleName;
 
     const iconMap = {
@@ -561,7 +587,7 @@ function loadModule(moduleName) {
                 break;
             case 'discharge':
                 if (typeof renderDischarge === 'function') renderDischarge();
-                if (typeof loadDischargePatients === 'function') loadDischargePatients();
+                // Note: renderDischarge() already calls loadDischargePatients() + restoreDischargeDraft() internally
                 break;
             case 'users':
                 if (typeof renderUsers === 'function') renderUsers();

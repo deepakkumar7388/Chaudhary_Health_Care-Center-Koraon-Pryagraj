@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
@@ -33,7 +34,13 @@ const PORT = process.env.PORT || 5000;
 console.log("\x1b[31m%s\x1b[0m", "HMS Server Version: 2.0 - Transfer Ready");
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: function (origin, callback) {
+        callback(null, true);
+    },
+    credentials: true // Allow cookies to be sent with requests
+}));
+app.use(cookieParser());
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
@@ -50,37 +57,70 @@ app.use('/api/discharge', dischargeRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/integrations', integrationsRoutes);
 
-// Database Connection
-mongoose.connect(process.env.MONGODB_URI)
-    .then(() => {
-        console.log('MongoDB Connected successfully');
+// Database Connection with Retry Logic
+let lastDbError = null;
+let cleanupScheduled = false;
 
-        // Start User Cleanup Job
-        const User = require('./src/models/User');
-        const runUserCleanup = async () => {
-            try {
-                const threshold = new Date(Date.now() - 24 * 60 * 60 * 1000); // 24 hours ago
-                const result = await User.deleteMany({
-                    status: 'pending',
-                    createdAt: { $lt: threshold }
-                });
-                if (result.deletedCount > 0) {
-                    console.log(`[Cleanup] Deleted ${result.deletedCount} pending user(s) older than 24 hours.`);
-                }
-            } catch (err) {
-                console.error('[Cleanup] User cleanup error:', err);
+const connectDb = () => {
+    console.log('Connecting to MongoDB...');
+    mongoose.connect(process.env.MONGODB_URI)
+        .then(() => {
+            console.log('MongoDB Connected successfully');
+            lastDbError = null;
+
+            if (!cleanupScheduled) {
+                cleanupScheduled = true;
+                // Start User Cleanup Job
+                const User = require('./src/models/User');
+                const runUserCleanup = async () => {
+                    try {
+                        const threshold = new Date(Date.now() - 24 * 60 * 60 * 1000); // 24 hours ago
+                        const result = await User.deleteMany({
+                            status: 'pending',
+                            createdAt: { $lt: threshold }
+                        });
+                        if (result.deletedCount > 0) {
+                            console.log(`[Cleanup] Deleted ${result.deletedCount} pending user(s) older than 24 hours.`);
+                        }
+                    } catch (err) {
+                        console.error('[Cleanup] User cleanup error:', err);
+                    }
+                };
+
+                // Run cleanup on startup and schedule it hourly
+                runUserCleanup();
+                setInterval(runUserCleanup, 3600000);
             }
-        };
+        })
+        .catch(err => {
+            console.error('MongoDB Connection Error:', err.message);
+            lastDbError = err.message;
+            console.log('Retrying connection in 5 seconds...');
+            setTimeout(connectDb, 5000);
+        });
+};
 
-        // Run cleanup on startup and schedule it hourly
-        runUserCleanup();
-        setInterval(runUserCleanup, 3600000);
-    })
-    .catch(err => console.log('MongoDB Connection Error:', err));
+connectDb();
 
 // API Ping
 app.get('/api/ping', (req, res) => {
     res.status(200).send('pong');
+});
+
+// Database Status Endpoint
+app.get('/api/db-status', (req, res) => {
+    const states = {
+        0: 'disconnected',
+        1: 'connected',
+        2: 'connecting',
+        3: 'disconnecting'
+    };
+    const readyState = mongoose.connection.readyState;
+    res.status(200).json({
+        readyState,
+        status: states[readyState] || 'unknown',
+        error: lastDbError
+    });
 });
 
 // SPA fallback - serve index.html for non-API routes
