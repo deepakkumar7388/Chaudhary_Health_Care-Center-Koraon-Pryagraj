@@ -48,6 +48,11 @@ app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.static(path.join(__dirname, '../')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Serve Digital Asset Links for Android app verification (bypasses express.static dotfile ignore)
+app.get('/.well-known/assetlinks.json', (req, res) => {
+    res.sendFile(path.join(__dirname, '../.well-known/assetlinks.json'));
+});
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/patients', patientRoutes);
