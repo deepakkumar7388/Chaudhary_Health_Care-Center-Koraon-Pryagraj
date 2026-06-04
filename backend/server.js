@@ -48,9 +48,17 @@ app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.static(path.join(__dirname, '../')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Serve Digital Asset Links for Android app verification (bypasses express.static dotfile ignore)
+// Serve Digital Asset Links for Android app verification
 app.get('/.well-known/assetlinks.json', (req, res) => {
-    res.sendFile(path.join(__dirname, '../.well-known/assetlinks.json'));
+    res.setHeader('Content-Type', 'application/json');
+    res.json([{
+        "relation": ["delegate_permission/common.handle_all_urls"],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "com.onrender.chaudhary_health_care_center_koraon.twa",
+            "sha256_cert_fingerprints": ["1A:B5:CE:40:C7:9E:41:4D:9B:1D:53:B7:7D:90:A3:74:BA:C7:9B:36:FE:EB:7E:C6:12:AB:1A:25:AC:52:20:8C"]
+        }
+    }]);
 });
 
 // API Routes
