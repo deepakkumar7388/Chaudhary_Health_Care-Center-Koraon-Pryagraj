@@ -9,7 +9,7 @@ function renderDischarge() {
     moduleEl.innerHTML = `
         <div class="discharge-container">
             <div class="module-header" id="discharge-header-nav">
-                <h2>Patient Discharge</h2>
+                <h2 id="discharge-title-h2">Patient Discharge</h2>
                 <button class="btn" onclick="showModule('patients')">
                     <i class="bi bi-arrow-left"></i> Back to Patients
                 </button>
@@ -36,7 +36,7 @@ function renderDischarge() {
                     </div>
                     <div class="form-grid" style="margin-top:15px;">
                         <div class="form-group">
-                            <label>Admission Date</label>
+                            <label id="discharge-admit-label">Admission Date</label>
                             <input type="text" id="d-admit" readonly>
                         </div>
                     </div>
@@ -49,17 +49,17 @@ function renderDischarge() {
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                     <div class="form-group" style="margin-bottom:0;">
-                        <label>Discharge Date *</label>
+                        <label id="discharge-date-label">Discharge Date *</label>
                         <input type="date" id="discharge-date" required>
                     </div>
                     <div class="form-group" style="margin-bottom:0;">
-                        <label>Discharge Time *</label>
+                        <label id="discharge-time-label">Discharge Time *</label>
                         <input type="time" id="discharge-time" required>
                     </div>
                 </div>
                 
                 <div class="form-group">
-                    <label>Treatment Summary *</label>
+                    <label id="discharge-summary-label">Treatment Summary *</label>
                     <textarea rows="4" id="discharge-summary" required></textarea>
                 </div>
                 
@@ -81,7 +81,7 @@ function renderDischarge() {
                                     <th>Action</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="advised-med-table-body">
                                 <!-- dynamic rows -->
                             </tbody>
                         </table>
@@ -89,7 +89,7 @@ function renderDischarge() {
                 </div>
                 
                 <div class="form-actions">
-                    <button class="btn-success" onclick="confirmDischarge()">
+                    <button id="discharge-btn-submit" class="btn-success" onclick="confirmDischarge()">
                         <i class="bi bi-check-lg"></i> Generate Discharge Summary
                     </button>
                 </div>
@@ -278,6 +278,33 @@ function selectDischargePatient(id, name, admitDate) {
     document.getElementById('d-admit').value = admitDate || '-';
 
     document.getElementById('discharge-info').style.display = 'block';
+
+    // Update labels dynamically based on patient type
+    const patientObj = dischargePatientsList?.find(p => String(p.patient_id) === String(id) || String(p._id) === String(id));
+    const isOpd = patientObj && patientObj.patient_type === 'OPD';
+    
+    const titleEl = document.getElementById('discharge-title-h2');
+    const admitLabel = document.getElementById('discharge-admit-label');
+    const dateLabel = document.getElementById('discharge-date-label');
+    const timeLabel = document.getElementById('discharge-time-label');
+    const summaryLabel = document.getElementById('discharge-summary-label');
+    const submitBtn = document.getElementById('discharge-btn-submit');
+    
+    if (isOpd) {
+        if (titleEl) titleEl.textContent = 'OPD Prescription & Visit Summary';
+        if (admitLabel) admitLabel.textContent = 'Registration Date';
+        if (dateLabel) dateLabel.textContent = 'Visit Date *';
+        if (timeLabel) timeLabel.textContent = 'Visit Time *';
+        if (summaryLabel) summaryLabel.textContent = 'Clinical Notes / Diagnosis *';
+        if (submitBtn) submitBtn.innerHTML = '<i class="bi bi-check-lg"></i> Generate OPD Visit Slip';
+    } else {
+        if (titleEl) titleEl.textContent = 'Patient Discharge';
+        if (admitLabel) admitLabel.textContent = 'Admission Date';
+        if (dateLabel) dateLabel.textContent = 'Discharge Date *';
+        if (timeLabel) timeLabel.textContent = 'Discharge Time *';
+        if (summaryLabel) summaryLabel.textContent = 'Treatment Summary *';
+        if (submitBtn) submitBtn.innerHTML = '<i class="bi bi-check-lg"></i> Generate Discharge Summary';
+    }
 }
 
 function addMedicineRow() {
@@ -307,6 +334,13 @@ function confirmDischarge() {
     }
 
     const patientObj = dischargePatientsList?.find(p => String(p.patient_id) === String(patientId) || String(p._id) === String(patientId));
+    const isOpd = patientObj && patientObj.patient_type === 'OPD';
+
+    if (isOpd) {
+        executeDischarge(patientId, summary, dischargeDate, dischargeTime);
+        return;
+    }
+
     const isAlreadyDischarged = patientObj && (patientObj.status || '').toLowerCase() === 'discharged';
 
     if (isAlreadyDischarged) {

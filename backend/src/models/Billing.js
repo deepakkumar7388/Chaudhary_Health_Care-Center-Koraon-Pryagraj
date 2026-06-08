@@ -14,7 +14,9 @@ const billingSchema = new mongoose.Schema({
     items: [{
         fee: Number,
         days: Number,
-        name: String
+        name: String,
+        isManualDays: { type: Boolean, default: false },
+        isManualFee: { type: Boolean, default: false }
     }],
     payments: [paymentSchema],
     updatedAt: { type: Date, default: Date.now }

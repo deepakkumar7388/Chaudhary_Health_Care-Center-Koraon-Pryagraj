@@ -198,22 +198,69 @@
         white-space: nowrap !important;
     }
 
-    /* Filter bar — stack vertically */
+    /* Filter bar — compact side-by-side on mobile */
     .filter-bar {
-        flex-direction: column !important;
-        gap: 12px !important;
-        padding: 14px !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+        padding: 10px !important;
+        margin-bottom: 12px !important;
+        border-radius: 12px !important;
     }
 
     .filter-bar-group {
-        width: 100% !important;
+        flex: 1 1 calc(50% - 4px) !important;
         flex-direction: column !important;
         align-items: stretch !important;
-        gap: 6px !important;
+        gap: 4px !important;
     }
 
     .filter-bar-select {
         width: 100% !important;
+        font-size: 12px !important;
+        padding: 8px 12px !important;
+        height: 36px !important;
+    }
+
+    .filter-bar-input {
+        width: 100% !important;
+        min-width: unset !important;
+        font-size: 12px !important;
+        padding: 8px 12px !important;
+        height: 36px !important;
+    }
+
+    /* Hide vertical dividers on mobile — they make no sense stacked */
+    .filter-bar-divider {
+        display: none !important;
+    }
+
+    /* Custom date range — stack From/To in a 2-column grid */
+    #custom-date-range {
+        flex: 1 1 100% !important;
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 8px !important;
+    }
+
+    #custom-date-range label {
+        display: none !important;
+    }
+
+    #custom-date-range label:nth-of-type(2) {
+        display: none !important;
+    }
+
+    #custom-date-range .filter-bar-input {
+        flex: 1 !important;
+        min-width: 0 !important;
+    }
+
+    /* Filter labels — smaller on mobile */
+    .filter-bar-group label {
+        font-size: 10px !important;
+        letter-spacing: 0.3px !important;
+        margin: 0 !important;
     }
 
     /* Charts grid — single column */
@@ -226,12 +273,13 @@
     .reports-container .stats-grid,
     #reports-key-metrics {
         grid-template-columns: repeat(2, 1fr) !important;
-        gap: 12px !important;
+        gap: 8px !important;
+        margin-bottom: 12px !important;
     }
 
     /* Report cards — reduce padding */
     .report-card {
-        padding: 16px !important;
+        padding: 12px !important;
         border-radius: 12px !important;
     }
 
@@ -247,25 +295,59 @@
 
     /* Stat cards — compact on mobile */
     .stat-card {
-        padding: 12px !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 6px !important;
+        padding: 10px !important;
+        border-radius: 10px !important;
     }
 
-    .stat-card-value {
-        font-size: 18px !important;
+    .stat-card-icon,
+    .stat-card i {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 14px !important;
+        border-radius: 8px !important;
+        margin: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
 
-    .stat-card-icon {
-        width: 38px !important;
-        height: 38px !important;
+    .stat-card-details,
+    .stat-card > div {
+        width: 100% !important;
+    }
+
+    .stat-card-label,
+    .stat-card p {
+        font-size: 9px !important;
+        margin: 0 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.3px !important;
+    }
+
+    .stat-card-value,
+    .stat-card h3 {
         font-size: 16px !important;
+        margin: 2px 0 !important;
+        font-weight: 800 !important;
+    }
+
+    .stat-card-subtext {
+        font-size: 9px !important;
+        white-space: nowrap !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 }
 
 @media (max-width: 480px) {
-    /* Stats — single column on very small screens */
+    /* Stats — keep 2 columns even on very small screens */
     .reports-container .stats-grid,
     #reports-key-metrics {
-        grid-template-columns: 1fr !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 6px !important;
     }
 
     .chart-container {
@@ -273,7 +355,7 @@
     }
 
     .report-card {
-        padding: 12px !important;
+        padding: 10px !important;
     }
 }
 
@@ -296,38 +378,56 @@
 
 @media (max-width: 768px) {
     .billing-container .module-header {
-        gap: 14px !important;
-    }
-
-    .billing-container .module-title {
-        font-size: 22px !important;
-    }
-
-    /* Dashboard cards — single column */
-    .billing-container .dashboard-cards {
-        grid-template-columns: 1fr !important;
         gap: 10px !important;
     }
 
-    .dash-card {
-        padding: 14px 16px !important;
-        border-radius: 12px !important;
-    }
-
-    .card-info .value {
-        font-size: 20px !important;
-    }
-
-    .card-icon {
-        width: 40px !important;
-        height: 40px !important;
+    .billing-container .module-title {
         font-size: 18px !important;
+    }
+
+    /* Dashboard cards — 2 columns */
+    .billing-container .dashboard-cards {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+    }
+
+    .dash-card {
+        padding: 10px !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 6px !important;
+        border-radius: 10px !important;
+    }
+
+    .dash-card .card-info {
+        width: 100% !important;
+    }
+
+    .dash-card .card-info .label {
+        font-size: 9px !important;
+        margin: 0 !important;
+    }
+
+    .dash-card .card-info .value {
+        font-size: 16px !important;
+        margin-top: 2px !important;
+        font-weight: 800 !important;
+    }
+
+    .dash-card .card-icon {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 14px !important;
+        border-radius: 8px !important;
+        margin: 0 !important;
+        order: -1 !important;
     }
 
     /* Search panel — reduce padding */
     .billing-search-panel {
-        padding: 14px !important;
-        border-radius: 12px !important;
+        padding: 12px !important;
+        border-radius: 10px !important;
+        margin-bottom: 12px !important;
     }
 
     /* Tabs — horizontal scroll */
@@ -603,25 +703,172 @@
 
 @media (max-width: 768px) {
     /* Module headers — consistent stacking */
-    .module-header {
+    .module-header,
+    .users-header,
+    .register-header {
         flex-direction: column !important;
         align-items: stretch !important;
-        gap: 12px !important;
+        gap: 8px !important;
+        margin-bottom: 12px !important;
+        padding-bottom: 8px !important;
     }
 
-    .module-header h2 {
-        font-size: 20px !important;
+    .module-header h2,
+    .users-header h2,
+    .register-header h2,
+    .discharge-container .module-header h2 {
+        font-size: 18px !important;
+        margin: 0 !important;
     }
 
-    /* Prevent horizontal overflow globally */
+    /* Prevent horizontal overflow globally & increase top padding */
     .main-content {
         overflow-x: hidden !important;
+        padding-top: 76px !important; /* Tighter padding-top below 64px mobile header */
+        padding-left: 10px !important;
+        padding-right: 10px !important;
     }
 
-    /* Tables — always scrollable */
+    /* Tables — always scrollable and compact */
     .table-responsive {
         overflow-x: auto !important;
         -webkit-overflow-scrolling: touch !important;
+        margin-bottom: 0.8rem !important;
+        border-radius: 8px !important;
+    }
+
+    table th, 
+    table td,
+    .patients-table th, 
+    .patients-table td,
+    .bills-table th, 
+    .bills-table td,
+    .users-table th, 
+    .users-table td {
+        padding: 10px 12px !important;
+        font-size: 13px !important;
+    }
+
+    /* Consolidated compact spacing for all containers and cards */
+    .patients-container,
+    .register-container,
+    .billing-container,
+    .settings-container,
+    .reports-container,
+    .add-patient-container,
+    .users-container,
+    .users-card,
+    .discharge-container,
+    .patient-record-layout {
+        padding: 12px !important;
+        border-radius: 12px !important;
+        gap: 12px !important;
+    }
+
+    /* Compress default padding of forms and input components */
+    input, 
+    select, 
+    textarea,
+    .form-group input,
+    .form-group select,
+    .form-group textarea,
+    .discharge-form input,
+    .discharge-form select,
+    .discharge-form textarea,
+    .users-search,
+    .users-filter {
+        padding: 8px 12px !important;
+        font-size: 13px !important;
+        min-height: unset !important;
+        height: auto !important;
+    }
+
+    .form-group,
+    .discharge-form .form-group {
+        margin-bottom: 10px !important;
+        gap: 4px !important;
+    }
+
+    .form-group label,
+    .discharge-form label {
+        font-size: 11px !important;
+        margin-bottom: 2px !important;
+    }
+
+    .form-actions,
+    .discharge-form .form-actions,
+    .surgery-actions {
+        margin-top: 12px !important;
+        gap: 8px !important;
+    }
+
+    /* Make buttons compact but touch friendly */
+    .btn,
+    .btn-add-user,
+    .btn-add-observation,
+    .form-actions button,
+    .discharge-form .form-actions button {
+        padding: 9px 16px !important;
+        font-size: 13px !important;
+        min-height: unset !important;
+    }
+
+    /* Patient module filter bar */
+    .patients-container .search-filter {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+        padding: 10px !important;
+        margin-bottom: 12px !important;
+        border-radius: 10px !important;
+    }
+    
+    .patients-container .search-filter input {
+        grid-column: span 2 !important;
+        padding: 8px 12px !important;
+        font-size: 13px !important;
+    }
+    
+    .patients-container .search-filter select {
+        padding: 8px 12px !important;
+        font-size: 12px !important;
+        border-radius: 8px !important;
+        height: 36px !important;
+    }
+    
+    #patient-sort {
+        grid-column: span 2 !important;
+    }
+
+    /* Patient record container search section */
+    .patient-record-layout .search-section {
+        padding: 10px !important;
+        margin-bottom: 10px !important;
+        border-radius: 8px !important;
+    }
+    
+    .patient-record-layout .search-section h3 {
+        font-size: 13px !important;
+        margin-bottom: 6px !important;
+    }
+
+    /* Welcome card / hero section */
+    .welcome-card.hero-section {
+        padding: 14px !important;
+        margin-bottom: 12px !important;
+        border-radius: 10px !important;
+    }
+
+    .welcome-card.hero-section h1 {
+        font-size: 18px !important;
+    }
+
+    .welcome-card.hero-section p {
+        font-size: 12px !important;
+        margin-bottom: 4px !important;
+    }
+
+    .welcome-card.hero-section div[style*="height: 1px"] {
+        margin: 4px 0 !important;
     }
 }
 
@@ -744,6 +991,23 @@ body.dark-theme .filter-bar label,
 body.dark-theme .filter-bar span,
 body.dark-theme .patients-container .search-filter label {
     color: #9ca3af !important;
+}
+
+body.dark-theme .filter-bar-select,
+body.dark-theme .filter-bar-input {
+    background: #1f2937 !important;
+    border-color: #374151 !important;
+    color: #e5e7eb !important;
+}
+
+body.dark-theme .filter-bar-select:focus,
+body.dark-theme .filter-bar-input:focus {
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2) !important;
+}
+
+body.dark-theme .filter-bar-divider {
+    background: #374151 !important;
 }
 
 /* --- Settings page --- */

@@ -83,9 +83,9 @@ function renderBilling() {
             <!-- Detailed Billing Report Modal -->
             <div id="billing-report-wrap" class="billing-report-overlay" style="display:none;">
                 <div class="report-actions-top no-print">
-                    <button class="btn btn-primary" onclick="window.print()"><i class="bi bi-printer"></i> Print Invoice</button>
-                    <button id="btn-return-discharge" class="btn btn-success" style="display:none;" onclick="showModule('discharge')"><i class="bi bi-box-arrow-left"></i> Return to Discharge</button>
-                    <button class="btn btn-secondary" onclick="closeBillingReport()"><i class="bi bi-x-lg"></i> Close</button>
+                    <button class="btn btn-primary btn-small" onclick="window.print()"><i class="bi bi-printer"></i> Print Invoice</button>
+                    <button id="btn-return-discharge" class="btn btn-success btn-small" style="display:none;" onclick="showModule('discharge')"><i class="bi bi-box-arrow-left"></i> Return to Discharge</button>
+                    <button class="btn btn-secondary btn-small" onclick="closeBillingReport()"><i class="bi bi-x-lg"></i> Close</button>
                 </div>
                 
                 <div class="a4-bill-container" id="a4-bill-report">
@@ -126,8 +126,8 @@ function renderBilling() {
                             <div class="info-column">
                                 <p><strong>Age/Gender:</strong> <span id="b-age" class="editable-span"></span></p>
                                 <p><strong>Bed / Ward:</strong> <span id="b-bed" class="editable-span"></span></p>
-                                <p><strong>Admitted:</strong> <span id="b-doa" class="editable-span"></span></p>
-                                <p><strong>Discharged:</strong> <span id="b-dod" class="editable-span"></span></p>
+                                <p><strong id="b-doa-label">Admitted:</strong> <span id="b-doa" class="editable-span"></span></p>
+                                <p><strong id="b-dod-label">Discharged:</strong> <span id="b-dod" class="editable-span"></span></p>
                             </div>
                         </div>
                     </div>
@@ -195,20 +195,60 @@ function _renderBillingFromData(patients, billings) {
 
     patients.forEach(p => {
         const rec = billingMap[p.patient_id];
-        if (p.status === 'Admitted' || (rec && rec.items?.length > 0)) {
-            stats.bills++;
-            let grandTotal = 0;
-            if (rec?.items) rec.items.forEach(i => grandTotal += ((parseFloat(i.fee) || 0) * (parseFloat(i.days) || 1)));
-            let net = Math.max(0, grandTotal - (parseFloat(rec?.discount) || 0));
-            let paid = 0;
-            if (rec?.payments) rec.payments.forEach(pay => paid += (parseFloat(pay.amount) || 0));
-            let due = Math.max(0, net - paid);
-            let isPaid = (due <= 0 && net > 0);
-            let status = isPaid ? 'Paid' : (paid > 0 ? 'Partial' : 'Pending');
-            let billObj = { id: p.patient_id, patient: p.name, amount: net, remaining: due, bill_date: p.admission_date, status };
-            if (isPaid) { paidList.push(billObj); stats.paid++; }
-            else { pendingList.push(billObj); stats.pending++; }
+        const pType = p.patient_type || 'IPD';
+        const isOpd = pType === 'OPD';
+
+        // OPD patients: hamesha bill list me show karo (registration pe fee li ja chuki hai)
+        // IPD patients: show only if Admitted or has billing record
+        const shouldShow = isOpd || p.status === 'Admitted' || (rec && rec.items?.length > 0);
+        if (!shouldShow) return;
+
+        stats.bills++;
+
+        // Billing totals calculate karo
+        let grandTotal = 0;
+        if (rec?.items) rec.items.forEach(i => grandTotal += ((parseFloat(i.fee) || 0) * (parseFloat(i.days) || 1)));
+        let net = Math.max(0, grandTotal - (parseFloat(rec?.discount) || 0));
+        let paid = 0;
+        if (rec?.payments) rec.payments.forEach(pay => paid += (parseFloat(pay.amount) || 0));
+        let due = Math.max(0, net - paid);
+
+        // ── OPD Special Logic ──
+        // Agar OPD patient ka payment_status 'Paid' hai aur billing record empty hai
+        // to registration time pe jo fee li gayi thi use Paid maano
+        let isPaid, status;
+        if (isOpd && net === 0 && paid === 0) {
+            // Billing record abhi empty hai — patient ke payment_status pe depend karo
+            const patPayStatus = (p.payment_status || 'Pending').toLowerCase();
+            const consultFee = parseFloat(p.doctorFees) || parseFloat(p.totalBill) || 0;
+            if (patPayStatus === 'paid') {
+                isPaid = true;
+                status = 'Paid';
+                net = consultFee;      // display ke liye
+                due = 0;
+                paid = consultFee;
+            } else {
+                isPaid = false;
+                status = 'Pending';
+                net = consultFee;
+                due = consultFee;
+            }
+        } else {
+            isPaid = (due <= 0 && net > 0);
+            status = isPaid ? 'Paid' : (paid > 0 ? 'Partial' : 'Pending');
         }
+
+        let billObj = {
+            id: p.patient_id,
+            patient: p.name,
+            amount: net,
+            remaining: due,
+            bill_date: p.admission_date,
+            status,
+            patient_type: pType
+        };
+        if (isPaid) { paidList.push(billObj); stats.paid++; }
+        else { pendingList.push(billObj); stats.pending++; }
     });
 
     const totalEl = document.getElementById('stat-total-patients');
@@ -228,19 +268,18 @@ async function loadBillingData() {
     const token = sessionStorage.getItem('token');
     if (!token) return;
 
-    // Step 1: Cache se instant render (memory + localStorage)
+    // Patients: cache se instant render karo
     const cachedPatients = window.allPatientsData || JSON.parse(localStorage.getItem('patients') || '[]');
+    // Billings: hamesha fresh server se lo (payments frequently change)
     const cachedBillings = JSON.parse(localStorage.getItem('billings') || '[]');
 
-    if (cachedPatients.length > 0) {
+    if (cachedPatients.length > 0 && cachedBillings.length > 0) {
+        // Instant render with cached data
         _renderBillingFromData(cachedPatients, cachedBillings);
-        // Background mein fresh data lo
-        _fetchBillingFresh(token, cachedPatients);
-        return;
     }
 
-    // Step 2: Pehli baar server se lo (no cache)
-    await _fetchBillingFresh(token, null);
+    // Always fetch fresh data in background (billings change often)
+    _fetchBillingFresh(token, cachedPatients.length > 0 ? cachedPatients : null);
 }
 
 // Background billing fetch
@@ -319,14 +358,18 @@ function showBillingTab(tab) {
             <tbody>
                 ${list.map(bill => {
                     const isPaid = bill.status === 'Paid';
-                    const statusClass = isPaid ? 'paid' : 'pending';
-                    const statusIcon = isPaid ? 'bi-check-circle' : 'bi-clock';
+                    const isPartial = bill.status === 'Partial';
+                    const statusClass = isPaid ? 'paid' : (isPartial ? 'partial' : 'pending');
+                    const statusIcon = isPaid ? 'bi-check-circle' : (isPartial ? 'bi-clock-history' : 'bi-clock');
+                    const typeBadge = bill.patient_type === 'OPD'
+                        ? `<span style="background:#ecfdf5;color:#059669;border:1px solid #a7f3d0;font-size:10px;padding:1px 6px;border-radius:4px;margin-left:5px;font-weight:700;">OPD</span>`
+                        : `<span style="background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;font-size:10px;padding:1px 6px;border-radius:4px;margin-left:5px;font-weight:700;">IPD</span>`;
                     
                     return `
                     <tr>
-                        <td><strong>${bill.patient}</strong></td>
+                        <td><strong>${bill.patient}</strong>${typeBadge}</td>
                         <td style="color:#64748b; font-size:12px; font-weight:700;">INV-${bill.id}</td>
-                        <td>${bill.bill_date}</td>
+                        <td>${new Date(bill.bill_date).toLocaleDateString('en-IN')}</td>
                         <td style="font-weight:800;">${window.currencySymbol || '₹'}${bill.amount.toLocaleString()}</td>
                         <td style="color:${bill.remaining > 0 ? '#ef4444' : '#10b981'}; font-weight:700;">
                             ${window.currencySymbol || '₹'}${bill.remaining.toLocaleString()}
@@ -378,9 +421,26 @@ async function viewBill(patientId) {
         document.getElementById('b-relative').textContent = p?.guardian_name || p?.relative_name || '-';
         document.getElementById('b-address').textContent = p?.address || '-';
         document.getElementById('b-age').textContent = (p?.age || '-') + ' / ' + (p?.gender || '-');
-        document.getElementById('b-bed').textContent = p?.bed_no || '-';
+        const isOpd = p?.patient_type === 'OPD';
+        document.getElementById('b-bed').textContent = isOpd ? 'OPD' : (p?.bed_no || '-');
+        
+        const doaLabel = document.getElementById('b-doa-label');
+        if (doaLabel) {
+            doaLabel.textContent = isOpd ? 'Registered:' : 'Admitted:';
+        }
         document.getElementById('b-doa').textContent = formatBillDate(p?.admission_date);
-        document.getElementById('b-dod').textContent = formatBillDate(p?.discharge_date);
+
+        const dodLabel = document.getElementById('b-dod-label');
+        const dodSpan = document.getElementById('b-dod');
+        if (dodLabel && dodSpan) {
+            if (isOpd) {
+                dodLabel.parentElement.style.display = 'none';
+            } else {
+                dodLabel.parentElement.style.display = 'block';
+                dodLabel.textContent = 'Discharged:';
+                dodSpan.textContent = formatBillDate(p?.discharge_date);
+            }
+        }
         
         // Auto-populate invoice date and time
         const now = new Date();
@@ -389,18 +449,32 @@ async function viewBill(patientId) {
         
         document.getElementById('discount-amt').value = currentBillData?.discount || 0;
         
-        initializeBillingTable(currentBillData?.items || [], p?.bedHistory || [], p?.surgeries || []);
+        initializeBillingTable(currentBillData?.items || [], p?.bedHistory || [], p?.surgeries || [], isOpd);
         renderPaymentHistory(currentBillData?.payments || []);
         
-        // Calculate total admitted days
+        // OPD ke liye Registration Fee Banner dikhaao
+        _renderOpdBanner(isOpd, p);
+
+        // Calculate total admitted days (calendar days)
         let totalAdmittedDays = 1;
         if (p?.admission_date) {
             const admissionDate = new Date(p.admission_date);
             const dischargeDate = p.discharge_date ? new Date(p.discharge_date) : new Date();
-            const diffTime = Math.abs(dischargeDate - admissionDate);
-            totalAdmittedDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            const sDate = new Date(admissionDate);
+            const eDate = new Date(dischargeDate);
+            sDate.setHours(0, 0, 0, 0);
+            eDate.setHours(0, 0, 0, 0);
+            totalAdmittedDays = Math.round(Math.abs(eDate - sDate) / (1000 * 60 * 60 * 24)) + 1;
             if (totalAdmittedDays < 1) totalAdmittedDays = 1;
         }
+
+        const settingConsultationFee = window.hospitalSettings?.['consultation-fee'];
+        const hasConsultationFeeSetting = (settingConsultationFee !== undefined && settingConsultationFee !== null && settingConsultationFee.toString().trim() !== '');
+        const defaultConsultFee = hasConsultationFeeSetting ? parseFloat(settingConsultationFee) : '';
+
+        const settingDoctorFee = window.hospitalSettings?.['doctor-fees'];
+        const hasDoctorFeeSetting = (settingDoctorFee !== undefined && settingDoctorFee !== null && settingDoctorFee.toString().trim() !== '');
+        const defaultDrFees = hasDoctorFeeSetting ? parseFloat(settingDoctorFee) : defaultConsultFee;
 
         // Populate inputs for saved items
         const rows = document.querySelectorAll('#billing-items-body tr');
@@ -409,20 +483,42 @@ async function viewBill(patientId) {
             const savedItem = currentBillData?.items?.find(i => i.name === itemName);
             
             if (savedItem) {
-                // If previously saved, load exactly what was saved
-                row.querySelector('.fee-input').value = savedItem.fee !== undefined ? savedItem.fee : '';
-                row.querySelector('.days-input').value = savedItem.days !== undefined ? savedItem.days : '';
+                // If previously saved, load exactly what was saved unless we need to auto-update
+                let feeVal = savedItem.fee !== undefined ? savedItem.fee : '';
                 
-                // Fallback for consultation fee defaults if saved empty
-                if (itemName === 'DR. FEES' && !savedItem.fee) {
-                    const defaultDrFees = parseFloat(window.hospitalSettings?.['doctor-fees']) || parseFloat(window.hospitalSettings?.['consultation-fee']) || 500;
-                    row.querySelector('.fee-input').value = p?.doctorFees || defaultDrFees;
-                    row.querySelector('.days-input').value = 1;
+                if (!savedItem.isManualFee) {
+                    if (itemName === 'CONSULTATION FEE') {
+                        feeVal = defaultConsultFee;
+                    } else if (itemName === 'DR. FEES' && !isOpd) {
+                        // Settings ki value ko priority do, patient DB ki purani value ignore karo
+                        feeVal = defaultDrFees;
+                    }
                 }
-                if (itemName === 'CONSULTATION FEE' && !savedItem.fee) {
-                    const defaultConsultFee = parseFloat(window.hospitalSettings?.['consultation-fee']) || 500;
-                    row.querySelector('.fee-input').value = defaultConsultFee;
-                    row.querySelector('.days-input').value = 1;
+                
+                row.querySelector('.fee-input').value = feeVal;
+                if (savedItem.isManualFee) {
+                    row.querySelector('.fee-input').setAttribute('data-manual-fee', 'true');
+                }
+                
+                const isBedCharge = itemName && itemName.startsWith('Bed Charge');
+                const isPatientAdmitted = p?.status === 'Admitted';
+                if (isBedCharge && isPatientAdmitted) {
+                    if (savedItem.isManualDays) {
+                        row.querySelector('.days-input').value = savedItem.days;
+                        row.querySelector('.days-input').setAttribute('data-manual-days', 'true');
+                    } else {
+                        // Keep the newly calculated diffDays! Do not overwrite.
+                    }
+                } else {
+                    row.querySelector('.days-input').value = savedItem.days !== undefined ? savedItem.days : '';
+                    if (savedItem.isManualDays) {
+                        row.querySelector('.days-input').setAttribute('data-manual-days', 'true');
+                    }
+                }
+
+                // If CONSULTATION FEE is empty, set days-input value to empty string
+                if (itemName === 'CONSULTATION FEE' && feeVal === '') {
+                    row.querySelector('.days-input').value = '';
                 }
             } else {
                 // First-time load: no saved item exists yet
@@ -430,17 +526,24 @@ async function viewBill(patientId) {
                     // Populate total admitted days for static items
                     row.querySelector('.days-input').value = totalAdmittedDays;
 
-                    // Auto-populate default consultation fee if it's DR. FEES
-                    if (itemName === 'DR. FEES') {
-                        const defaultDrFees = parseFloat(window.hospitalSettings?.['doctor-fees']) || parseFloat(window.hospitalSettings?.['consultation-fee']) || 500;
-                        row.querySelector('.fee-input').value = p?.doctorFees || defaultDrFees;
-                        row.querySelector('.days-input').value = 1;
+                    // Auto-populate default consultation fee if it's DR. FEES (only for IPD)
+                    if (itemName === 'DR. FEES' && !isOpd) {
+                        // Settings ki value use karo (defaultDrFees), patient DB ki purani value nahi
+                        row.querySelector('.fee-input').value = defaultDrFees;
+                        if (defaultDrFees === '') {
+                            row.querySelector('.days-input').value = '';
+                        } else {
+                            row.querySelector('.days-input').value = 1;
+                        }
                     }
-                    // Auto-populate default consultation fee if it's CONSULTATION FEE
-                    if (itemName === 'CONSULTATION FEE') {
-                        const defaultConsultFee = parseFloat(window.hospitalSettings?.['consultation-fee']) || 500;
+                    // Auto-populate default consultation fee if it's CONSULTATION FEE (only for IPD)
+                    if (itemName === 'CONSULTATION FEE' && !isOpd) {
                         row.querySelector('.fee-input').value = defaultConsultFee;
-                        row.querySelector('.days-input').value = 1;
+                        if (defaultConsultFee === '') {
+                            row.querySelector('.days-input').value = '';
+                        } else {
+                            row.querySelector('.days-input').value = 1;
+                        }
                     }
                 }
                 // For 'Bed Charge' items, initializeBillingTable has already populated the dynamic bed history stay values!
@@ -460,7 +563,57 @@ async function viewBill(patientId) {
     }
 }
 
-function initializeBillingTable(items = [], bedHistory = [], surgeries = []) {
+function _renderOpdBanner(isOpd, patient) {
+    // Existing banner remove karo
+    document.getElementById('opd-paid-banner')?.remove();
+    
+    if (!isOpd) return;
+    
+    // Settings se consultation fee lo — patient DB ki purani value use na karo
+    const settingConsultFee = window.hospitalSettings?.['consultation-fee'];
+    const consultFee = (settingConsultFee !== undefined && settingConsultFee !== null && settingConsultFee.toString().trim() !== '')
+        ? parseFloat(settingConsultFee)
+        : (patient?.doctorFees > 0 ? patient.doctorFees : 0);
+    const currency = window.currencySymbol || '₹';
+    const regDate = patient?.admission_date ? new Date(patient.admission_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+    
+    const banner = document.createElement('div');
+    banner.id = 'opd-paid-banner';
+    banner.style.cssText = `
+        background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        border: 1px solid #6ee7b7;
+        border-left: 4px solid #10b981;
+        border-radius: 10px;
+        padding: 14px 18px;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    `;
+    banner.innerHTML = `
+        <div style="width:40px; height:40px; border-radius:50%; background:#10b981; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <i class="bi bi-check-lg" style="color:#fff; font-size:18px;"></i>
+        </div>
+        <div style="flex:1;">
+            <div style="font-weight:700; color:#065f46; font-size:14px;">✅ OPD Consultation Fee — Registration Time पर प्राप्त किया गया</div>
+            <div style="font-size:12px; color:#047857; margin-top:3px;">
+                <strong>${currency}${consultFee}</strong> — Cash Received on ${regDate}. 
+                नीचे की table में only additional charges डालें।
+            </div>
+        </div>
+        <div style="background:#10b981; color:#fff; padding:6px 14px; border-radius:20px; font-weight:700; font-size:13px; white-space:nowrap;">
+            ${currency}${consultFee} Paid
+        </div>
+    `;
+    
+    // Patient info block ke baad insert karo
+    const patientInfoBlock = document.querySelector('.patient-info-summary');
+    if (patientInfoBlock && patientInfoBlock.parentNode) {
+        patientInfoBlock.parentNode.insertBefore(banner, patientInfoBlock.nextSibling);
+    }
+}
+
+function initializeBillingTable(items = [], bedHistory = [], surgeries = [], isOpd = false) {
     const tbody = document.getElementById('billing-items-body');
     let html = '';
     let rowIndex = 1;
@@ -471,24 +624,17 @@ function initializeBillingTable(items = [], bedHistory = [], surgeries = []) {
             const startDate = new Date(bed.start_date);
             const endDate = bed.end_date ? new Date(bed.end_date) : new Date();
 
-            // Calculate actual days stayed
-            const diffTime = Math.abs(endDate - startDate);
-            let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-            // Same-day transfer logic to prevent double charging on the same day
-            const startCal = startDate.toDateString();
-            const endCal = endDate.toDateString();
-            const isSameDay = startCal === endCal;
-
-            if (isSameDay) {
-                const hasSubsequentStay = bedIndex < bedHistory.length - 1;
-                if (hasSubsequentStay) {
-                    diffDays = 0; // Same-day transfer: free for this bed, charged in the subsequent bed stay
-                } else {
-                    if (diffDays < 1) diffDays = 1; // Only/last stay on the same day: minimum 1 day
-                }
-            } else {
-                if (diffDays < 1) diffDays = 1;
+            // Calculate actual days stayed (calendar days to prevent timezone/hour fluctuations)
+            const sDate = new Date(startDate);
+            const eDate = new Date(endDate);
+            sDate.setHours(0, 0, 0, 0);
+            eDate.setHours(0, 0, 0, 0);
+            let diffDays = Math.round(Math.abs(eDate - sDate) / (1000 * 60 * 60 * 24));
+            
+            // If it is the last stay (active or discharged), we count the final day (+1)
+            const isLastStay = bedIndex === bedHistory.length - 1;
+            if (isLastStay) {
+                diffDays += 1;
             }
 
             // Skip rows with 0 days (same-day transfer out of this bed)
@@ -499,8 +645,8 @@ function initializeBillingTable(items = [], bedHistory = [], surgeries = []) {
             <tr class="billing-item-row" data-item-name="${itemName}">
                 <td style="text-align:center;">${rowIndex++}</td>
                 <td><strong>${itemName}</strong> <br><small style="color:#64748b; font-size:10px;">${startDate.toLocaleDateString()} to ${bed.end_date ? endDate.toLocaleDateString() : 'Present'}</small></td>
-                <td style="text-align:center;"><input type="number" class="calc-input fee-input" oninput="calculateBillingTotals()" value="${bed.daily_charge || 0}" placeholder="0"></td>
-                <td style="text-align:center;"><input type="number" class="calc-input days-input" oninput="calculateBillingTotals()" value="${diffDays}" placeholder="1"></td>
+                <td style="text-align:center;"><input type="number" class="calc-input fee-input" oninput="this.setAttribute('data-manual-fee', 'true'); calculateBillingTotals()" value="${bed.daily_charge || 0}" placeholder="0"></td>
+                <td style="text-align:center;"><input type="number" class="calc-input days-input" oninput="this.setAttribute('data-manual-days', 'true'); calculateBillingTotals();" value="${diffDays}" placeholder="1"></td>
                 <td class="row-amt" style="text-align:right; font-weight:700;"></td>
             </tr>
             `;
@@ -515,8 +661,8 @@ function initializeBillingTable(items = [], bedHistory = [], surgeries = []) {
             <tr class="billing-item-row" data-item-name="${itemName}">
                 <td style="text-align:center;">${rowIndex++}</td>
                 <td><strong>${itemName}</strong> <br><small style="color:#64748b; font-size:10px;">Date: ${new Date(s.surgeryDate).toLocaleDateString()}</small></td>
-                <td style="text-align:center;"><input type="number" class="calc-input fee-input" oninput="calculateBillingTotals()" value="${s.cost || 0}" placeholder="0"></td>
-                <td style="text-align:center;"><input type="number" class="calc-input days-input" oninput="calculateBillingTotals()" value="1" placeholder="1"></td>
+                <td style="text-align:center;"><input type="number" class="calc-input fee-input" oninput="this.setAttribute('data-manual-fee', 'true'); calculateBillingTotals()" value="${s.cost || 0}" placeholder="0"></td>
+                <td style="text-align:center;"><input type="number" class="calc-input days-input" oninput="this.setAttribute('data-manual-days', 'true'); calculateBillingTotals()" value="1" placeholder="1"></td>
                 <td class="row-amt" style="text-align:right; font-weight:700;"></td>
             </tr>
             `;
@@ -524,12 +670,17 @@ function initializeBillingTable(items = [], bedHistory = [], surgeries = []) {
     }
 
     // Add static items
-    html += BILLING_ITEMS_LIST.map((item) => `
+    let staticItems = BILLING_ITEMS_LIST;
+    if (isOpd) {
+        staticItems = staticItems.filter(i => i !== "DR. FEES");
+    }
+
+    html += staticItems.map((item) => `
         <tr class="billing-item-row" data-item-name="${item}">
             <td style="text-align:center;">${rowIndex++}</td>
             <td>${item}</td>
-            <td style="text-align:center;"><input type="number" class="calc-input fee-input" oninput="calculateBillingTotals()" placeholder="0"></td>
-            <td style="text-align:center;"><input type="number" class="calc-input days-input" oninput="calculateBillingTotals()" placeholder="1"></td>
+            <td style="text-align:center;"><input type="number" class="calc-input fee-input" oninput="this.setAttribute('data-manual-fee', 'true'); calculateBillingTotals()" placeholder="0"></td>
+            <td style="text-align:center;"><input type="number" class="calc-input days-input" oninput="this.setAttribute('data-manual-days', 'true'); calculateBillingTotals()" placeholder="1"></td>
             <td class="row-amt" style="text-align:right; font-weight:700;"></td>
         </tr>
     `).join('');
@@ -546,7 +697,8 @@ function calculateBillingTotals() {
         const total = fee * (days || 1);
         grandTotal += total;
         row.querySelector('.row-amt').textContent = total > 0 ? total : '';
-        if (total === 0) row.classList.add('empty-row'); else row.classList.remove('empty-row');
+        const itemName = row.getAttribute('data-item-name');
+        if (total === 0 && itemName !== 'CONSULTATION FEE') row.classList.add('empty-row'); else row.classList.remove('empty-row');
     });
 
     const discount = parseFloat(document.getElementById('discount-amt').value) || 0;
@@ -577,18 +729,25 @@ function saveBillData() {
         if (!currentBillPatientId) return;
         const items = [];
         document.querySelectorAll('#billing-items-body tr').forEach(row => {
+            const daysInput = row.querySelector('.days-input');
             items.push({
                 name: row.getAttribute('data-item-name'),
                 fee: parseFloat(row.querySelector('.fee-input').value) || 0,
-                days: parseFloat(row.querySelector('.days-input').value) || 0
+                days: parseFloat(daysInput.value) || 0,
+                isManualDays: daysInput.getAttribute('data-manual-days') === 'true',
+                isManualFee: row.querySelector('.fee-input').getAttribute('data-manual-fee') === 'true'
             });
         });
 
-        await fetch(`${API_BASE}billing/${currentBillPatientId}`, {
+        const res = await fetch(`${API_BASE}billing/${currentBillPatientId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + sessionStorage.getItem('token') },
             body: JSON.stringify({ items, discount: parseFloat(document.getElementById('discount-amt').value) || 0 })
         });
+        // Cache invalidate karo taaki next load fresh data le
+        if (res.ok) {
+            localStorage.removeItem('billings');
+        }
     }, 1000);
 }
 
@@ -609,6 +768,8 @@ async function addPaymentToBill() {
         renderPaymentHistory(currentBillData.payments);
         calculateBillingTotals();
         document.getElementById('pay-amt').value = '';
+        // Cache clear karo taaki list refresh ho jaye
+        localStorage.removeItem('billings');
 
         // Check if fully paid and has discharge draft for THIS patient
         const dueAmtText = document.getElementById('due-amt')?.textContent || '0';
@@ -656,6 +817,7 @@ async function deletePayment(payId) {
         currentBillData.payments = result.payments;
         renderPaymentHistory(currentBillData.payments);
         calculateBillingTotals();
+        localStorage.removeItem('billings'); // Cache clear
     }
 }
 
@@ -667,6 +829,7 @@ async function markBillPaid(patientId, remaining) {
             body: JSON.stringify({ amount: remaining, mode: 'Cash', date: new Date().toISOString().split('T')[0] })
         });
         if (response.ok) {
+            localStorage.removeItem('billings'); // Cache clear karo
             // Check if there's a discharge draft waiting — redirect back automatically
             const draft = sessionStorage.getItem('dischargeDraft');
             if (draft) {

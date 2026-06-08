@@ -121,6 +121,17 @@ async function login() {
             hideLoading();
             showNotification('Login successful!', 'success', 'Welcome');
             switchToApp();
+
+            // Setup push notifications after login (3s delay to avoid blocking UI)
+            if (window.hmsFCM) window.hmsFCM.setup();
+
+            // Rejoin socket room with correct role
+            if (window.hmsSocket && window.hmsSocket.isConnected()) {
+                window.hmsSocket.emit('join', {
+                    role: (currentUser.role || 'staff').toLowerCase(),
+                    userId: currentUser.id
+                });
+            }
         } else {
             hideLoading();
             if (response.status === 403) {
@@ -1679,3 +1690,32 @@ window.addEventListener('hashchange', function () {
         showModule(hash, true);
     }
 });
+
+// ==================== GLOBAL NETWORK INTERCEPTOR & STATUS LISTENERS ====================
+// 1. Live online/offline browser connection status listeners
+window.addEventListener('offline', function () {
+    showNotification('No Internet Connection. Some features may not work offline.', 'warning', 'Network Offline');
+});
+
+window.addEventListener('online', function () {
+    showNotification('Internet connection restored. Reconnected to server.', 'success', 'Network Online');
+});
+
+// 2. Global fetch interceptor to catch any connection failure when offline
+const originalFetch = window.fetch;
+window.fetch = async function (...args) {
+    if (!navigator.onLine) {
+        showNotification('No Internet Connection. Please check your network and try again.', 'error', 'Network Error');
+        throw new Error('TypeError: Failed to fetch due to offline status');
+    }
+    try {
+        return await originalFetch(...args);
+    } catch (error) {
+        // If fetch fails and we are offline, show a professional connection warning
+        if (!navigator.onLine) {
+            showNotification('No Internet Connection. Please check your network and try again.', 'error', 'Network Error');
+            throw new Error('TypeError: Failed to fetch due to offline status');
+        }
+        throw error;
+    }
+};

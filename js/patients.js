@@ -27,6 +27,11 @@ function renderPatients() {
                     <option value="Admitted">Admitted</option>
                     <option value="Discharged">Discharged</option>
                 </select>
+                <select class="filter-select" id="type-filter" onchange="filterPatients()">
+                    <option value="all">All Types</option>
+                    <option value="IPD">IPD Only</option>
+                    <option value="OPD">OPD Only</option>
+                </select>
                 ${canViewPayments() ? `
                 <select class="filter-select" id="payment-filter" onchange="filterPatients()">
                     <option value="all">All Payments</option>
@@ -70,7 +75,7 @@ function renderPatients() {
 
     setTimeout(() => {
         // Event Handling (IMPORTANT): Adding proper event listeners
-        const els = ['patient-filter', 'payment-filter', 'surgery-filter', 'patient-sort'];
+        const els = ['patient-filter', 'payment-filter', 'surgery-filter', 'patient-sort', 'type-filter'];
         els.forEach(id => {
             const el = document.getElementById(id);
             if (el) {
@@ -151,18 +156,20 @@ function renderPatientsTable(patientsList) {
     tbody.innerHTML = sortedList.map((patient, index) => {
         const payStatus = patient.payment_status || 'Pending';
         const guardian = patient.guardian_name || '';
-        const bedText = patient.bed_no || 'N/A';
+        const pType = patient.patient_type || 'IPD';
+        const bedText = pType === 'OPD' ? 'OPD' : (patient.bed_no || 'N/A');
         const isDischarged = (patient.status || '').toLowerCase() === 'discharged';
 
         let bedDisplay = `<span>${bedText}</span>`;
 
         const hasSurgery = isSurgeryPatient(patient.patient_id);
+        const typeBadge = `<span class="status-badge" style="background:${pType === 'OPD' ? '#ecfdf5; color:#059669; border:1px solid #a7f3d0' : '#eff6ff; color:#2563eb; border:1px solid #bfdbfe'}; font-size:10px; padding:2px 6px; margin-left:6px;">${pType}</span>`;
 
         return `
         <tr style="animation-delay: ${index * 0.05}s">
             <td>${patient.patient_id}</td>
             <td>
-                <strong>${patient.name}</strong>
+                <strong>${patient.name}</strong> ${typeBadge}
                 ${hasSurgery ? '<span class="status-badge" style="background:#e0e7ff; color:#4f46e5; border:1px solid #c7d2fe; font-size:10px; padding:2px 6px; margin-left:6px;">Surgery Done</span>' : ''}
                 <br><small style="color:#666">${guardian}</small>
             </td>
@@ -182,7 +189,9 @@ function renderPatientsTable(patientsList) {
                 ${(currentUser && (currentUser.role === 'admin' || currentUser.role === 'doctor')) ?
                 `<button class="action-btn-pro edit-btn" onclick="editPatient('${patient.patient_id}')" title="${isDischarged ? 'View Details (Discharged)' : 'Edit Patient'}"><i class="${isDischarged ? 'fas fa-info-circle' : 'fas fa-edit'}"></i></button>` : ''}
                 
-                ${!isDischarged ? `<button class="action-btn-pro transfer-btn" onclick="openTransferBedModal('${patient.patient_id}')" title="Transfer Bed"><i class="fas fa-exchange-alt"></i></button>` : ''}
+                ${(!isDischarged && pType === 'IPD') ? `<button class="action-btn-pro transfer-btn" onclick="openTransferBedModal('${patient.patient_id}')" title="Transfer Bed"><i class="fas fa-exchange-alt"></i></button>` : ''}
+                
+                ${(!isDischarged && pType === 'OPD') ? `<button class="action-btn-pro edit-btn" style="background:#6366f1; color:white; border-color:#6366f1;" onclick="convertOpdToIpd('${patient.patient_id}')" title="Admit to IPD (Convert)"><i class="fas fa-bed"></i></button>` : ''}
                 
                 ${(currentUser && currentUser.role === 'admin') ?
                 `<button class="action-btn-pro delete-btn" onclick="deletePatient('${patient.patient_id}')" title="Delete Patient"><i class="fas fa-trash"></i></button>` : ''}
@@ -190,7 +199,9 @@ function renderPatientsTable(patientsList) {
                 ${(currentUser && currentUser.role !== 'receptionist' && !isDischarged) ?
                 `<button class="action-btn-pro notes-btn" onclick="addNoteForPatient('${patient.patient_id}')" title="Daily Notes"><i class="fas fa-notes-medical"></i></button>` : ''}
                 
-                ${!isDischarged ? `<button class="action-btn-pro surgery-btn" onclick="openSurgeryModal('${patient.patient_id}')" title="Add Surgery Event"><i class="fas fa-procedures"></i></button>` : ''}
+                ${(!isDischarged && pType === 'IPD') ? `<button class="action-btn-pro surgery-btn" onclick="openSurgeryModal('${patient.patient_id}')" title="Add Surgery Event"><i class="fas fa-procedures"></i></button>` : ''}
+
+                
             </td>
         </tr>
     `;
@@ -202,11 +213,12 @@ function filterPatients() {
 
     const searchVal = (document.getElementById('patient-search')?.value || '').toLowerCase();
     const statusVal = (document.getElementById('patient-filter')?.value || 'all').toLowerCase();
+    const typeVal = (document.getElementById('type-filter')?.value || 'all').toLowerCase();
     const paymentVal = (document.getElementById('payment-filter')?.value || 'all').toLowerCase();
     const surgeryVal = (document.getElementById('surgery-filter')?.value || 'all').toLowerCase();
     const sortVal = document.getElementById('patient-sort')?.value || 'date-desc';
 
-    console.log(`[Filter Triggered] Search: '${searchVal}', Status: '${statusVal}', Payment: '${paymentVal}', Surgery: '${surgeryVal}'`);
+    console.log(`[Filter Triggered] Search: '${searchVal}', Status: '${statusVal}', Type: '${typeVal}', Payment: '${paymentVal}', Surgery: '${surgeryVal}'`);
 
     let filtered = window.allPatientsData.filter(p => {
         const pName = p.name || '';
@@ -219,6 +231,10 @@ function filterPatients() {
         const pStatus = (p.status || 'Admitted').toLowerCase();
         const matchStatus = statusVal === 'all' || pStatus === statusVal;
 
+        // Match Patient Type
+        const pType = (p.patient_type || 'IPD').toLowerCase();
+        const matchType = typeVal === 'all' || pType === typeVal;
+
         // Match Payment Status
         const pPay = (p.payment_status || 'Pending').toLowerCase();
         const matchPayment = paymentVal === 'all' || pPay === paymentVal;
@@ -226,7 +242,7 @@ function filterPatients() {
         // Match Surgery Status
         const matchSurgery = surgeryVal === 'all' || (surgeryVal === 'surgery' && isSurgeryPatient(pId));
 
-        return matchSearch && matchStatus && matchPayment && matchSurgery;
+        return matchSearch && matchStatus && matchType && matchPayment && matchSurgery;
     });
 
     console.log(`[Filter Results] Found ${filtered.length} matching patients out of ${window.allPatientsData.length}`);
@@ -468,6 +484,7 @@ function editPatient(patientId) {
     const pBedNo = draft ? draft.bed_no : (patient.bed_no || '');
     const pWardCharge = draft ? draft.wardChargePerDay : (patient.wardChargePerDay || 0);
     const pWardType = draft ? draft.wardType : (patient.bed_no?.toUpperCase().includes('ICU') ? 'ICU' : 'General');
+    const pType = draft ? draft.patient_type : (patient.patient_type || 'IPD');
 
     if (!isReadOnly) {
         window.currentOpenPatientModal = { type: 'edit', patientId: patientId };
@@ -488,8 +505,15 @@ function editPatient(patientId) {
             <div style="padding: 25px; background: white; max-height: 80vh; overflow-y: auto;">
                 <form id="edit-patient-form" onsubmit="event.preventDefault(); ${isReadOnly ? 'this.closest(\'.modal\').remove()' : `savePatientEdit('${patient.patient_id || patient.id}')`}">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                        <div style="grid-column: span 2;">
+                            <label style="display:block; font-size:11px; font-weight:700; color:#a0aec0; text-transform:uppercase; margin-bottom:5px;">Patient Type</label>
+                            <select id="edit-p-type" class="filter-select" style="width:100%;" ${isReadOnly ? 'disabled' : ''} onchange="toggleEditPatientTypeFields()">
+                                <option value="IPD" ${pType === 'IPD' ? 'selected' : ''}>IPD (Inpatient Admission)</option>
+                                <option value="OPD" ${pType === 'OPD' ? 'selected' : ''}>OPD (Outpatient Consultation)</option>
+                            </select>
+                        </div>
                         <div>
-                            <label style="display:block; font-size:11px; font-weight:700; color:#a0aec0; text-transform:uppercase; margin-bottom:5px;">Patient Name</label>
+                            <label style="display:block; font-size:11px; font-weight:700; color:#a0aec0; text-transform:uppercase; margin-bottom:5px;">Patient Name *</label>
                             <input type="text" id="edit-p-name" value="${pName}" class="search-input" style="width:100%;" ${isReadOnly ? 'disabled' : 'required'}>
                         </div>
                         <div>
@@ -528,7 +552,7 @@ function editPatient(patientId) {
 
                     <hr style="border: none; border-top: 1px dashed #e2e8f0; margin: 25px 0;">
                     
-                    <div style="background: #edf2f7; padding: 15px; border-radius: 10px;">
+                    <div id="edit-bed-details-container" style="background: #edf2f7; padding: 15px; border-radius: 10px; display: ${pType === 'OPD' ? 'none' : 'block'};">
                         <h4 style="margin: 0 0 10px 0; font-size: 14px; display: flex; align-items: center; gap: 8px;">
                             <i class="fa-solid fa-bed"></i> Ward / Bed Stay Details
                         </h4>
@@ -1642,6 +1666,7 @@ async function savePatientEdit(patientId) {
         return;
     }
 
+    const patient_type = document.getElementById('edit-p-type')?.value || 'IPD';
     const name = document.getElementById('edit-p-name').value.trim();
     const guardian = document.getElementById('edit-p-guardian').value.trim();
     const age = document.getElementById('edit-p-age').value;
@@ -1649,15 +1674,16 @@ async function savePatientEdit(patientId) {
     const mobile = document.getElementById('edit-p-mobile').value.trim();
     const email = document.getElementById('edit-p-email').value.trim() || null;
     const address = document.getElementById('edit-p-address').value.trim();
-    const wardType = document.getElementById('edit-p-ward-type').value;
-    const bedNo = document.getElementById('edit-p-bed-no').value.trim();
+    const wardType = patient_type === 'IPD' ? document.getElementById('edit-p-ward-type').value : 'General';
+    const bedNo = patient_type === 'IPD' ? document.getElementById('edit-p-bed-no').value.trim() : null;
 
-    const dailyCharge = parseFloat(document.getElementById('edit-p-daily-charge')?.value) || 0;
+    const dailyCharge = patient_type === 'IPD' ? (parseFloat(document.getElementById('edit-p-daily-charge')?.value) || 0) : 0;
 
     const editData = {
         name, guardian_name: guardian, age: parseInt(age),
         gender, mobile, email, address, bed_no: bedNo,
-        wardChargePerDay: dailyCharge
+        wardChargePerDay: dailyCharge,
+        patient_type
     };
 
     showLoading('Saving changes...');
@@ -1796,4 +1822,217 @@ window.closePatientModal = function (modalEl) {
     } else {
         document.querySelectorAll('.modal').forEach(m => m.remove());
     }
+};
+
+window.toggleEditPatientTypeFields = function() {
+    const editType = document.getElementById('edit-p-type')?.value;
+    const bedDetailsContainer = document.getElementById('edit-bed-details-container');
+    const bedSelect = document.getElementById('edit-p-bed-no');
+    
+    if (editType === 'OPD') {
+        if (bedDetailsContainer) bedDetailsContainer.style.display = 'none';
+        if (bedSelect) bedSelect.removeAttribute('required');
+    } else {
+        if (bedDetailsContainer) bedDetailsContainer.style.display = 'block';
+        if (bedSelect) {
+            bedSelect.setAttribute('required', 'required');
+            const genderVal = document.getElementById('edit-p-gender')?.value;
+            const currentBed = bedSelect.value;
+            // Load beds if not already loaded or empty
+            if (typeof loadAvailableBedsForEdit === 'function') {
+                loadAvailableBedsForEdit(currentBed, genderVal);
+            }
+        }
+    }
+};
+
+window.convertOpdToIpd = function(patientId) {
+    const patient = window.allPatientsData?.find(p => String(p.patient_id) === String(patientId));
+    if (!patient) return;
+    
+    // Remove any existing IPD confirm modal
+    document.getElementById('ipd-confirm-modal')?.remove();
+    
+    const modal = document.createElement('div');
+    modal.id = 'ipd-confirm-modal';
+    modal.innerHTML = `
+        <style>
+            .ipd-modal-overlay {
+                position: fixed; inset: 0; background: rgba(15,23,42,0.6); backdrop-filter: blur(6px);
+                display: flex; align-items: center; justify-content: center; z-index: 10000;
+                animation: ipdFadeIn 0.2s ease;
+            }
+            @keyframes ipdFadeIn { from { opacity: 0; } to { opacity: 1; } }
+            @keyframes ipdSlideUp { from { opacity: 0; transform: translateY(24px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+            .ipd-modal-box {
+                background: #fff; border-radius: 18px; width: 420px; max-width: 94vw;
+                box-shadow: 0 30px 70px rgba(0,0,0,0.22), 0 0 0 1px rgba(99,102,241,0.1);
+                animation: ipdSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+                overflow: hidden;
+            }
+            .ipd-modal-header {
+                background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+                padding: 26px 28px 20px; text-align: center;
+            }
+            .ipd-modal-icon {
+                width: 60px; height: 60px; border-radius: 50%;
+                background: rgba(255,255,255,0.2);
+                display: flex; align-items: center; justify-content: center;
+                margin: 0 auto 14px;
+                border: 2px solid rgba(255,255,255,0.35);
+            }
+            .ipd-modal-icon i { font-size: 26px; color: #fff; }
+            .ipd-modal-header h3 { margin: 0 0 4px; font-size: 18px; color: #fff; font-weight: 700; }
+            .ipd-modal-header p { margin: 0; font-size: 12px; color: rgba(255,255,255,0.75); }
+            .ipd-modal-body { padding: 22px 28px; }
+            .ipd-patient-card {
+                background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 12px;
+                padding: 14px 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 14px;
+            }
+            .ipd-avatar {
+                width: 44px; height: 44px; border-radius: 50%;
+                background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+                color: #4f46e5; display: flex; align-items: center; justify-content: center;
+                font-weight: 700; font-size: 18px; flex-shrink: 0;
+            }
+            .ipd-info-text { font-size: 13px; color: #475569; line-height: 1.6; }
+            .ipd-warning-box {
+                background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px;
+                padding: 12px 14px; font-size: 12px; color: #92400e; display: flex; gap: 10px;
+                margin-bottom: 20px; align-items: flex-start;
+            }
+            .ipd-modal-footer { padding: 0 28px 24px; display: flex; gap: 10px; }
+            .ipd-btn-cancel {
+                flex: 1; padding: 12px; border: 1px solid #e2e8f0; background: #f8fafc;
+                border-radius: 10px; font-size: 14px; font-weight: 600; color: #475569;
+                cursor: pointer; transition: all 0.2s;
+            }
+            .ipd-btn-cancel:hover { background: #e2e8f0; }
+            .ipd-btn-confirm {
+                flex: 2; padding: 12px; border: none;
+                background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+                border-radius: 10px; font-size: 14px; font-weight: 600; color: #fff;
+                cursor: pointer; transition: all 0.2s;
+                box-shadow: 0 4px 12px rgba(99,102,241,0.35);
+                display: flex; align-items: center; justify-content: center; gap: 8px;
+            }
+            .ipd-btn-confirm:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(99,102,241,0.45); }
+        </style>
+        <div class="ipd-modal-overlay" id="ipd-overlay-bg">
+            <div class="ipd-modal-box" onclick="event.stopPropagation()">
+                <div class="ipd-modal-header">
+                    <div class="ipd-modal-icon"><i class="fas fa-bed"></i></div>
+                    <h3>IPD में Shift करें?</h3>
+                    <p>OPD से Inpatient Admission</p>
+                </div>
+                <div class="ipd-modal-body">
+                    <div class="ipd-patient-card">
+                        <div class="ipd-avatar">${(patient.name?.charAt(0) || 'P').toUpperCase()}</div>
+                        <div>
+                            <div style="font-weight:700; color:#1e293b; font-size:15px;">${patient.name}</div>
+                            <div style="font-size:12px; color:#64748b;">ID: ${patient.patient_id} &bull; OPD Patient</div>
+                        </div>
+                    </div>
+                    <div class="ipd-warning-box">
+                        <i class="bi bi-info-circle-fill" style="font-size:16px; flex-shrink:0; margin-top:1px;"></i>
+                        <span>अगले step में <strong>Bed Number चुनना होगा</strong> तभी IPD Admission पूरा होगा। गलती से दबा है तो <strong>Cancel</strong> करें।</span>
+                    </div>
+                </div>
+                <div class="ipd-modal-footer">
+                    <button class="ipd-btn-cancel" id="ipd-cancel-btn">
+                        <i class="bi bi-x-lg" style="margin-right:6px;"></i>Cancel
+                    </button>
+                    <button class="ipd-btn-confirm" id="ipd-proceed-btn">
+                        <i class="fas fa-bed"></i> हाँ, IPD में Admit करें
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    
+    // Cancel button
+    document.getElementById('ipd-cancel-btn').addEventListener('click', () => {
+        document.getElementById('ipd-confirm-modal')?.remove();
+    });
+    
+    // Close on overlay background click
+    document.getElementById('ipd-overlay-bg').addEventListener('mousedown', function(e) {
+        if (e.target === this) document.getElementById('ipd-confirm-modal')?.remove();
+    });
+    
+    // Confirm button — open the edit modal in IPD Admission mode
+    document.getElementById('ipd-proceed-btn').addEventListener('click', () => {
+        document.getElementById('ipd-confirm-modal')?.remove();
+        editPatient(patientId);
+        setTimeout(() => {
+            const editTypeSelect = document.getElementById('edit-p-type');
+            if (editTypeSelect) {
+                editTypeSelect.value = 'IPD';
+                if (typeof toggleEditPatientTypeFields === 'function') {
+                    toggleEditPatientTypeFields();
+                }
+            }
+            
+            // ── Modal को IPD Admission mode में transform करें ──
+            // 1. Header title aur icon badlo
+            const modalHeader = document.querySelector('.modal-content .modal-header');
+            if (modalHeader) {
+                const h3 = modalHeader.querySelector('h3');
+                if (h3) {
+                    h3.innerHTML = `<i class="fas fa-bed" style="color:#a5b4fc;"></i> IPD में Admit करें`;
+                }
+                modalHeader.style.background = 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)';
+                modalHeader.style.borderBottom = 'none';
+            }
+            
+            // 2. Patient Type field ko hide karo (IPD already set hai)
+            const typeRow = document.getElementById('edit-p-type')?.closest('div[style*="grid-column: span 2"]') 
+                         || document.getElementById('edit-p-type')?.closest('div');
+            if (typeRow) typeRow.style.display = 'none';
+            
+            // 3. Save button text badlo
+            const submitBtn = document.querySelector('#edit-patient-form button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.innerHTML = `<i class="fas fa-bed"></i> IPD में Admit करें (Save)`;
+                submitBtn.style.background = 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)';
+                submitBtn.style.border = 'none';
+            }
+            
+            // 4. Top pe IPD Admission Banner jodo
+            const form = document.getElementById('edit-patient-form');
+            if (form && !document.getElementById('ipd-admission-banner')) {
+                const banner = document.createElement('div');
+                banner.id = 'ipd-admission-banner';
+                banner.style.cssText = `
+                    background: linear-gradient(135deg, #fffbeb, #fef3c7);
+                    border: 1px solid #fde68a;
+                    border-left: 4px solid #f59e0b;
+                    border-radius: 10px;
+                    padding: 12px 16px;
+                    margin-bottom: 20px;
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    font-size: 13px;
+                    color: #92400e;
+                `;
+                banner.innerHTML = `
+                    <i class="bi bi-info-circle-fill" style="font-size:18px; color:#f59e0b; flex-shrink:0;"></i>
+                    <div>
+                        <div style="font-weight:700; margin-bottom:2px;">OPD → IPD Conversion</div>
+                        <div><strong>Bed Number ज़रूर चुनें</strong>, फिर <em>"IPD में Admit करें"</em> बटन दबाएँ — तभी Admission पूरा होगा।</div>
+                    </div>
+                `;
+                form.insertBefore(banner, form.firstChild);
+            }
+            
+            showNotification('Bed Number चुनें और Save करें — IPD Admission होगा।', 'info');
+        }, 280);
+    });
+};
+
+// WhatsApp feature disabled — abhi ke liye use nahi ho rahi
+window.shareOpdWhatsApp = function(patientId) {
+    showNotification('WhatsApp feature abhi available nahi hai.', 'info');
 };

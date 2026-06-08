@@ -1,10 +1,13 @@
 const express = require('express');
+const http = require('http');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
+
+const { initSocket } = require('./src/socket/socketHandler');
 
 // Use Google Public DNS for MongoDB Atlas SRV/TXT record resolution
 // Fixes EREFUSED errors on local networks with restrictive DNS servers
@@ -28,8 +31,13 @@ const dailyNoteRoutes = require('./src/routes/dailyNotes');
 const dischargeRoutes = require('./src/routes/discharge');
 const settingsRoutes = require('./src/routes/settings');
 const integrationsRoutes = require('./src/routes/integrations');
+const notificationsRoutes = require('./src/routes/notifications');
 
 const app = express();
+const httpServer = http.createServer(app);
+
+// Initialize Socket.IO
+initSocket(httpServer);
 const PORT = process.env.PORT || 5000;
 console.log("\x1b[31m%s\x1b[0m", "HMS Server Version: 2.0 - Transfer Ready");
 
@@ -69,6 +77,7 @@ app.use('/api/notes', dailyNoteRoutes);
 app.use('/api/discharge', dischargeRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/integrations', integrationsRoutes);
+app.use('/api/notifications', notificationsRoutes);
 
 // Database Connection with Retry Logic
 let lastDbError = null;
@@ -145,9 +154,9 @@ app.use((req, res, next) => {
     }
 });
 
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
-    console.log("\x1b[31m%s\x1b[0m", "HMS Server Version: 2.0 - Transfer Ready");
+    console.log("\x1b[31m%s\x1b[0m", "HMS Server Version: 2.0 - Socket.IO + FCM Ready");
 
     // Keep-alive cron: Ping self every 14 minutes to prevent Render free tier sleep
     const RENDER_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;

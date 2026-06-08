@@ -878,6 +878,14 @@
 
     <!-- JavaScript Files -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Socket.IO Client — Real-Time Communication -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
+
+    <!-- Firebase SDK — For FCM Push Notifications -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js"></script>
+
     <script src="js/main.js"></script>
     <script src="js/dashboard.js"></script>
     <script src="js/patients.js"></script>
@@ -890,6 +898,10 @@
     <script src="js/settings.js"></script>
     <script src="js/users.js"></script>
     <script src="js/sync.js"></script>
+
+    <!-- Real-Time & Notifications — Load last so all page functions are ready -->
+    <script src="js/realtime.js"></script>
+    <script src="js/fcm-client.js"></script>
 </body>
 
 </html>

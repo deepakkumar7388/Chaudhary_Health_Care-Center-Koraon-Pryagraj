@@ -436,8 +436,61 @@
     top: 20px;
     right: 30px;
     display: flex;
-    gap: 15px;
+    align-items: center;
+    gap: 10px;
     z-index: 1050;
+}
+
+.report-actions-top .btn {
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 6px;
+    border: 1px solid rgba(0,0,0,0.1);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    background-color: #ffffff;
+    color: #334155;
+    height: auto;
+    letter-spacing: 0.2px;
+}
+
+.report-actions-top .btn i {
+    font-size: 14px;
+}
+
+.report-actions-top .btn-primary {
+    background-color: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.report-actions-top .btn-primary:hover {
+    background-color: var(--primary-dark);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    transform: translateY(-1px);
+}
+
+.report-actions-top .btn-success {
+    background-color: #10b981;
+    color: white;
+    border-color: #10b981;
+}
+
+.report-actions-top .btn-success:hover {
+    background-color: #059669;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    transform: translateY(-1px);
+}
+
+.report-actions-top .btn-secondary:hover {
+    background-color: #f8fafc;
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    transform: translateY(-1px);
 }
 
 .a4-bill-container {
@@ -665,10 +718,78 @@
 }
 
 @media (max-width: 768px) {
-    .dashboard-cards { grid-template-columns: 1fr; }
+    /* Dashboard summary cards — 2 column compact grid */
+    .dashboard-cards {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    /* Compact card — icon on top, value below */
+    .dash-card {
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: flex-start;
+        gap: 6px;
+        padding: 10px 12px;
+        border-radius: 12px;
+    }
+
+    .dash-card .card-icon {
+        width: 30px;
+        height: 30px;
+        font-size: 13px;
+        border-radius: 8px;
+        order: -1;
+        flex-shrink: 0;
+    }
+
+    .dash-card .card-info .label {
+        font-size: 9px;
+        margin-bottom: 1px;
+    }
+
+    .dash-card .card-info .value {
+        font-size: 18px;
+        font-weight: 900;
+    }
+
+    /* Search panel */
     .search-bar-container { flex-direction: column; }
     .billing-tabs { width: 100%; overflow-x: auto; }
     .a4-bill-container { padding: 20px; }
     .patient-info-summary { flex-direction: column; }
     .chk-header { flex-direction: row; text-align: left; justify-content: flex-start; }
+
+    /* Module header compact */
+    .module-header {
+        margin-bottom: 12px;
+        gap: 12px;
+    }
+
+    .module-title {
+        font-size: 22px;
+    }
+
+    .module-subtitle {
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .dashboard-cards {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+    }
+
+    .dash-card {
+        padding: 8px 10px;
+    }
+
+    .dash-card .card-info .value {
+        font-size: 16px;
+    }
+
+    .module-title {
+        font-size: 18px;
+    }
 }

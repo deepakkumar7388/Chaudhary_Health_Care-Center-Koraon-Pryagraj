@@ -12,3 +12,45 @@ services:
         sync: false
       - key: PORT
         value: 10000
+      - key: NODE_ENV
+        value: production
+      # Firebase / FCM
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+      - key: FIREBASE_PRIVATE_KEY_ID
+        sync: false
+      - key: FIREBASE_PRIVATE_KEY
+        sync: false
+      - key: FIREBASE_CLIENT_EMAIL
+        sync: false
+      - key: FIREBASE_CLIENT_ID
+        sync: false
+      - key: FIREBASE_CLIENT_CERT_URL
+        sync: false
+      - key: FIREBASE_STORAGE_BUCKET
+        sync: false
+      # FCM Web Client (for frontend reference)
+      - key: FCM_API_KEY
+        sync: false
+      - key: FCM_MESSAGING_SENDER_ID
+        sync: false
+      - key: FCM_APP_ID
+        sync: false
+      - key: FCM_VAPID_KEY
+        sync: false
+      # Cloudinary
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      # Email
+      - key: EMAIL_HOST
+        value: smtp.gmail.com
+      - key: EMAIL_PORT
+        value: 465
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASS
+        sync: false

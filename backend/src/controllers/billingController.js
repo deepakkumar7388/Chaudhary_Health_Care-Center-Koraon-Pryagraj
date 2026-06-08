@@ -19,22 +19,18 @@ async function syncPatientBilling(patientId) {
                 patient.bedHistory.forEach((bed, bedIndex) => {
                     const startDate = new Date(bed.start_date);
                     const endDate = bed.end_date ? new Date(bed.end_date) : new Date();
-                    const diffTime = Math.abs(endDate - startDate);
-                    let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-                    const startCal = startDate.toDateString();
-                    const endCal = endDate.toDateString();
-                    const isSameDay = startCal === endCal;
-
-                    if (isSameDay) {
-                        const hasSubsequentStay = bedIndex < patient.bedHistory.length - 1;
-                        if (hasSubsequentStay) {
-                            diffDays = 0; // Same-day transfer: free for this bed
-                        } else {
-                            if (diffDays < 1) diffDays = 1;
-                        }
-                    } else {
-                        if (diffDays < 1) diffDays = 1;
+                    // Calculate actual days stayed (calendar days to prevent timezone/hour fluctuations)
+                    const sDate = new Date(startDate);
+                    const eDate = new Date(endDate);
+                    sDate.setHours(0, 0, 0, 0);
+                    eDate.setHours(0, 0, 0, 0);
+                    let diffDays = Math.round(Math.abs(eDate - sDate) / (1000 * 60 * 60 * 24));
+                    
+                    // If it is the last stay (active or discharged), we count the final day (+1)
+                    const isLastStay = bedIndex === patient.bedHistory.length - 1;
+                    if (isLastStay) {
+                        diffDays += 1;
                     }
 
                     if (diffDays === 0) return;
@@ -43,7 +39,7 @@ async function syncPatientBilling(patientId) {
                     const savedItem = billing.items ? billing.items.find(i => i.name === itemName) : null;
 
                     const fee = savedItem ? (savedItem.fee !== undefined ? savedItem.fee : (bed.daily_charge || 0)) : (bed.daily_charge || 0);
-                    const days = savedItem ? (savedItem.days !== undefined ? savedItem.days : diffDays) : diffDays;
+                    const days = (savedItem && (patient.status === 'Discharged' || savedItem.isManualDays)) ? (savedItem.days !== undefined ? savedItem.days : diffDays) : diffDays;
 
                     grandTotal += fee * (days || 1);
                 });

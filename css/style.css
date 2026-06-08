@@ -682,6 +682,19 @@ body {
     box-shadow: 0 6px 14px rgba(59, 130, 246, 0.2);
 }
 
+.btn-secondary {
+    background: #f1f5f9;
+    color: #475569;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.btn-secondary:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+}
+
 .btn-small {
     padding: 8px 14px;
     font-size: 12px;
@@ -1740,3 +1753,79 @@ body.dark-theme tr:hover {
     margin-top: -6px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.25);
 }
+
+/* ============================================================
+   GLOBAL PROFESSIONAL INPUT FOCUS — Placeholder Fade Out
+   ============================================================ */
+
+/* Placeholder — visible by default */
+input::placeholder,
+textarea::placeholder {
+    color: #a0adb8;
+    font-weight: 400;
+    font-size: 13.5px;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    opacity: 1;
+}
+
+/* Placeholder — fade out smoothly on focus (click) */
+input:focus::placeholder,
+textarea:focus::placeholder {
+    opacity: 0;
+    transform: translateX(6px);
+}
+
+/* Select default option color */
+select option[value=""] {
+    color: #a0adb8;
+}
+
+/* ── Professional Input Focus Ring ──
+   Applies globally to ALL inputs, selects, textareas */
+input:not([type="radio"]):not([type="checkbox"]):not([type="range"]):not([type="file"]),
+select,
+textarea {
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease !important;
+}
+
+input:not([type="radio"]):not([type="checkbox"]):not([type="range"]):not([type="file"]):focus,
+select:focus,
+textarea:focus {
+    outline: none !important;
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12), 0 1px 3px rgba(0,0,0,0.06) !important;
+    background: #fafbff !important;
+}
+
+/* ── Input hover effect ── */
+input:not([type="radio"]):not([type="checkbox"]):not([type="range"]):not([type="file"]):not(:focus):hover,
+select:not(:focus):hover,
+textarea:not(:focus):hover {
+    border-color: #c7d2fe !important;
+}
+
+/* ── Doctor Management Styles ── */
+.btn-delete-doc {
+    background: transparent;
+    border: none;
+    color: #ef4444;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+.btn-delete-doc:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+    transform: scale(1.08);
+}
+.btn-delete-doc:active {
+    transform: scale(0.95);
+}

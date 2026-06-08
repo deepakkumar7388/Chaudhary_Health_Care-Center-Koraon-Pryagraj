@@ -1,5 +1,7 @@
 const Discharge = require('../models/Discharge');
 const Patient = require('../models/Patient');
+const { emitPatientDischarged } = require('../socket/socketHandler');
+const fcmService = require('../config/fcmService');
 
 exports.createDischarge = async (req, res) => {
     try {
@@ -23,6 +25,17 @@ exports.createDischarge = async (req, res) => {
                 }
             }
             await patient.save();
+
+            // Emit real-time Socket.IO discharge event
+            emitPatientDischarged(patient);
+
+            // Send FCM discharge notification
+            fcmService.broadcastNotification(
+                '✅ Patient Discharged',
+                `${patient.name} has been discharged from the hospital.`,
+                { url: '/#patients' },
+                'admin'
+            ).catch(err => console.error('[FCM] Discharge notification error:', err.message));
 
             // Send discharge email asynchronously in the background
             setTimeout(async () => {

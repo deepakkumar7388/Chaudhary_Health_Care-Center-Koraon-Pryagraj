@@ -40,6 +40,7 @@ const patientSchema = new mongoose.Schema({
     discharge_date: Date,
     discharge_time: { type: String, default: null },
     status: { type: String, enum: ['Admitted', 'Discharged'], default: 'Admitted' },
+    patient_type: { type: String, enum: ['IPD', 'OPD'], default: 'IPD' },
     payment_status: { type: String, enum: ['Paid', 'Pending'], default: 'Pending' },
     pending_amount: { type: Number, default: 0 },
     problem: String,

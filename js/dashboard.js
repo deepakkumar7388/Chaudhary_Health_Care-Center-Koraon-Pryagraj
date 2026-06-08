@@ -135,7 +135,7 @@ function renderDashboard() {
             ${showCharts ? `
             <div id="admin-charts-section" class="charts-grid">
                 <div class="report-card card" style="background:white; padding:15px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.04);">
-                    <h3 style="margin-bottom:10px; font-size:14px;"><i class="bi bi-graph-up-arrow" style="color:#3498db;"></i> Patient Growth</h3>
+                    <h3 style="margin-bottom:10px; font-size:14px;"><i class="bi bi-graph-up-arrow" style="color:#3498db;"></i> Patient Registrations</h3>
                     <div style="height:200px; position:relative;"><canvas id="dashPatientChart"></canvas></div>
                 </div>
                 <div class="report-card card" style="background:white; padding:15px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.04);">
@@ -488,23 +488,43 @@ function renderDashboardCharts(totalPatients, totalRevenue, totalPendingAmt, pai
 
     Object.keys(dashCharts).forEach(k => { if (dashCharts[k]) dashCharts[k].destroy(); });
 
-    // Growth Line Chart — Cumulative patient count over time
-    let dateGrps = {};
+    // Daily OPD and IPD Patient Trends
+    let opdGrps = {};
+    let ipdGrps = {};
+    let allDatesSet = new Set();
+    
     patients.forEach(p => {
         let d = p.admission_date || p.createdAt || p.date || new Date().toISOString();
         let short = d.split('T')[0];
-        dateGrps[short] = (dateGrps[short] || 0) + 1;
+        allDatesSet.add(short);
+        
+        const type = p.patient_type || 'IPD';
+        if (type === 'OPD') {
+            opdGrps[short] = (opdGrps[short] || 0) + 1;
+        } else {
+            ipdGrps[short] = (ipdGrps[short] || 0) + 1;
+        }
     });
-    let sDates = Object.keys(dateGrps).sort();
-    // Build cumulative data
-    let cumulative = 0;
-    let gData = sDates.map(d => { cumulative += dateGrps[d]; return cumulative; });
-    // Format dates as 'DD MMM'
+    
+    let sDates = Array.from(allDatesSet).sort();
+    // Filter to last 10 days to keep the chart clean if there are too many dates
+    if (sDates.length > 10) {
+        sDates = sDates.slice(-10);
+    }
+    
+    let opdData = sDates.map(d => opdGrps[d] || 0);
+    let ipdData = sDates.map(d => ipdGrps[d] || 0);
+    
     let formattedDates = sDates.map(d => {
         const dt = new Date(d + 'T00:00:00');
         return dt.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
     });
-    if (!sDates.length) { formattedDates = ['No Data']; gData = [0]; }
+    
+    if (!sDates.length) { 
+        formattedDates = ['No Data']; 
+        opdData = [0]; 
+        ipdData = [0]; 
+    }
 
     let ctx1 = document.getElementById('dashPatientChart')?.getContext('2d');
     if (ctx1) {
@@ -512,21 +532,41 @@ function renderDashboardCharts(totalPatients, totalRevenue, totalPendingAmt, pai
             type: 'line',
             data: {
                 labels: formattedDates,
-                datasets: [{
-                    label: 'Total Patients',
-                    data: gData,
-                    borderColor: '#6366f1',
-                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                    fill: true, tension: 0.4,
-                    pointBackgroundColor: '#6366f1',
-                    pointRadius: 4,
-                    pointHoverRadius: 6,
-                    borderWidth: 2
-                }]
+                datasets: [
+                    {
+                        label: 'OPD Patients',
+                        data: opdData,
+                        borderColor: '#10b981', // emerald green for OPD
+                        backgroundColor: 'rgba(16, 185, 129, 0.05)',
+                        fill: true, tension: 0.4,
+                        pointBackgroundColor: '#10b981',
+                        pointRadius: 4,
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'IPD Patients',
+                        data: ipdData,
+                        borderColor: '#6366f1', // indigo for IPD
+                        backgroundColor: 'rgba(99, 102, 241, 0.05)',
+                        fill: true, tension: 0.4,
+                        pointBackgroundColor: '#6366f1',
+                        pointRadius: 4,
+                        borderWidth: 2
+                    }
+                ]
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
+                plugins: { 
+                    legend: { 
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            boxWidth: 12,
+                            font: { size: 10, weight: '600' }
+                        }
+                    } 
+                },
                 scales: {
                     y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 11 } }, grid: { color: '#f1f5f9' } },
                     x: { ticks: { font: { size: 10 } }, grid: { display: false } }

@@ -2,6 +2,7 @@ const Patient = require('../models/Patient');
 const Setting = require('../models/Setting');
 const { bucket } = require('../config/firebase');
 const { v4: uuidv4 } = require('uuid');
+const { emitPatientAdmitted, emitPatientUpdated, emitPatientDischarged, emitBedUpdated } = require('../socket/socketHandler');
 
 exports.getAvailableBeds = async (req, res) => {
     console.log('GET /api/patients/available-beds called');
@@ -131,6 +132,9 @@ exports.createPatient = async (req, res) => {
         await newPatient.save();
         console.log('[createPatient] Saved successfully:', newPatient.patient_id);
 
+        // Emit real-time Socket.IO event
+        emitPatientAdmitted(newPatient);
+
         // Send email/push notifications asynchronously in the background
         setTimeout(async () => {
             try {
@@ -171,12 +175,13 @@ exports.createPatient = async (req, res) => {
 
             try {
                 const fcmService = require('../config/fcmService');
+                const isOpd = newPatient.patient_type === 'OPD';
                 await fcmService.broadcastNotification(
-                    'New Patient Admitted 🏥',
-                    `Patient ${newPatient.name} has been admitted to bed ${newPatient.bed_no || 'N/A'}.`
+                    isOpd ? 'New OPD Patient 🩺' : 'New Patient Admitted 🏥',
+                    isOpd ? `OPD Patient ${newPatient.name} has been registered for ${newPatient.doctor_assigned || 'consultation'}.` : `Patient ${newPatient.name} has been admitted to bed ${newPatient.bed_no || 'N/A'}.`
                 );
             } catch (err) {
-                console.error('[Notification] Error in FCM admission broadcast:', err.message);
+                console.error('[Notification] Error in FCM admission/registration broadcast:', err.message);
             }
         }, 0);
 
@@ -270,6 +275,13 @@ exports.updatePatient = async (req, res) => {
         // Apply other updates
         Object.assign(patient, req.body);
         await patient.save();
+
+        // Emit real-time Socket.IO event
+        emitPatientUpdated(patient);
+        // If bed changed, notify bed update too
+        if (req.body.bed_no && req.body.bed_no !== oldBedNo) {
+            emitBedUpdated({ old_bed: oldBedNo, new_bed: req.body.bed_no, patient_id: patient.patient_id });
+        }
 
         res.status(200).json({ success: true, patient });
     } catch (error) {

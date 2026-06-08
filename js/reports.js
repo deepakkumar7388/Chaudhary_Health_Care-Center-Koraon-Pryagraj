@@ -154,6 +154,30 @@ function renderReports() {
                     background: white;
                     box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
                 }
+                .filter-bar-input {
+                    padding: 7px 12px;
+                    border: 1px solid #cbd5e1;
+                    border-radius: 8px;
+                    font-size: 13px;
+                    font-weight: 600;
+                    color: #334155;
+                    outline: none;
+                    background: #f8fafc;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    min-width: 130px;
+                }
+                .filter-bar-input:focus {
+                    border-color: var(--primary, #4f46e5);
+                    background: white;
+                    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+                }
+                .filter-bar-divider {
+                    width: 1px;
+                    height: 28px;
+                    background: #e2e8f0;
+                    margin: 0 4px;
+                }
 
                 @media print {
                     #chc-print-header-analytics { display: flex !important; margin-top: -20px; }
@@ -211,16 +235,40 @@ function renderReports() {
             <!-- Filters Bar -->
             <div class="filter-bar">
                 <div class="filter-bar-group">
-                    <label for="report-date-filter"><i class="bi bi-calendar3"></i> Date Range</label>
-                    <select id="report-date-filter" class="filter-bar-select" onchange="updateReportsDashboard()">
+                    <label for="report-date-filter"><i class="bi bi-calendar3"></i> Period</label>
+                    <select id="report-date-filter" class="filter-bar-select" onchange="handleDateFilterChange()">
                         <option value="all">All Time</option>
                         <option value="today">Today</option>
                         <option value="weekly">This Week</option>
                         <option value="monthly">This Month</option>
+                        <option value="custom">Custom Range</option>
                     </select>
                 </div>
+                <div class="filter-bar-group" id="custom-date-range" style="display:none;">
+                    <label><i class="bi bi-calendar-range"></i> From</label>
+                    <input type="date" id="report-date-from" class="filter-bar-input" onchange="updateReportsDashboard()">
+                    <label>To</label>
+                    <input type="date" id="report-date-to" class="filter-bar-input" onchange="updateReportsDashboard()">
+                </div>
+                <div class="filter-bar-divider"></div>
                 <div class="filter-bar-group">
-                    <label for="report-patient-filter"><i class="bi bi-person"></i> Patient Type</label>
+                    <label for="report-opd-ipd-filter"><i class="bi bi-layers"></i> Category</label>
+                    <select id="report-opd-ipd-filter" class="filter-bar-select" onchange="updateReportsDashboard()">
+                        <option value="all">All (OPD + IPD)</option>
+                        <option value="OPD">OPD Only</option>
+                        <option value="IPD">IPD Only</option>
+                    </select>
+                </div>
+                <div class="filter-bar-divider"></div>
+                <div class="filter-bar-group">
+                    <label for="report-doctor-filter"><i class="bi bi-person-badge"></i> Doctor</label>
+                    <select id="report-doctor-filter" class="filter-bar-select" onchange="updateReportsDashboard()">
+                        <option value="all">All Doctors</option>
+                    </select>
+                </div>
+                <div class="filter-bar-divider"></div>
+                <div class="filter-bar-group">
+                    <label for="report-patient-filter"><i class="bi bi-heart-pulse"></i> Surgery</label>
                     <select id="report-patient-filter" class="filter-bar-select" onchange="updateReportsDashboard()">
                         <option value="all">All Patients</option>
                         <option value="surgery">Surgery Patients</option>
@@ -230,14 +278,14 @@ function renderReports() {
             </div>
 
             <!-- Stats Grid -->
-            <div class="stats-grid" id="reports-key-metrics" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:20px; margin-bottom:30px;">
+            <div class="stats-grid" id="reports-key-metrics" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:16px; margin-bottom:20px;">
                 <!-- Dynamically Injected Stats -->
             </div>
             
             <!-- Charts Grid -->
-            <div class="reports-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap:25px;">
+            <div class="reports-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:16px;">
                 <div class="report-card">
-                    <h3><i class="bi bi-graph-up-arrow" style="color:var(--primary, #4f46e5);"></i> Patient Enrollment Trends</h3>
+                    <h3><i class="bi bi-graph-up-arrow" style="color:var(--primary, #4f46e5);"></i> OPD vs IPD Registration Trends</h3>
                     <div class="chart-container" style="height:280px; position:relative;">
                         <canvas id="patientGrowthChart"></canvas>
                     </div>
@@ -268,6 +316,76 @@ function renderReports() {
 }
 
 let reportsCharts = {};
+
+// Toggle custom date range visibility
+function handleDateFilterChange() {
+    const val = document.getElementById('report-date-filter').value;
+    const customRange = document.getElementById('custom-date-range');
+    if (customRange) {
+        customRange.style.display = val === 'custom' ? 'flex' : 'none';
+    }
+    updateReportsDashboard();
+}
+
+// Dynamically populate doctor filter from patient data + settings
+function populateDoctorFilter(patients) {
+    const select = document.getElementById('report-doctor-filter');
+    if (!select) return;
+
+    const currentVal = select.value;
+    const doctorSet = new Set();
+
+    // Source 1: From patient records (doctor_assigned field)
+    patients.forEach(p => {
+        if (!p.isDeleted && p.doctor_assigned && p.doctor_assigned.trim()) {
+            doctorSet.add(p.doctor_assigned.trim());
+        }
+    });
+
+    // Source 2: From Settings doctor list (hospital-doctors-list)
+    const rawList = (window.hospitalSettings && window.hospitalSettings['hospital-doctors-list']) || '';
+    if (rawList) {
+        let settingsDoctors = [];
+        if (rawList.trim().startsWith('[')) {
+            try {
+                settingsDoctors = JSON.parse(rawList);
+            } catch (e) { /* ignore parse errors */ }
+        }
+        if (settingsDoctors.length === 0) {
+            // Legacy format: "Name, Dept, Fee\nName2, Dept2, Fee2"
+            rawList.split('\n').forEach(line => {
+                const parts = line.split(',');
+                if (parts.length >= 2 && parts[0].trim()) {
+                    settingsDoctors.push({ name: parts[0].trim() });
+                }
+            });
+        }
+        settingsDoctors.forEach(d => {
+            if (d.name && d.name.trim()) {
+                doctorSet.add(d.name.trim());
+            }
+        });
+    }
+
+    const sortedDoctors = Array.from(doctorSet).sort();
+
+    // Only rebuild if options changed
+    const existingOptions = Array.from(select.options).slice(1).map(o => o.value);
+    if (JSON.stringify(existingOptions) === JSON.stringify(sortedDoctors)) return;
+
+    select.innerHTML = '<option value="all">All Doctors</option>';
+    sortedDoctors.forEach(doc => {
+        const opt = document.createElement('option');
+        opt.value = doc;
+        opt.textContent = doc;
+        select.appendChild(opt);
+    });
+
+    // Restore previous selection if still valid
+    if (sortedDoctors.includes(currentVal)) {
+        select.value = currentVal;
+    }
+}
 
 async function fetchReportsData() {
     try {
@@ -303,19 +421,31 @@ async function fetchReportsData() {
     }
 }
 
-function filterReportsData(patients, dateFilter, patientFilter) {
+function filterReportsData(patients, dateFilter, patientFilter, opdIpdFilter, doctorFilter, customFrom, customTo) {
     const now = new Date();
     
     return patients.filter(p => {
         // Exclude soft-deleted records
         if (p.isDeleted) return false;
 
-        // 1. Patient Type Filter
+        // 1. OPD/IPD Category Filter
+        if (opdIpdFilter && opdIpdFilter !== 'all') {
+            const type = p.patient_type || 'IPD';
+            if (type !== opdIpdFilter) return false;
+        }
+
+        // 2. Doctor Filter
+        if (doctorFilter && doctorFilter !== 'all') {
+            const doc = (p.doctor_assigned || '').trim().toLowerCase();
+            if (doc !== doctorFilter.toLowerCase()) return false;
+        }
+
+        // 3. Surgery Type Filter
         const isSurgery = p.surgeries && p.surgeries.length > 0;
         if (patientFilter === 'surgery' && !isSurgery) return false;
         if (patientFilter === 'normal' && isSurgery) return false;
 
-        // 2. Date Range Filter
+        // 4. Date Range Filter
         if (dateFilter !== 'all') {
             const dateStr = p.admission_date || p.createdAt;
             if (!dateStr) return false;
@@ -329,6 +459,15 @@ function filterReportsData(patients, dateFilter, patientFilter) {
             } else if (dateFilter === 'monthly') {
                 const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
                 return pDate >= monthAgo;
+            } else if (dateFilter === 'custom') {
+                if (customFrom) {
+                    const from = new Date(customFrom + 'T00:00:00');
+                    if (pDate < from) return false;
+                }
+                if (customTo) {
+                    const to = new Date(customTo + 'T23:59:59');
+                    if (pDate > to) return false;
+                }
             }
         }
         return true;
@@ -375,9 +514,16 @@ function calculateMetrics(filteredPatients, billingMap) {
 async function updateReportsDashboard() {
     const dateFilter = document.getElementById('report-date-filter').value;
     const patientFilter = document.getElementById('report-patient-filter').value;
+    const opdIpdFilter = document.getElementById('report-opd-ipd-filter')?.value || 'all';
+    const doctorFilter = document.getElementById('report-doctor-filter')?.value || 'all';
+    const customFrom = document.getElementById('report-date-from')?.value || '';
+    const customTo = document.getElementById('report-date-to')?.value || '';
 
     // Fetch Live Real-time Data
     const { patients, billings } = await fetchReportsData();
+
+    // Populate Doctor dropdown dynamically from fetched data
+    populateDoctorFilter(patients);
 
     // Map billing array to an object keyed by patient_id for fast lookup
     const billingMap = {};
@@ -385,7 +531,7 @@ async function updateReportsDashboard() {
         billingMap[b.patient_id] = b;
     });
 
-    const filteredPatients = filterReportsData(patients, dateFilter, patientFilter);
+    const filteredPatients = filterReportsData(patients, dateFilter, patientFilter, opdIpdFilter, doctorFilter, customFrom, customTo);
     const metrics = calculateMetrics(filteredPatients, billingMap);
 
     const currency = window.currencySymbol || '₹';
@@ -493,54 +639,109 @@ function renderCharts(filteredPatients, metrics, showFinancials) {
         }
     }
 
-    // 1. Patient Growth (Prinstine Gradient Line Chart)
-    const dateGroups = {};
+    // 1. OPD vs IPD Dual-Line Trend Chart
+    let opdGrps = {};
+    let ipdGrps = {};
+    let allDatesSet = new Set();
+
     filteredPatients.forEach(p => {
-        let rawDate = p.admission_date || p.createdAt || new Date();
-        let d = new Date(rawDate).toISOString().split('T')[0]; // Safe grouping by calendar day
-        dateGroups[d] = (dateGroups[d] || 0) + 1;
+        let rawDate = p.admission_date || p.createdAt || new Date().toISOString();
+        let d = rawDate.split('T')[0];
+        allDatesSet.add(d);
+
+        const type = p.patient_type || 'IPD';
+        if (type === 'OPD') {
+            opdGrps[d] = (opdGrps[d] || 0) + 1;
+        } else {
+            ipdGrps[d] = (ipdGrps[d] || 0) + 1;
+        }
     });
-    const sortedDates = Object.keys(dateGroups).sort();
-    const growthData = sortedDates.map(d => dateGroups[d]);
+
+    let sortedDates = Array.from(allDatesSet).sort();
+    // Keep last 15 days for clarity in reports view
+    if (sortedDates.length > 15) {
+        sortedDates = sortedDates.slice(-15);
+    }
+
+    let opdData = sortedDates.map(d => opdGrps[d] || 0);
+    let ipdData = sortedDates.map(d => ipdGrps[d] || 0);
+
+    let formattedDates = sortedDates.map(d => {
+        const dt = new Date(d + 'T00:00:00');
+        return dt.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+    });
+
+    if (!sortedDates.length) {
+        formattedDates = ['No Data'];
+        opdData = [0];
+        ipdData = [0];
+    }
 
     const ctxGrowth = document.getElementById('patientGrowthChart').getContext('2d');
-    
-    // Create soft premium blue gradient
-    const blueGradient = ctxGrowth.createLinearGradient(0, 0, 0, 250);
-    blueGradient.addColorStop(0, 'rgba(79, 70, 229, 0.15)');
-    blueGradient.addColorStop(1, 'rgba(79, 70, 229, 0)');
+
+    // Create soft gradients for both lines
+    const opdGradient = ctxGrowth.createLinearGradient(0, 0, 0, 250);
+    opdGradient.addColorStop(0, 'rgba(16, 185, 129, 0.12)');
+    opdGradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
+
+    const ipdGradient = ctxGrowth.createLinearGradient(0, 0, 0, 250);
+    ipdGradient.addColorStop(0, 'rgba(99, 102, 241, 0.12)');
+    ipdGradient.addColorStop(1, 'rgba(99, 102, 241, 0)');
 
     reportsCharts['growth'] = new Chart(ctxGrowth, {
         type: 'line',
         data: {
-            labels: sortedDates.length ? sortedDates : ['No Dates'],
-            datasets: [{
-                label: 'Admissions',
-                data: growthData.length ? growthData : [0],
-                borderColor: '#4f46e5',
-                borderWidth: 3,
-                backgroundColor: blueGradient,
-                tension: 0.35,
-                fill: true,
-                pointBackgroundColor: '#4f46e5',
-                pointHoverRadius: 7,
-                pointRadius: 4
-            }]
+            labels: formattedDates,
+            datasets: [
+                {
+                    label: 'OPD Patients',
+                    data: opdData,
+                    borderColor: '#10b981',
+                    backgroundColor: opdGradient,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#10b981',
+                    pointHoverRadius: 7,
+                    pointRadius: 4,
+                    borderWidth: 3
+                },
+                {
+                    label: 'IPD Patients',
+                    data: ipdData,
+                    borderColor: '#6366f1',
+                    backgroundColor: ipdGradient,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#6366f1',
+                    pointHoverRadius: 7,
+                    pointRadius: 4,
+                    borderWidth: 3
+                }
+            ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { 
-                legend: { display: false }
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        boxWidth: 14,
+                        color: '#475569',
+                        font: { size: 12, weight: '700' },
+                        padding: 16
+                    }
+                }
             },
             scales: {
                 x: {
                     grid: { display: false },
-                    ticks: { color: '#64748b', font: { weight: 600 } }
+                    ticks: { color: '#64748b', font: { size: 11, weight: 600 } }
                 },
                 y: {
                     grid: { color: '#f1f5f9' },
-                    ticks: { color: '#64748b', font: { weight: 600 }, stepSize: 1, beginAtZero: true }
+                    ticks: { color: '#64748b', font: { size: 11, weight: 600 }, stepSize: 1, beginAtZero: true }
                 }
             }
         }

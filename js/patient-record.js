@@ -868,7 +868,28 @@ async function populatePatientJourney(patientId, p) {
                 if (patientBill.items && patientBill.items.length > 0) {
                     patientBill.items.forEach(item => {
                         const fee = parseFloat(item.fee) || 0;
-                        const days = parseFloat(item.days) || 0;
+                        let days = parseFloat(item.days) || 0;
+                        
+                        const isBedCharge = item.name && item.name.startsWith('Bed Charge');
+                        if (isBedCharge && p && p.status === 'Admitted' && p.bedHistory && !item.isManualDays) {
+                            // Find matching bed stay in history and calculate calendar days
+                            const match = p.bedHistory.find(b => `Bed Charge (${b.ward_type} - ${b.bed_no})` === item.name);
+                            if (match) {
+                                const bedIdx = p.bedHistory.indexOf(match);
+                                const startDate = new Date(match.start_date);
+                                const endDate = match.end_date ? new Date(match.end_date) : new Date();
+                                const sDate = new Date(startDate);
+                                const eDate = new Date(endDate);
+                                sDate.setHours(0, 0, 0, 0);
+                                eDate.setHours(0, 0, 0, 0);
+                                let dDays = Math.round(Math.abs(eDate - sDate) / (1000 * 60 * 60 * 24));
+                                if (bedIdx === p.bedHistory.length - 1) {
+                                    dDays += 1;
+                                }
+                                days = dDays;
+                            }
+                        }
+                        
                         grandTotal += fee * (days || 1);
                     });
                 }
@@ -897,23 +918,18 @@ async function populatePatientJourney(patientId, p) {
                     p.bedHistory.forEach((bed, bedIndex) => {
                         const startDate = new Date(bed.start_date);
                         const endDate = bed.end_date ? new Date(bed.end_date) : new Date();
-                        const diffTime = Math.abs(endDate - startDate);
-                        let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-                        // Same-day transfer logic to prevent double charging on the same day
-                        const startCal = startDate.toDateString();
-                        const endCal = endDate.toDateString();
-                        const isSameDay = startCal === endCal;
-
-                        if (isSameDay) {
-                            const hasSubsequentStay = bedIndex < p.bedHistory.length - 1;
-                            if (hasSubsequentStay) {
-                                diffDays = 0; // Same-day transfer: free for this bed, charged in the subsequent bed stay
-                            } else {
-                                if (diffDays < 1) diffDays = 1; // Only/last stay on the same day: minimum 1 day
-                            }
-                        } else {
-                            if (diffDays < 1) diffDays = 1;
+                        // Calculate actual days stayed (calendar days to prevent timezone/hour fluctuations)
+                        const sDate = new Date(startDate);
+                        const eDate = new Date(endDate);
+                        sDate.setHours(0, 0, 0, 0);
+                        eDate.setHours(0, 0, 0, 0);
+                        let diffDays = Math.round(Math.abs(eDate - sDate) / (1000 * 60 * 60 * 24));
+                        
+                        // If it is the last stay (active or discharged), we count the final day (+1)
+                        const isLastStay = bedIndex === p.bedHistory.length - 1;
+                        if (isLastStay) {
+                            diffDays += 1;
                         }
 
                         grandTotal += (bed.daily_charge || 0) * diffDays;
@@ -928,7 +944,14 @@ async function populatePatientJourney(patientId, p) {
                 }
 
                 // Default Consultation/Doctor fee fallback
-                const drFee = parseFloat(p ? p.doctorFees : 0) || parseFloat(window.hospitalSettings?.['doctor-fees']) || parseFloat(window.hospitalSettings?.['consultation-fee']) || 500;
+                let drFee = 0;
+                if (p && p.doctorFees !== undefined && p.doctorFees !== null && p.doctorFees !== '') {
+                    drFee = parseFloat(p.doctorFees) || 0;
+                } else if (window.hospitalSettings && window.hospitalSettings['doctor-fees'] !== undefined && window.hospitalSettings['doctor-fees'] !== '') {
+                    drFee = parseFloat(window.hospitalSettings['doctor-fees']) || 0;
+                } else if (window.hospitalSettings && window.hospitalSettings['consultation-fee'] !== undefined && window.hospitalSettings['consultation-fee'] !== '') {
+                    drFee = parseFloat(window.hospitalSettings['consultation-fee']) || 0;
+                }
                 grandTotal += drFee;
 
                 const totalPaid = 0;

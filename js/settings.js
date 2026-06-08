@@ -248,6 +248,48 @@ async function renderSettings() {
                                     <label>Registration Number</label>
                                     <input type="text" id="hospital-reg" placeholder="REG/CHC/2026/102">
                                 </div>
+                                <input type="hidden" id="hospital-doctors-list">
+                                <div class="form-group" style="grid-column: span 2; border: 1px solid var(--border); border-radius: 12px; padding: 20px; background: #fafafa; margin-top: 15px;">
+                                    <h4 style="margin: 0 0 15px 0; font-family:'Outfit', sans-serif; font-size:15px; font-weight:700; color:var(--text-main); display:flex; align-items:center; gap:8px;">
+                                        <i class="bi bi-people-fill" style="color:var(--primary);"></i> Doctor Management
+                                    </h4>
+                                    <!-- Form to add new doctor -->
+                                    <div style="display: grid; grid-template-columns: 2fr 2fr 1fr auto; gap: 10px; align-items: flex-end; margin-bottom: 20px;">
+                                        <div class="form-group" style="margin:0;">
+                                            <label style="font-size:11px; margin-bottom:4px;">Doctor Name</label>
+                                            <input type="text" id="doc-add-name" placeholder="Dr. John Doe" style="padding: 8px 12px; font-size:13px;">
+                                        </div>
+                                        <div class="form-group" style="margin:0;">
+                                            <label style="font-size:11px; margin-bottom:4px;">Department</label>
+                                            <input type="text" id="doc-add-dept" placeholder="Cardiology, Medicine..." style="padding: 8px 12px; font-size:13px;">
+                                        </div>
+                                        <div class="form-group" style="margin:0;">
+                                            <label style="font-size:11px; margin-bottom:4px;">Consultation Fee (₹)</label>
+                                            <input type="number" id="doc-add-fee" placeholder="500" min="0" style="padding: 8px 12px; font-size:13px;">
+                                        </div>
+                                        <button type="button" class="btn btn-primary" onclick="addDoctorToSettingsList()" style="padding: 9px 16px; font-size:13px; font-weight:700; background:var(--primary); color:#fff; border:none; border-radius:8px; cursor:pointer;">
+                                            <i class="bi bi-plus-lg"></i> Add
+                                        </button>
+                                    </div>
+                                    <!-- Table / List of doctors -->
+                                    <div class="table-responsive" style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; background:#fff;">
+                                        <table class="table" style="width: 100%; border-collapse: collapse; margin:0; font-size: 13px; text-align: left;">
+                                            <thead>
+                                                <tr style="background: #f1f5f9; border-bottom: 1px solid var(--border); color:#475569; font-weight:700;">
+                                                    <th style="padding: 10px 12px;">Doctor Name</th>
+                                                    <th style="padding: 10px 12px;">Department</th>
+                                                    <th style="padding: 10px 12px;">Fees</th>
+                                                    <th style="padding: 10px 12px; text-align: center; width: 60px;">Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="settings-doctors-tbody">
+                                                <tr>
+                                                    <td colspan="4" style="text-align: center; padding: 20px; color:#94a3b8;">No doctors configured. Add one above.</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
                                 <div class="form-group" style="grid-column: span 2;">
                                     <div style="display:flex; align-items:center; gap:10px; padding:12px 16px; background:linear-gradient(135deg, #eef2ff 0%, #faf5ff 100%); border-radius:10px; border:1px solid #e0e7ff;">
                                         <i class="fa-solid fa-bed" style="color:#6366f1; font-size:18px;"></i>
@@ -685,8 +727,14 @@ function loadSettings() {
             } else {
                 element.value = savedSettings[element.id];
             }
+        } else if (element.id === 'hospital-doctors-list') {
+            element.value = 'Dr. Bhoopendra Chaudhary, General Medicine, 500';
         }
     });
+
+    if (typeof loadDoctorsFromSettings === 'function') {
+        loadDoctorsFromSettings();
+    }
 }
 
 async function saveSettings() {
@@ -726,6 +774,7 @@ async function saveSettings() {
         hideLoading();
         if (result.success) {
             window.hospitalSettings = settings;
+            localStorage.setItem('hospitalSettings', JSON.stringify(settings));
             applyGlobalSettings();
             showNotification('Settings saved and applied successfully!', 'success');
         } else {
@@ -1146,3 +1195,127 @@ async function runFcmTest() {
 window.runEmailTest = runEmailTest;
 window.runFcmTest = runFcmTest;
 window.checkIntegrationStatus = checkIntegrationStatus;
+
+// ==================== DOCTOR MANAGEMENT HELPERS ====================
+window.settingsDoctorsArray = [];
+
+window.addDoctorToSettingsList = function() {
+    const nameEl = document.getElementById('doc-add-name');
+    const deptEl = document.getElementById('doc-add-dept');
+    const feeEl = document.getElementById('doc-add-fee');
+
+    if (!nameEl || !deptEl || !feeEl) return;
+
+    const name = nameEl.value.trim();
+    const dept = deptEl.value.trim();
+    const fee = parseFloat(feeEl.value) || 0;
+
+    if (!name) {
+        showNotification('Doctor Name is required!', 'error');
+        return;
+    }
+    if (!dept) {
+        showNotification('Department is required!', 'error');
+        return;
+    }
+
+    // Check if doctor already exists
+    if (window.settingsDoctorsArray.some(d => d.name.toLowerCase() === name.toLowerCase())) {
+        showNotification('Doctor already exists!', 'error');
+        return;
+    }
+
+    window.settingsDoctorsArray.push({ name, dept, fee });
+    
+    // Clear inputs
+    nameEl.value = '';
+    deptEl.value = '';
+    feeEl.value = '';
+
+    updateDoctorsHiddenInput();
+    renderSettingsDoctorsTable();
+    showNotification(`Doctor ${name} added. Save changes to persist.`, 'success');
+};
+
+window.removeDoctorFromSettingsList = function(index) {
+    if (index < 0 || index >= window.settingsDoctorsArray.length) return;
+    const removed = window.settingsDoctorsArray.splice(index, 1);
+    updateDoctorsHiddenInput();
+    renderSettingsDoctorsTable();
+    showNotification(`Doctor ${removed[0].name} removed. Save changes to persist.`, 'success');
+};
+
+function updateDoctorsHiddenInput() {
+    const hiddenInput = document.getElementById('hospital-doctors-list');
+    if (hiddenInput) {
+        hiddenInput.value = JSON.stringify(window.settingsDoctorsArray);
+    }
+}
+
+window.renderSettingsDoctorsTable = function() {
+    const tbody = document.getElementById('settings-doctors-tbody');
+    if (!tbody) return;
+
+    if (window.settingsDoctorsArray.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="4" style="text-align: center; padding: 20px; color:#94a3b8; font-weight: 500;">
+                    No doctors configured. Add one above.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = window.settingsDoctorsArray.map((doc, idx) => `
+        <tr style="border-bottom: 1px solid var(--border, #e2e8f0); color: var(--text-main);">
+            <td style="padding: 10px 12px; font-weight:600;">${doc.name}</td>
+            <td style="padding: 10px 12px;"><span style="display:inline-block; padding: 2px 8px; background:var(--primary-light, #eef2ff); color:var(--primary, #4f46e5); border-radius:6px; font-weight:700; font-size:11px;">${doc.dept}</span></td>
+            <td style="padding: 10px 12px; font-weight:600;">${window.currencySymbol || '₹'}${doc.fee}</td>
+            <td style="padding: 10px 12px; text-align: center;">
+                <button type="button" class="btn-delete-doc" onclick="removeDoctorFromSettingsList(${idx})" style="background:transparent; border:none; color:#ef4444; cursor:pointer; font-size:16px; padding:4px 8px; border-radius:4px; display:inline-flex; align-items:center; justify-content:center; transition: all 0.2s;">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+};
+
+window.loadDoctorsFromSettings = function() {
+    const saved = (window.hospitalSettings || {})['hospital-doctors-list'] || '';
+    let parsedList = [];
+
+    if (saved) {
+        // Try parsing JSON format
+        if (saved.trim().startsWith('[')) {
+            try {
+                parsedList = JSON.parse(saved);
+            } catch (e) {
+                console.warn("JSON parse failed, falling back to legacy format", e);
+            }
+        }
+        
+        // Fallback to legacy comma-separated string format
+        if (parsedList.length === 0) {
+            saved.split('\n').forEach(line => {
+                const parts = line.split(',');
+                if (parts.length >= 2) {
+                    const name = parts[0].trim();
+                    const dept = parts[1].trim();
+                    const fee  = parts[2] ? parseFloat(parts[2].trim()) || 0 : 0;
+                    if (name && dept) {
+                        parsedList.push({ name, dept, fee });
+                    }
+                }
+            });
+        }
+    }
+
+    if (parsedList.length === 0) {
+        parsedList.push({ name: 'Dr. Bhoopendra Chaudhary', dept: 'General Medicine', fee: 500 });
+    }
+
+    window.settingsDoctorsArray = parsedList;
+    updateDoctorsHiddenInput();
+    renderSettingsDoctorsTable();
+};
