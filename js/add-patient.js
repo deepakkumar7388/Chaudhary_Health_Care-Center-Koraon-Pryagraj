@@ -17,15 +17,15 @@ function renderAddPatient() {
 
                 <!-- ── PATIENT TYPE TOGGLE ── -->
                 <div class="form-section" style="padding-bottom: 0;">
-                    <div style="display: flex; gap: 12px; align-items: stretch;">
-                        <label id="type-btn-ipd" onclick="selectPatientType('IPD')" style="flex:1; display:flex; align-items:center; justify-content:center; gap:10px; padding:16px; border-radius:12px; cursor:pointer; border:2px solid var(--primary); background:var(--primary); color:#fff; font-weight:700; font-size:15px; transition:all 0.2s; user-select:none;">
+                    <div style="display: flex; gap: 8px; align-items: stretch;">
+                        <label id="type-btn-ipd" onclick="selectPatientType('IPD')" style="flex:1; display:flex; align-items:center; justify-content:center; gap:7px; padding:10px 12px; border-radius:10px; cursor:pointer; border:2px solid var(--primary); background:var(--primary); color:#fff; font-weight:600; font-size:13px; transition:all 0.2s; user-select:none;">
                             <input type="radio" name="p-type" value="IPD" checked style="display:none;">
-                            <i class="fas fa-bed" style="font-size:20px;"></i>
-                            <span>IPD — Admit Patient</span>
+                            <i class="fas fa-bed" style="font-size:15px;"></i>
+                            <span>IPD — Admit</span>
                         </label>
-                        <label id="type-btn-opd" onclick="selectPatientType('OPD')" style="flex:1; display:flex; align-items:center; justify-content:center; gap:10px; padding:16px; border-radius:12px; cursor:pointer; border:2px solid #e2e8f0; background:#f8fafc; color:#475569; font-weight:700; font-size:15px; transition:all 0.2s; user-select:none;">
+                        <label id="type-btn-opd" onclick="selectPatientType('OPD')" style="flex:1; display:flex; align-items:center; justify-content:center; gap:7px; padding:10px 12px; border-radius:10px; cursor:pointer; border:2px solid #e2e8f0; background:#f8fafc; color:#475569; font-weight:600; font-size:13px; transition:all 0.2s; user-select:none;">
                             <input type="radio" name="p-type" value="OPD" style="display:none;">
-                            <i class="bi bi-person-check" style="font-size:20px;"></i>
+                            <i class="bi bi-person-check" style="font-size:15px;"></i>
                             <span>OPD — Out-Patient</span>
                         </label>
                     </div>
@@ -96,10 +96,10 @@ function renderAddPatient() {
                     </div>
 
                     <div class="form-actions">
-                        <button type="submit" class="btn-primary" style="background: linear-gradient(135deg,#059669,#047857); border:none;">
-                            <i class="bi bi-person-plus"></i> Register OPD Patient
+                        <button type="submit" class="btn-primary" style="background: linear-gradient(135deg,#059669,#047857); border:none; padding:8px 18px; font-size:13px;">
+                            <i class="bi bi-person-plus"></i> Register OPD
                         </button>
-                        <button type="button" class="btn" onclick="document.getElementById('patient-form').reset(); selectPatientType('OPD');">
+                        <button type="button" class="btn" style="padding:8px 14px; font-size:13px;" onclick="document.getElementById('patient-form').reset(); selectPatientType('OPD');">
                             <i class="bi bi-arrow-repeat"></i> Reset
                         </button>
                     </div>
@@ -179,10 +179,10 @@ function renderAddPatient() {
                     </div>
                     
                     <div class="form-actions">
-                        <button type="submit" class="btn-primary">
+                        <button type="submit" class="btn-primary" style="padding:8px 18px; font-size:13px;">
                             <i class="bi bi-person-plus"></i> Admit Patient
                         </button>
-                        <button type="reset" class="btn">
+                        <button type="reset" class="btn" style="padding:8px 14px; font-size:13px;">
                             <i class="bi bi-arrow-repeat"></i> Reset
                         </button>
                     </div>

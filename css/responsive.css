@@ -808,8 +808,8 @@
     .btn-add-observation,
     .form-actions button,
     .discharge-form .form-actions button {
-        padding: 9px 16px !important;
-        font-size: 13px !important;
+        padding: 7px 14px !important;
+        font-size: 12px !important;
         min-height: unset !important;
     }
 
