@@ -21,12 +21,12 @@ function renderAddPatient() {
                         <label id="type-btn-ipd" onclick="selectPatientType('IPD')" style="flex:1; display:flex; align-items:center; justify-content:center; gap:7px; padding:10px 12px; border-radius:10px; cursor:pointer; border:2px solid var(--primary); background:var(--primary); color:#fff; font-weight:600; font-size:13px; transition:all 0.2s; user-select:none;">
                             <input type="radio" name="p-type" value="IPD" checked style="display:none;">
                             <i class="fas fa-bed" style="font-size:15px;"></i>
-                            <span>IPD — Admit</span>
+                            <span>IPD</span>
                         </label>
                         <label id="type-btn-opd" onclick="selectPatientType('OPD')" style="flex:1; display:flex; align-items:center; justify-content:center; gap:7px; padding:10px 12px; border-radius:10px; cursor:pointer; border:2px solid #e2e8f0; background:#f8fafc; color:#475569; font-weight:600; font-size:13px; transition:all 0.2s; user-select:none;">
                             <input type="radio" name="p-type" value="OPD" style="display:none;">
                             <i class="bi bi-person-check" style="font-size:15px;"></i>
-                            <span>OPD — Out-Patient</span>
+                            <span>OPD</span>
                         </label>
                     </div>
                 </div>
