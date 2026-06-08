@@ -279,22 +279,45 @@ async function loadAvailableBeds() {
         const token = sessionStorage.getItem('token');
         if (!token) { showNotification('Authentication error: Please login again', 'error'); return; }
 
+        // ── Cache: pehle localStorage se instantly load karo ──
+        const CACHE_KEY = 'cache_available_beds';
+        const CACHE_TTL = 5 * 60 * 1000; // 5 minute
+        const cached = localStorage.getItem(CACHE_KEY);
+        if (cached) {
+            try {
+                const { beds, ts } = JSON.parse(cached);
+                const age = Date.now() - ts;
+                if (beds && Array.isArray(beds)) {
+                    // Cache se instantly show karo
+                    window.availableBedsList = beds;
+                    filterBedsByGender();
+                    // Agar cache fresh hai (5 min) to DB call mat karo
+                    if (age < CACHE_TTL) return;
+                }
+            } catch(e) { /* ignore bad cache */ }
+        }
+
+        // ── Background me DB se fresh data fetch karo ──
         const response = await fetch(`${API_BASE}patients/available-beds`, {
             headers: { 'Authorization': 'Bearer ' + token }
         });
         
         if (!response.ok) {
             if (response.status === 401) { showNotification('Session expired. Please login again.', 'error'); return; }
-            showNotification(`Error ${response.status}: Failed to load beds`, 'error');
+            // Cache tha to error mat dikhaao
+            if (!cached) showNotification(`Error ${response.status}: Failed to load beds`, 'error');
             return;
         }
 
         const result = await response.json();
         if (result.success) {
-            window.availableBedsList = result.beds || [];
+            const freshBeds = result.beds || [];
+            // Cache update karo
+            localStorage.setItem(CACHE_KEY, JSON.stringify({ beds: freshBeds, ts: Date.now() }));
+            window.availableBedsList = freshBeds;
             filterBedsByGender();
         } else {
-            showNotification(result.error || 'Failed to load beds', 'error');
+            if (!cached) showNotification(result.error || 'Failed to load beds', 'error');
         }
     } catch (error) {
         console.error('Network Error loading beds:', error);
@@ -414,6 +437,7 @@ async function addOpdPatient() {
             sessionStorage.removeItem('addPatientDraft');
             // Cache invalidate karo
             localStorage.removeItem('patients');
+            localStorage.removeItem('cache_available_beds'); // beds cache clear
             showNotification(`OPD Patient Registered! ID: ${result.patient.patient_id} — ${name}`, 'success');
             document.getElementById('patient-form').reset();
             selectPatientType('OPD'); // OPD form ready for next patient
@@ -488,6 +512,7 @@ async function addIpdPatient() {
         if (result.success) {
             sessionStorage.removeItem('addPatientDraft');
             localStorage.removeItem('patients');
+            localStorage.removeItem('cache_available_beds'); // beds cache clear — bed ab occupied hai
             showNotification(`Patient ${name} admitted successfully! ID: ${result.patient.patient_id}`, 'success');
             document.getElementById('patient-form').reset();
             showModule('patients');
