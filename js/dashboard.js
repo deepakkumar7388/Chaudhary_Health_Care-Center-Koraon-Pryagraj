@@ -121,12 +121,62 @@ function renderDashboard() {
         </style>
 
         <div class="dashboard-container">
-            <div class="welcome-card hero-section" style="padding: 25px; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
-                <h1 style="margin: 0; font-size: 26px; font-weight: 800; color: white;">Chaudhary Health Care Center Koraon</h1>
-                <p style="margin: 4px 0 10px; opacity: 0.9; font-size: 14px; font-weight: 500;">Hospital Management System</p>
-                <div style="height: 1px; background: rgba(255,255,255,0.2); margin: 10px 0;"></div>
-                <p style="margin: 4px 0 0; opacity: 0.85; font-size: 12px;">Welcome back, <strong>${currentUser?.name || 'User'}</strong> (${roleSubtitle[role] || ''})</p>
+        <div class="welcome-card hero-section" style="
+                padding: 20px 24px;
+                background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark, #3730a3) 100%);
+                color: white;
+                border-radius: 14px;
+                margin-bottom: 20px;
+                box-shadow: 0 8px 24px rgba(79,70,229,0.25);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 16px;
+                flex-wrap: wrap;
+            ">
+            <!-- Left: Hospital Info -->
+            <div style="display:flex; align-items:center; gap:14px; flex:1; min-width:0;">
+                <div style="
+                    width:48px; height:48px; flex-shrink:0;
+                    background: rgba(255,255,255,0.18);
+                    border-radius:12px;
+                    display:flex; align-items:center; justify-content:center;
+                    font-size:22px;
+                    backdrop-filter: blur(8px);
+                    border: 1px solid rgba(255,255,255,0.25);
+                ">🏥</div>
+                <div style="min-width:0;">
+                    <h1 style="margin:0; font-size:18px; font-weight:800; color:white; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                        Chaudhary Health Care Center
+                    </h1>
+                    <p style="margin:2px 0 0; font-size:11px; opacity:0.75; font-weight:500; letter-spacing:0.5px; text-transform:uppercase;">
+                        Koraon, Prayagraj &nbsp;·&nbsp; Hospital Management System
+                    </p>
+                </div>
             </div>
+
+            <!-- Right: User greeting + date -->
+            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px; flex-shrink:0;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <div style="
+                        background: rgba(255,255,255,0.15);
+                        border: 1px solid rgba(255,255,255,0.25);
+                        border-radius:20px;
+                        padding: 3px 10px;
+                        font-size:11px;
+                        font-weight:600;
+                        letter-spacing:0.3px;
+                        backdrop-filter:blur(6px);
+                    ">${roleSubtitle[role] || 'Home'}</div>
+                </div>
+                <p style="margin:0; font-size:13px; font-weight:700; color:white; opacity:0.95;">
+                    👋 ${currentUser?.name || 'User'}
+                </p>
+                <p style="margin:0; font-size:11px; opacity:0.65;" id="dash-live-date">
+                    ${new Date().toLocaleDateString('en-IN', {weekday:'long', day:'numeric', month:'long', year:'numeric'})}
+                </p>
+            </div>
+        </div>
             
             <div class="stats-grid" id="dashboard-metrics"></div>
 
