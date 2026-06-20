@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://chaudhary-health-care-center-koraon.onrender.com/sitemap.xml
+Sitemap: https://deepakkumar7388.github.io/Chaudhary_Health_Care-Center-Koraon-Pryagraj/sitemap.xml
