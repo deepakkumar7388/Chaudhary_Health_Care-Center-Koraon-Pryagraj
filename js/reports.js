@@ -610,6 +610,12 @@ async function updateReportsDashboard() {
 function renderCharts(filteredPatients, metrics, showFinancials) {
     if (typeof Chart === 'undefined') return;
 
+    const isDark = document.body.classList.contains('dark-theme');
+    const labelColor = isDark ? '#cbd5e1' : '#475569';
+    const gridColor = isDark ? '#1f2937' : '#f1f5f9';
+    const tickColor = isDark ? '#94a3b8' : '#64748b';
+    const pieBorderColor = isDark ? '#111827' : '#ffffff';
+
     // Destroy existing instances to reconstruct over same canvas elements cleanly
     Object.keys(reportsCharts).forEach(key => {
         if (reportsCharts[key]) reportsCharts[key].destroy();
@@ -728,7 +734,7 @@ function renderCharts(filteredPatients, metrics, showFinancials) {
                     position: 'top',
                     labels: {
                         boxWidth: 14,
-                        color: '#475569',
+                        color: labelColor,
                         font: { size: 12, weight: '700' },
                         padding: 16
                     }
@@ -737,11 +743,11 @@ function renderCharts(filteredPatients, metrics, showFinancials) {
             scales: {
                 x: {
                     grid: { display: false },
-                    ticks: { color: '#64748b', font: { size: 11, weight: 600 } }
+                    ticks: { color: tickColor, font: { size: 11, weight: 600 } }
                 },
                 y: {
-                    grid: { color: '#f1f5f9' },
-                    ticks: { color: '#64748b', font: { size: 11, weight: 600 }, stepSize: 1, beginAtZero: true }
+                    grid: { color: gridColor },
+                    ticks: { color: tickColor, font: { size: 11, weight: 600 }, stepSize: 1, beginAtZero: true }
                 }
             }
         }
@@ -776,13 +782,13 @@ function renderCharts(filteredPatients, metrics, showFinancials) {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { labels: { color: '#475569', font: { weight: 700 } } }
+                        legend: { labels: { color: labelColor, font: { weight: 700 } } }
                     },
                     scales: {
                         x: { grid: { display: false } },
                         y: { 
-                            grid: { color: '#f1f5f9' },
-                            ticks: { color: '#64748b', font: { weight: 600 } }
+                            grid: { color: gridColor },
+                            ticks: { color: tickColor, font: { weight: 600 } }
                         }
                     }
                 }
@@ -800,7 +806,7 @@ function renderCharts(filteredPatients, metrics, showFinancials) {
                         data: [metrics.paidBillsCount, metrics.pendingBillsCount],
                         backgroundColor: ['#10b981', '#ef4444'],
                         borderWidth: 3,
-                        borderColor: '#ffffff',
+                        borderColor: pieBorderColor,
                         hoverOffset: 4
                     }]
                 },
@@ -811,7 +817,7 @@ function renderCharts(filteredPatients, metrics, showFinancials) {
                     plugins: { 
                         legend: { 
                             position: 'bottom',
-                            labels: { color: '#475569', font: { weight: 700 }, padding: 20 }
+                            labels: { color: labelColor, font: { weight: 700 }, padding: 20 }
                         } 
                     }
                 }
@@ -830,7 +836,7 @@ function renderCharts(filteredPatients, metrics, showFinancials) {
                 data: [normalCount, metrics.surgeryPatientsCount],
                 backgroundColor: ['#4f46e5', '#8b5cf6'],
                 borderWidth: 3,
-                borderColor: '#ffffff',
+                borderColor: pieBorderColor,
                 hoverOffset: 4
             }]
         },
@@ -841,7 +847,7 @@ function renderCharts(filteredPatients, metrics, showFinancials) {
             plugins: { 
                 legend: { 
                     position: 'bottom',
-                    labels: { color: '#475569', font: { weight: 700 }, padding: 20 }
+                    labels: { color: labelColor, font: { weight: 700 }, padding: 20 }
                 } 
             }
         }

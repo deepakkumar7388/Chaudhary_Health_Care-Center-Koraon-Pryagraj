@@ -99,7 +99,7 @@ function renderDashboard() {
     moduleEl.innerHTML = `
         <style>
             .role-info-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-            .info-panel-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
+            .info-panel-card { background: var(--card-bg, #fff); border: 1px solid var(--border, #e2e8f0); border-radius: 12px; overflow: hidden; }
             .info-panel-header { padding: 12px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #f1f5f9; }
             .info-panel-header i { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; }
             .info-panel-header h4 { margin: 0; font-size: 13px; font-weight: 700; color: #1e293b; }
@@ -184,15 +184,15 @@ function renderDashboard() {
             
             ${showCharts ? `
             <div id="admin-charts-section" class="charts-grid">
-                <div class="report-card card" style="background:white; padding:15px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.04);">
+                <div class="report-card card" style="background:var(--card-bg,white); padding:15px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.04);">
                     <h3 style="margin-bottom:10px; font-size:14px;"><i class="bi bi-graph-up-arrow" style="color:#3498db;"></i> Patient Registrations</h3>
                     <div style="height:200px; position:relative;"><canvas id="dashPatientChart"></canvas></div>
                 </div>
-                <div class="report-card card" style="background:white; padding:15px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.04);">
+                <div class="report-card card" style="background:var(--card-bg,white); padding:15px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.04);">
                     <h3 style="margin-bottom:10px; font-size:14px;"><i class="bi bi-bar-chart" style="color:#2ecc71;"></i> Revenue Streams</h3>
                     <div style="height:200px; position:relative;"><canvas id="dashRevenueChart"></canvas></div>
                 </div>
-                <div class="report-card card" style="background:white; padding:15px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.04);">
+                <div class="report-card card" style="background:var(--card-bg,white); padding:15px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.04);">
                     <h3 style="margin-bottom:10px; font-size:14px;"><i class="bi bi-pie-chart" style="color:#f1c40f;"></i> Payment Status</h3>
                     <div style="height:200px; position:relative;"><canvas id="dashPaymentChart"></canvas></div>
                 </div>
@@ -517,6 +517,11 @@ async function updateDashboardStats() {
 
 function renderDashboardCharts(totalPatients, totalRevenue, totalPendingAmt, paidBills, pendingBills, patients) {
     const curr = window.currencySymbol || '₹';
+    const isDark = document.body.classList.contains('dark-theme');
+    const labelColor = isDark ? '#cbd5e1' : '#475569';
+    const gridColor = isDark ? '#1f2937' : '#f1f5f9';
+    const tickColor = isDark ? '#94a3b8' : '#64748b';
+    const pieBorderColor = isDark ? '#111827' : '#ffffff';
 
     const parents = [
         document.getElementById('dashPatientChart')?.parentNode,
@@ -613,13 +618,14 @@ function renderDashboardCharts(totalPatients, totalRevenue, totalPendingAmt, pai
                         position: 'top',
                         labels: {
                             boxWidth: 12,
+                            color: labelColor,
                             font: { size: 10, weight: '600' }
                         }
                     } 
                 },
                 scales: {
-                    y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 11 } }, grid: { color: '#f1f5f9' } },
-                    x: { ticks: { font: { size: 10 } }, grid: { display: false } }
+                    y: { beginAtZero: true, ticks: { color: tickColor, stepSize: 1, font: { size: 11 } }, grid: { color: gridColor } },
+                    x: { ticks: { color: tickColor, font: { size: 10 } }, grid: { display: false } }
                 }
             }
         });
@@ -652,8 +658,8 @@ function renderDashboardCharts(totalPatients, totalRevenue, totalPendingAmt, pai
                     }
                 },
                 scales: {
-                    y: { beginAtZero: true, ticks: { callback: v => `${curr}${v.toLocaleString()}`, font: { size: 10 } }, grid: { color: '#f1f5f9' } },
-                    x: { ticks: { font: { size: 11, weight: '600' } }, grid: { display: false } }
+                    y: { beginAtZero: true, ticks: { color: tickColor, callback: v => `${curr}${v.toLocaleString()}`, font: { size: 10 } }, grid: { color: gridColor } },
+                    x: { ticks: { color: tickColor, font: { size: 11, weight: '600' } }, grid: { display: false } }
                 }
             }
         });
@@ -669,7 +675,7 @@ function renderDashboardCharts(totalPatients, totalRevenue, totalPendingAmt, pai
                 datasets: [{
                     data: [paidBills, pendingBills],
                     backgroundColor: ['#10b981', '#ef4444'],
-                    borderWidth: 3, borderColor: '#fff',
+                    borderWidth: 3, borderColor: pieBorderColor,
                     hoverOffset: 6
                 }]
             },
@@ -677,7 +683,7 @@ function renderDashboardCharts(totalPatients, totalRevenue, totalPendingAmt, pai
                 responsive: true, maintainAspectRatio: false,
                 cutout: '55%',
                 plugins: {
-                    legend: { position: 'bottom', labels: { padding: 12, font: { size: 11, weight: '600' } } }
+                    legend: { position: 'bottom', labels: { color: labelColor, padding: 12, font: { size: 11, weight: '600' } } }
                 }
             }
         });

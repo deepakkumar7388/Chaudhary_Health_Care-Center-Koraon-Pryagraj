@@ -101,9 +101,9 @@
         const authToken = getToken();
         if (!authToken) return;
 
-        const apiBase = (window.location.protocol === 'file:' || (window.location.hostname === '127.0.0.1' && window.location.port !== '5000'))
+        const apiBase = (window.location.protocol === 'file:' || window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost')
             ? 'http://127.0.0.1:5000/api/'
-            : '/api/';
+            : 'https://chaudhary-hms-api.onrender.com/api/';
 
         try {
             await fetch(`${apiBase}notifications/subscribe`, {

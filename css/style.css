@@ -1516,8 +1516,18 @@ body {
 
 /* ==================== DARK THEME ==================== */
 body.dark-theme {
-    background: #121212;
-    color: #e0e0e0;
+    background: #090d16;
+    color: #cbd5e1;
+    /* ── CSS Variable overrides — automatic dark for all components ── */
+    --background: #090d16;
+    --card-bg: #111827;
+    --sidebar-bg: #0a0f1d;
+    --text-main: #f1f5f9;
+    --text-muted: #94a3b8;
+    --border: #1f2937;
+    --shadow: 0 1px 3px 0 rgba(0,0,0,0.4), 0 1px 2px -1px rgba(0,0,0,0.3);
+    --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.5), 0 4px 6px -4px rgba(0,0,0,0.4);
+    --primary-light: rgba(99, 102, 241, 0.12);
 }
 
 body.dark-theme .app-container {

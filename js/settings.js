@@ -176,6 +176,18 @@ async function renderSettings() {
                     from { opacity: 0; transform: translateY(12px); }
                     to { opacity: 1; transform: translateY(0); }
                 }
+
+                /* Dark theme overrides for settings elements */
+                body.dark-theme .form-group-checkbox {
+                    background: var(--background, #090d16) !important;
+                    border-color: var(--border, #1f2937) !important;
+                }
+                body.dark-theme .form-group-checkbox:hover {
+                    background: var(--card-bg, #111827) !important;
+                }
+                body.dark-theme .form-group-checkbox label {
+                    color: var(--text-main, #f1f5f9) !important;
+                }
             </style>
 
             <div class="module-header" style="margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border); padding-bottom: 15px; flex-wrap: wrap; gap: 15px;">
@@ -249,7 +261,7 @@ async function renderSettings() {
                                     <input type="text" id="hospital-reg" placeholder="REG/CHC/2026/102">
                                 </div>
                                 <input type="hidden" id="hospital-doctors-list">
-                                <div class="form-group" style="grid-column: span 2; border: 1px solid var(--border); border-radius: 12px; padding: 20px; background: #fafafa; margin-top: 15px;">
+                                <div class="form-group" style="grid-column: span 2; border: 1px solid var(--border); border-radius: 12px; padding: 20px; background: var(--background); margin-top: 15px;">
                                     <h4 style="margin: 0 0 15px 0; font-family:'Outfit', sans-serif; font-size:15px; font-weight:700; color:var(--text-main); display:flex; align-items:center; gap:8px;">
                                         <i class="bi bi-people-fill" style="color:var(--primary);"></i> Doctor Management
                                     </h4>
@@ -272,10 +284,10 @@ async function renderSettings() {
                                         </button>
                                     </div>
                                     <!-- Table / List of doctors -->
-                                    <div class="table-responsive" style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; background:#fff;">
+                                    <div class="table-responsive" style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; background: var(--card-bg);">
                                         <table class="table" style="width: 100%; border-collapse: collapse; margin:0; font-size: 13px; text-align: left;">
                                             <thead>
-                                                <tr style="background: #f1f5f9; border-bottom: 1px solid var(--border); color:#475569; font-weight:700;">
+                                                <tr style="background: var(--background); border-bottom: 1px solid var(--border); color: var(--text-muted); font-weight:700;">
                                                     <th style="padding: 10px 12px;">Doctor Name</th>
                                                     <th style="padding: 10px 12px;">Department</th>
                                                     <th style="padding: 10px 12px;">Fees</th>
@@ -291,11 +303,11 @@ async function renderSettings() {
                                     </div>
                                 </div>
                                 <div class="form-group" style="grid-column: span 2;">
-                                    <div style="display:flex; align-items:center; gap:10px; padding:12px 16px; background:linear-gradient(135deg, #eef2ff 0%, #faf5ff 100%); border-radius:10px; border:1px solid #e0e7ff;">
-                                        <i class="fa-solid fa-bed" style="color:#6366f1; font-size:18px;"></i>
+                                    <div style="display:flex; align-items:center; gap:10px; padding:12px 16px; background: var(--primary-light); border-radius:10px; border:1px solid var(--border);">
+                                        <i class="fa-solid fa-bed" style="color:var(--primary); font-size:18px;"></i>
                                         <div>
-                                            <strong style="color:#1e293b; font-size:13px;">Bed Configuration</strong>
-                                            <p style="margin:2px 0 0; font-size:11px; color:#64748b;">Go to <a href="javascript:void(0)" onclick="showSettingsTab('beds')" style="color:#6366f1; font-weight:700; text-decoration:none;">Bed Management</a> tab to customize ward beds.</p>
+                                            <strong style="color: var(--text-main); font-size:13px;">Bed Configuration</strong>
+                                            <p style="margin:2px 0 0; font-size:11px; color:#64748b;">Go to <a href="javascript:void(0)" onclick="showSettingsTab('beds')" style="color:var(--primary); font-weight:700; text-decoration:none;">Bed Management</a> tab to customize ward beds.</p>
                                         </div>
                                     </div>
                                     <input type="hidden" id="hospital-beds">
@@ -396,6 +408,85 @@ async function renderSettings() {
                             .bed-gender-note p { margin:0; font-size:12px; color:#92400e; line-height:1.5; }
                             .bed-gender-note strong { color:#78350f; }
                             @media(max-width:768px) { .ward-cards-grid { grid-template-columns:1fr; } }
+
+                            /* Dark theme overrides for bed management */
+                            body.dark-theme .bed-mgmt-header h3 {
+                                color: var(--text-main, #f1f5f9) !important;
+                            }
+                            body.dark-theme .bed-mgmt-header p {
+                                color: var(--text-muted, #94a3b8) !important;
+                            }
+                            body.dark-theme .ward-card {
+                                background: var(--card-bg, #111827) !important;
+                                border-color: var(--border, #1f2937) !important;
+                            }
+                            body.dark-theme .ward-card-title {
+                                color: var(--text-main, #f1f5f9) !important;
+                            }
+                            body.dark-theme .ward-counter-btn {
+                                border-color: var(--border, #1f2937) !important;
+                                background: var(--background, #090d16) !important;
+                                color: var(--text-main, #f1f5f9) !important;
+                            }
+                            body.dark-theme .ward-counter-btn:hover {
+                                background: var(--primary, #4f46e5) !important;
+                                color: #fff !important;
+                                border-color: var(--primary, #4f46e5) !important;
+                            }
+                            body.dark-theme .ward-counter-input {
+                                color: var(--text-main, #f1f5f9) !important;
+                                border-color: var(--border, #1f2937) !important;
+                                background: var(--background, #090d16) !important;
+                            }
+                            body.dark-theme .bed-prefix-tag {
+                                background: var(--background, #090d16) !important;
+                                color: var(--text-muted, #94a3b8) !important;
+                            }
+                            body.dark-theme .bed-preview-section {
+                                background: var(--background, #090d16) !important;
+                                border-color: var(--border, #1f2937) !important;
+                            }
+                            body.dark-theme .bed-preview-title {
+                                color: var(--text-main, #f1f5f9) !important;
+                            }
+                            body.dark-theme .bed-preview-ward-title {
+                                color: var(--text-muted, #94a3b8) !important;
+                            }
+                            body.dark-theme .bed-chip {
+                                background: var(--background, #090d16) !important;
+                                border-color: var(--border, #1f2937) !important;
+                                color: var(--text-muted, #94a3b8) !important;
+                            }
+                            body.dark-theme .bed-chip.male {
+                                border-color: #2563eb !important;
+                                color: #60a5fa !important;
+                                background: rgba(37, 99, 235, 0.15) !important;
+                            }
+                            body.dark-theme .bed-chip.female {
+                                border-color: #db2777 !important;
+                                color: #f472b6 !important;
+                                background: rgba(219, 39, 119, 0.15) !important;
+                            }
+                            body.dark-theme .bed-chip.icu {
+                                border-color: #dc2626 !important;
+                                color: #f87171 !important;
+                                background: rgba(220, 38, 38, 0.15) !important;
+                            }
+                            body.dark-theme .bed-chip.private {
+                                border-color: #d97706 !important;
+                                color: #fbbf24 !important;
+                                background: rgba(217, 119, 6, 0.15) !important;
+                            }
+                            body.dark-theme .bed-gender-note {
+                                background: linear-gradient(135deg, rgba(217, 119, 6, 0.15) 0%, rgba(251, 191, 36, 0.1) 100%) !important;
+                                border-color: rgba(217, 119, 6, 0.3) !important;
+                            }
+                            body.dark-theme .bed-gender-note p {
+                                color: #fbcfe8 !important;
+                            }
+                            body.dark-theme .bed-gender-note strong {
+                                color: #fef08a !important;
+                            }
                         </style>
                         
                         <div class="bed-mgmt-header">

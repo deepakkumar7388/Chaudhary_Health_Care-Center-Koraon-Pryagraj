@@ -1571,3 +1571,478 @@ body.dark-theme .modal-content button.btn-secondary:hover {
     color: #f3f4f6 !important;
     border-color: #374151 !important;
 }
+
+/* ==========================================================================
+   8. COMPREHENSIVE DARK THEME FIXES — ALL PAGES
+   Covers hardcoded white/light inline styles across JS-rendered components
+   ========================================================================== */
+
+/* ── Global: Any inline white/light background override ── */
+body.dark-theme [style*="background: white"],
+body.dark-theme [style*="background:white"],
+body.dark-theme [style*="background: #fff"],
+body.dark-theme [style*="background:#fff"],
+body.dark-theme [style*="background: #ffffff"],
+body.dark-theme [style*="background:#ffffff"],
+body.dark-theme [style*="background: #f8fafc"],
+body.dark-theme [style*="background:#f8fafc"],
+body.dark-theme [style*="background: #f1f5f9"],
+body.dark-theme [style*="background:#f1f5f9"],
+body.dark-theme [style*="background: rgb(255, 255, 255)"],
+body.dark-theme [style*="background-color: white"],
+body.dark-theme [style*="background-color: #fff"],
+body.dark-theme [style*="background-color: #ffffff"] {
+    background: #111827 !important;
+    color: #e5e7eb !important;
+    border-color: #1f2937 !important;
+}
+
+/* ── Exception: Welcome hero card stays gradient ── */
+body.dark-theme .welcome-card[style*="background"],
+body.dark-theme .welcome-card.hero-section[style*="background"] {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark, #3730a3) 100%) !important;
+    color: white !important;
+}
+
+/* ── Exception: Print/billing report stays white for print ── */
+body.dark-theme .a4-bill-container,
+body.dark-theme .billing-report-overlay .a4-bill-container {
+    background: #1a2235 !important;
+    color: #e5e7eb !important;
+}
+
+/* ── Settings page — section cards & panels ── */
+body.dark-theme .settings-layout,
+body.dark-theme .settings-sidebar,
+body.dark-theme .settings-content-panel,
+body.dark-theme .settings-section,
+body.dark-theme .settings-card,
+body.dark-theme .form-section-card {
+    background: #111827 !important;
+    border-color: #1f2937 !important;
+    color: #e5e7eb !important;
+}
+
+body.dark-theme .settings-content-panel h3,
+body.dark-theme .settings-content-panel h4,
+body.dark-theme .settings-section h3,
+body.dark-theme .settings-section h4 {
+    color: #f3f4f6 !important;
+}
+
+/* ── Reports page — report cards ── */
+body.dark-theme .reports-container > div,
+body.dark-theme .reports-grid > div,
+body.dark-theme .report-section {
+    background: #111827 !important;
+    border-color: #1f2937 !important;
+    color: #e5e7eb !important;
+}
+
+/* ── Patients page — detail cards & patient info sections ── */
+body.dark-theme .patient-detail-grid > div,
+body.dark-theme .patient-info-card,
+body.dark-theme .patient-stat-card {
+    background: #111827 !important;
+    border-color: #1f2937 !important;
+    color: #e5e7eb !important;
+}
+
+body.dark-theme .patients-container [style*="background: white"],
+body.dark-theme .patients-container [style*="background:white"],
+body.dark-theme .patients-container [style*="background: #fff"],
+body.dark-theme .patients-container [style*="background:#fff"],
+body.dark-theme .patients-container [style*="background: #ffffff"] {
+    background: #111827 !important;
+    border-color: #1f2937 !important;
+    color: #e5e7eb !important;
+}
+
+/* ── Transfer/Edit modals in patients page ── */
+body.dark-theme .transfer-modal,
+body.dark-theme .edit-modal,
+body.dark-theme .admit-modal {
+    background: #111827 !important;
+    border-color: #1f2937 !important;
+}
+
+/* ── Patient Record page — search section & autocomplete ── */
+body.dark-theme .patient-record-layout .search-section {
+    background: #111827 !important;
+    border-color: #1f2937 !important;
+    color: #e5e7eb !important;
+}
+
+body.dark-theme .autocomplete-dropdown,
+body.dark-theme #record-search-results {
+    background: #1f2937 !important;
+    border-color: #374151 !important;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4) !important;
+}
+
+body.dark-theme .autocomplete-dropdown div,
+body.dark-theme #record-search-results div {
+    background: transparent !important;
+    color: #e5e7eb !important;
+    border-bottom-color: #374151 !important;
+}
+
+body.dark-theme .autocomplete-dropdown div:hover,
+body.dark-theme #record-search-results div:hover {
+    background: #374151 !important;
+}
+
+/* ── Add Patient page — form sections ── */
+body.dark-theme .add-patient-container {
+    background: #111827 !important;
+    border-color: #1f2937 !important;
+}
+
+body.dark-theme .form-section {
+    background: #0f172a !important;
+    border-color: #1f2937 !important;
+}
+
+body.dark-theme .form-section h3 {
+    color: #f1f5f9 !important;
+    border-bottom-color: #1f2937 !important;
+}
+
+/* ── IPD/OPD Toggle buttons inactive state ── */
+body.dark-theme #type-btn-opd[style*="background:#f8fafc"],
+body.dark-theme #type-btn-opd[style*="background: #f8fafc"],
+body.dark-theme #type-btn-ipd[style*="background:#f8fafc"],
+body.dark-theme #type-btn-ipd[style*="background: #f8fafc"] {
+    background: #1f2937 !important;
+    color: #94a3b8 !important;
+    border-color: #374151 !important;
+}
+
+/* ── Discharge page — form sections ── */
+body.dark-theme .discharge-container,
+body.dark-theme .discharge-form {
+    background: #111827 !important;
+    border-color: #1f2937 !important;
+    color: #e5e7eb !important;
+}
+
+body.dark-theme .discharge-form .form-section,
+body.dark-theme .discharge-summary {
+    background: #0f172a !important;
+    border-color: #1f2937 !important;
+}
+
+/* ── Daily Notes page ── */
+body.dark-theme .daily-notes-container,
+body.dark-theme .note-card,
+body.dark-theme .notes-list .note-item {
+    background: #111827 !important;
+    border-color: #1f2937 !important;
+    color: #e5e7eb !important;
+}
+
+/* ── Info panel cards (dashboard role panels) ── */
+body.dark-theme .info-panel-card {
+    background: #111827 !important;
+    border-color: #1f2937 !important;
+}
+
+body.dark-theme .info-panel-header {
+    border-bottom-color: #1f2937 !important;
+}
+
+body.dark-theme .info-panel-header h4 {
+    color: #f3f4f6 !important;
+}
+
+body.dark-theme .info-row {
+    border-bottom-color: #1f2937 !important;
+}
+
+body.dark-theme .info-label {
+    color: #94a3b8 !important;
+}
+
+body.dark-theme .info-value {
+    color: #f1f5f9 !important;
+}
+
+/* ── Quick actions & recent activity cards (dashboard) ── */
+body.dark-theme .quick-actions,
+body.dark-theme .recent-activity {
+    background: #111827 !important;
+    border-color: #1f2937 !important;
+}
+
+body.dark-theme .quick-actions h3,
+body.dark-theme .recent-activity h3 {
+    color: #f3f4f6 !important;
+    border-bottom-color: #1f2937 !important;
+}
+
+/* ── Notification / toast — already dark compatible usually ── */
+body.dark-theme .notification-toast {
+    background: #1f2937 !important;
+    border-color: #374151 !important;
+    color: #e5e7eb !important;
+}
+
+/* ── Generic: any div with hardcoded light backgrounds inside main-content ── */
+body.dark-theme .main-content [style*="background: #f8fafc"],
+body.dark-theme .main-content [style*="background:#f8fafc"],
+body.dark-theme .main-content [style*="background: #f0f4f8"],
+body.dark-theme .main-content [style*="background: #edf2f7"] {
+    background: #0f172a !important;
+    border-color: #1f2937 !important;
+}
+
+/* ── Text color fixes for inline light-colored text ── */
+body.dark-theme .main-content [style*="color: #1e293b"],
+body.dark-theme .main-content [style*="color:#1e293b"],
+body.dark-theme .main-content [style*="color: #334155"],
+body.dark-theme .main-content [style*="color: #475569"] {
+    color: #cbd5e1 !important;
+}
+
+body.dark-theme .main-content [style*="color: #64748b"],
+body.dark-theme .main-content [style*="color:#64748b"] {
+    color: #94a3b8 !important;
+}
+
+/* ── Border color fixes ── */
+body.dark-theme [style*="border: 1px solid #edf2f7"],
+body.dark-theme [style*="border: 1px solid #e2e8f0"],
+body.dark-theme [style*="border: 1px solid #cbd5e1"],
+body.dark-theme [style*="border-bottom: 1px solid #eee"],
+body.dark-theme [style*="border-bottom: 1px solid #e2e8f0"] {
+    border-color: #1f2937 !important;
+}
+
+/* ── Patients Page: Delete Confirmation Modal Dark Mode Overrides ── */
+body.dark-theme .delete-modal-box {
+    background: #111827 !important;
+    border: 1px solid #1f2937 !important;
+    color: #cbd5e1 !important;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.5) !important;
+}
+
+body.dark-theme .delete-modal-header {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.08) 100%) !important;
+    border-bottom: 1px solid rgba(239, 68, 68, 0.3) !important;
+}
+
+body.dark-theme .delete-modal-header h3 {
+    color: #f87171 !important;
+}
+
+body.dark-theme .delete-modal-header p {
+    color: #fca5a5 !important;
+}
+
+body.dark-theme .delete-patient-info {
+    background: var(--background) !important;
+    border-color: var(--border) !important;
+}
+
+body.dark-theme .delete-patient-info .details .name {
+    color: var(--text-main) !important;
+}
+
+body.dark-theme .delete-patient-info .details .id {
+    color: var(--text-muted) !important;
+}
+
+body.dark-theme .del-avatar {
+    background: rgba(99, 102, 241, 0.15) !important;
+    color: #818cf8 !important;
+}
+
+body.dark-theme #delete-confirm-input {
+    background: var(--background) !important;
+    border-color: var(--border) !important;
+    color: var(--text-main) !important;
+}
+
+body.dark-theme #delete-confirm-input:focus {
+    border-color: #f87171 !important;
+}
+
+body.dark-theme #delete-confirm-input.matched {
+    border-color: #dc2626 !important;
+    background: rgba(220, 38, 38, 0.15) !important;
+}
+
+/* ── Patients Page: Convert to IPD Modal Dark Mode Overrides ── */
+body.dark-theme .ipd-modal-box {
+    background: #111827 !important;
+    border: 1px solid #1f2937 !important;
+    color: #cbd5e1 !important;
+    box-shadow: 0 30px 70px rgba(0,0,0,0.5) !important;
+}
+
+body.dark-theme .ipd-patient-card {
+    background: var(--background) !important;
+    border-color: var(--border) !important;
+}
+
+body.dark-theme .ipd-patient-card div {
+    color: var(--text-main) !important;
+}
+
+body.dark-theme .ipd-info-text {
+    color: var(--text-muted) !important;
+}
+
+body.dark-theme .ipd-warning-box {
+    background: linear-gradient(135deg, rgba(217, 119, 6, 0.15) 0%, rgba(251, 191, 36, 0.1) 100%) !important;
+    border-color: rgba(217, 119, 6, 0.3) !important;
+    color: #fca5a5 !important;
+}
+
+body.dark-theme .ipd-btn-cancel {
+    background: var(--background) !important;
+    border-color: var(--border) !important;
+    color: var(--text-muted) !important;
+}
+
+body.dark-theme .ipd-btn-cancel:hover {
+    background: var(--card-bg) !important;
+    color: var(--text-main) !important;
+}
+
+body.dark-theme .ipd-avatar {
+    background: rgba(99, 102, 241, 0.15) !important;
+    color: #818cf8 !important;
+}
+
+/* ── Discharge Page: A4 Report Preview Dark Theme Overrides ── */
+body.dark-theme .report-container {
+    background: #1a2235 !important;
+    color: #e5e7eb !important;
+    border-color: #1f2937 !important;
+}
+
+body.dark-theme .report-container .hospital-title,
+body.dark-theme .report-container .hospital-name {
+    color: #60a5fa !important;
+}
+
+body.dark-theme .report-container .hospital-subtitle,
+body.dark-theme .report-container .hospital-address {
+    color: #fca5a5 !important;
+}
+
+body.dark-theme .report-container .report-title {
+    color: #f3f4f6 !important;
+}
+
+body.dark-theme .report-container .section-title {
+    background: rgba(59, 130, 246, 0.15) !important;
+    border-left-color: #3b82f6 !important;
+    color: #60a5fa !important;
+}
+
+body.dark-theme .report-container .info-table td {
+    border-color: #1f2937 !important;
+    color: #cbd5e1 !important;
+}
+
+body.dark-theme .report-container .info-table td:nth-child(odd) {
+    background: #111827 !important;
+    color: #e5e7eb !important;
+}
+
+body.dark-theme .report-container .content-box {
+    border-color: #1f2937 !important;
+    background: #111827 !important;
+    color: #cbd5e1 !important;
+}
+
+body.dark-theme .report-container .signature-line {
+    border-top-color: #374151 !important;
+}
+
+body.dark-theme .report-container .doctor-name {
+    color: #e5e7eb !important;
+}
+
+body.dark-theme .report-container .doctor-title,
+body.dark-theme .report-container .report-date {
+    color: #94a3b8 !important;
+}
+
+/* ==========================================================================
+   9. GLOBAL PRINT CONFIGURATION — DUST-PROOF LIGHT MODE RESETS FOR PRINT
+   ========================================================================== */
+@media print {
+    /* Global Print Theme Reset — force light mode for all printouts */
+    body, body.dark-theme {
+        background: #ffffff !important;
+        color: #000000 !important;
+    }
+    
+    .sidebar, 
+    .mobile-header, 
+    .theme-toggle-btn, 
+    .no-print, 
+    .main-theme-toggle,
+    .header-actions,
+    .filter-bar,
+    .btn,
+    .reports-container button,
+    .billing-container button,
+    #sidebar-overlay,
+    .modal-close {
+        display: none !important;
+    }
+    
+    .app-container,
+    .main-content,
+    .reports-container,
+    .billing-container,
+    .a4-bill-container,
+    .billing-report-overlay .a4-bill-container,
+    .modal-content {
+        background: #ffffff !important;
+        color: #000000 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        position: static !important;
+    }
+
+    /* Keep table borders visible but dark */
+    body.dark-theme table,
+    body.dark-theme table th,
+    body.dark-theme table td,
+    body.dark-theme tr,
+    body.dark-theme tr td {
+        border-color: #cbd5e1 !important;
+        color: #000000 !important;
+        background: #ffffff !important;
+    }
+    
+    body.dark-theme table th {
+        background: #f1f5f9 !important;
+        color: #0f172a !important;
+    }
+
+    /* Make sure critical print details are highly visible */
+    body.dark-theme .editable-span,
+    body.dark-theme span,
+    body.dark-theme p,
+    body.dark-theme h1,
+    body.dark-theme h2,
+    body.dark-theme h3,
+    body.dark-theme h4,
+    body.dark-theme h5,
+    body.dark-theme h6,
+    body.dark-theme strong,
+    body.dark-theme td,
+    body.dark-theme th {
+        color: #000000 !important;
+    }
+}

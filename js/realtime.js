@@ -10,12 +10,11 @@
     const MAX_RECONNECT = 5;
 
     function getBaseUrl() {
-        // If running from Live Server (5501) or file://, point to backend at port 5000
         const loc = window.location;
-        if (loc.protocol === 'file:' || (loc.hostname === '127.0.0.1' && loc.port !== '5000')) {
+        if (loc.protocol === 'file:' || loc.hostname === '127.0.0.1' || loc.hostname === 'localhost') {
             return 'http://127.0.0.1:5000';
         }
-        return loc.origin;
+        return 'https://chaudhary-hms-api.onrender.com';
     }
 
     function getUserRole() {
