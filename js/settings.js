@@ -188,6 +188,111 @@ async function renderSettings() {
                 body.dark-theme .form-group-checkbox label {
                     color: var(--text-main, #f1f5f9) !important;
                 }
+
+                /* Backup module layout & styles */
+                .backup-status-card {
+                    background: #f8fafc;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 12px;
+                    padding: 20px;
+                    margin-bottom: 24px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    flex-wrap: wrap;
+                    gap: 15px;
+                }
+                body.dark-theme .backup-status-card {
+                    background: #111827;
+                    border-color: #1f2937;
+                }
+                .backup-status-info {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 4px;
+                }
+                .backup-status-title {
+                    font-size: 15px;
+                    font-weight: 700;
+                    color: #0f172a;
+                }
+                body.dark-theme .backup-status-title {
+                    color: #f1f5f9;
+                }
+                .backup-status-desc {
+                    font-size: 13px;
+                    color: #64748b;
+                }
+                body.dark-theme .backup-status-desc {
+                    color: #94a3b8;
+                }
+                .backup-upload-zone {
+                    border: 2px dashed #cbd5e1;
+                    border-radius: 12px;
+                    padding: 30px;
+                    text-align: center;
+                    background: #ffffff;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    margin-bottom: 24px;
+                }
+                body.dark-theme .backup-upload-zone {
+                    background: #090d16;
+                    border-color: #374151;
+                }
+                .backup-upload-zone:hover {
+                    border-color: var(--primary, #4f46e5);
+                    background: #f8fafc;
+                }
+                body.dark-theme .backup-upload-zone:hover {
+                    background: #111827;
+                }
+                .backup-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-top: 15px;
+                }
+                .backup-table th {
+                    text-align: left;
+                    background: #f1f5f9;
+                    padding: 12px 16px;
+                    font-size: 13px;
+                    font-weight: 700;
+                    color: #475569;
+                    border-bottom: 2px solid #e2e8f0;
+                }
+                body.dark-theme .backup-table th {
+                    background: #1f2937;
+                    color: #94a3b8;
+                    border-bottom-color: #374151;
+                }
+                .backup-table td {
+                    padding: 12px 16px;
+                    font-size: 13px;
+                    color: #334155;
+                    border-bottom: 1px solid #e2e8f0;
+                }
+                body.dark-theme .backup-table td {
+                    color: #cbd5e1;
+                    border-bottom-color: #1f2937;
+                }
+                .backup-table tr:hover {
+                    background: #f8fafc;
+                }
+                body.dark-theme .backup-table tr:hover {
+                    background: #111827;
+                }
+                .backup-action-btn {
+                    border: none;
+                    background: transparent;
+                    padding: 6px;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    font-size: 16px;
+                }
+                .backup-action-btn:hover { background: #cbd5e1; }
+                body.dark-theme .backup-action-btn:hover { background: #374151; }
             </style>
 
             <div class="module-header" style="margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border); padding-bottom: 15px; flex-wrap: wrap; gap: 15px;">
@@ -225,6 +330,9 @@ async function renderSettings() {
                     </button>
                     <button class="settings-nav-btn" id="btn-tab-users" onclick="showSettingsTab('users')">
                         <i class="bi bi-person-gear"></i> <span>User Settings</span>
+                    </button>
+                    <button class="settings-nav-btn" id="btn-tab-backup" onclick="showSettingsTab('backup')">
+                        <i class="bi bi-cloud-arrow-up"></i> <span>Database Backup</span>
                     </button>
                 </div>
                 
@@ -664,6 +772,38 @@ async function renderSettings() {
                         </div>
                         
                         <div class="form-section">
+                            <h3><i class="bi bi-server" style="color:#ef4444;"></i> Email Delivery Config (SMTP / HTTP API)</h3>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>SMTP Host</label>
+                                    <input type="text" id="email-host" placeholder="smtp.gmail.com">
+                                </div>
+                                <div class="form-group">
+                                    <label>SMTP Port</label>
+                                    <input type="number" id="email-port" placeholder="587">
+                                </div>
+                                <div class="form-group">
+                                    <label>SMTP User Email</label>
+                                    <input type="email" id="email-user" placeholder="your_email@gmail.com">
+                                </div>
+                                <div class="form-group">
+                                    <label>SMTP App Password</label>
+                                    <input type="password" id="email-pass" placeholder="16-digit App Password">
+                                </div>
+                                <div class="form-group" style="grid-column: span 2;">
+                                    <label>Google Apps Script Web App URL (HTTP API Fallback for Render/Railway)</label>
+                                    <div style="display: flex; gap: 10px;">
+                                        <input type="text" id="email-api-url" placeholder="https://script.google.com/macros/s/.../exec" style="flex: 1;">
+                                        <button type="button" class="btn btn-primary" onclick="triggerDirectEmailTest()" style="white-space: nowrap; height: 42px; display: flex; align-items: center; gap: 6px; padding: 10px 16px; font-weight: 700; border: none; border-radius: 8px; cursor: pointer;">
+                                            <i class="bi bi-envelope-check"></i> Test Email
+                                        </button>
+                                    </div>
+                                    <small style="color: #64748b; font-size: 11px; display: block; margin-top: 4px;">If provided, emails will be sent via HTTP POST to this URL, bypassing SMTP port restrictions.</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
                             <h3><i class="bi bi-chat-left-text" style="color:#06b6d4;"></i> SMS API Configurations</h3>
                             <div class="form-grid">
                                 <div class="form-group checkbox" style="grid-column: span 2; display:grid; grid-template-columns:1fr; gap:12px;">
@@ -770,6 +910,46 @@ async function renderSettings() {
                         </div>
                     </div>
                     
+                    <!-- 6. DATABASE BACKUP TAB -->
+                    <div id="settings-backup" class="settings-tab-content" style="display:none;">
+                        <div class="form-section">
+                            <h3><i class="bi bi-cloud-arrow-up" style="color:var(--primary, #4f46e5);"></i> Database Backup & Restore</h3>
+                            
+                            <div class="backup-status-card">
+                                <div class="backup-status-info">
+                                    <span class="backup-status-title">Cloudinary Cloud Backup</span>
+                                    <span class="backup-status-desc">Auto-backup runs every 24 hours. Backups older than 30 days are automatically deleted.</span>
+                                    <span class="backup-status-desc" id="backup-last-time-lbl" style="font-weight: 700; margin-top: 5px;">Last backup taken: Loading...</span>
+                                </div>
+                                <button class="btn btn-success" id="btn-trigger-backup" onclick="triggerBackupNow()">
+                                    <i class="bi bi-cloud-upload"></i> Back Up Now
+                                </button>
+                            </div>
+                            
+
+
+                            <h4>Cloud Backups History</h4>
+                            <div class="table-responsive">
+                                <table class="backup-table">
+                                    <thead>
+                                        <tr>
+                                            <th>File Name</th>
+                                            <th>Size</th>
+                                            <th>Created Date</th>
+                                            <th>Total Records</th>
+                                            <th style="text-align: right; width: 120px;">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="backup-list-tbody">
+                                        <tr>
+                                            <td colspan="5" style="text-align: center; color: #64748b; padding: 20px;">Loading backups...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>    
 
                     
                 </div>
@@ -801,6 +981,10 @@ function showSettingsTab(tabName) {
 
     if (tabName === 'integrations') {
         if (typeof checkIntegrationStatus === 'function') checkIntegrationStatus();
+    }
+    
+    if (tabName === 'backup') {
+        if (typeof loadBackupList === 'function') loadBackupList();
     }
 }
 
@@ -1282,10 +1466,55 @@ async function runFcmTest() {
     }
 }
 
+async function triggerDirectEmailTest() {
+    const apiUrlInput = document.getElementById('email-api-url');
+    const apiUrl = apiUrlInput ? apiUrlInput.value.trim() : '';
+    if (!apiUrl) {
+        showNotification('Please enter the Google Apps Script Web App URL first!', 'warning');
+        return;
+    }
+
+    const savedUrl = window.hospitalSettings ? window.hospitalSettings['email-api-url'] : '';
+    if (apiUrl !== savedUrl) {
+        if (confirm("Settings save nahi hain. Test email bhejne se pehle settings save karna zaroori hai. Kya aap abhi settings save karein?")) {
+            await saveSettings();
+        } else {
+            return;
+        }
+    }
+
+    const email = prompt("Test email bhejne ke liye email ID enter karein:");
+    if (!email) return;
+
+    showLoading('Sending test email via HTTP API...');
+    try {
+        const response = await fetch(`${API_BASE}integrations/test-email`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+            },
+            body: JSON.stringify({ email })
+        });
+        
+        const result = await response.json();
+        hideLoading();
+        if (result.success) {
+            showNotification('Test email sent successfully! Please check your inbox.', 'success');
+        } else {
+            showNotification(result.message || 'Email test failed', 'error');
+        }
+    } catch (error) {
+        hideLoading();
+        showNotification('Network error while testing Email: ' + error.message, 'error');
+    }
+}
+
 // Register helpers to global scope
 window.runEmailTest = runEmailTest;
 window.runFcmTest = runFcmTest;
 window.checkIntegrationStatus = checkIntegrationStatus;
+window.triggerDirectEmailTest = triggerDirectEmailTest;
 
 // ==================== DOCTOR MANAGEMENT HELPERS ====================
 window.settingsDoctorsArray = [];
@@ -1409,4 +1638,415 @@ window.loadDoctorsFromSettings = function() {
     window.settingsDoctorsArray = parsedList;
     updateDoctorsHiddenInput();
     renderSettingsDoctorsTable();
+};
+
+// ==================== DATABASE BACKUP FRONTEND FUNCTIONS ====================
+
+window.loadBackupList = async function() {
+    const token = sessionStorage.getItem('token');
+    if (!token) return;
+
+    try {
+        const lastBackupSetting = (window.hospitalSettings || {})['last-backup-time'];
+        const lastTimeLbl = document.getElementById('backup-last-time-lbl');
+        if (lastTimeLbl) {
+            lastTimeLbl.textContent = lastBackupSetting 
+                ? `Last backup taken: ${new Date(lastBackupSetting).toLocaleString()}` 
+                : 'Last backup taken: Never';
+        }
+
+        const tbody = document.getElementById('backup-list-tbody');
+        if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #64748b; padding: 20px;"><i class="bi bi-arrow-repeat spin"></i> Loading backups...</td></tr>`;
+        }
+
+        const res = await fetch(`${API_BASE}backup`, {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await res.json();
+
+        if (data.success && tbody) {
+            if (data.backups.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: #64748b; padding: 20px;">
+                            No backups found in cloud storage.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = data.backups.map(file => {
+                const sizeStr = file.size > 1024 * 1024 
+                    ? (file.size / (1024 * 1024)).toFixed(2) + ' MB' 
+                    : (file.size / 1024).toFixed(2) + ' KB';
+                const createdStr = new Date(file.createdAt).toLocaleString();
+                
+                // Clean display name: remove "backup_", ".json", timestamps → readable format
+                let cleanName = (file.displayName || file.name)
+                    .replace(/^backup_/, '')
+                    .replace(/\.json$/, '')
+                    .replace(/_records-\d+/, '');
+                // Convert ISO timestamp to readable: "2026-06-21T12-01-05.238Z" → "21 Jun 2026, 12:01"
+                try {
+                    const tsMatch = cleanName.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2})-(\d{2})/);
+                    if (tsMatch) {
+                        const dt = new Date(`${tsMatch[1]}-${tsMatch[2]}-${tsMatch[3]}T${tsMatch[4]}:${tsMatch[5]}:00Z`);
+                        cleanName = 'Backup — ' + dt.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) 
+                                  + ', ' + dt.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', hour12:true });
+                    }
+                } catch(e) {}
+
+                return `
+                    <tr style="border-bottom: 1px solid var(--border, #e2e8f0); color: var(--text-main);">
+                        <td style="padding: 12px 16px; font-weight:600;">${cleanName}</td>
+                        <td style="padding: 12px 16px;">${sizeStr}</td>
+                        <td style="padding: 12px 16px;">${createdStr}</td>
+                        <td style="padding: 12px 16px; font-weight:600;">${file.recordCount} records</td>
+                        <td style="padding: 12px 16px; text-align: right; display: flex; gap: 8px; justify-content: flex-end;">
+                            <button type="button" class="backup-action-btn restore" onclick="restoreBackupByName('${file.name}')" title="Restore Database" style="background:transparent; border:none; color:#3b82f6; cursor:pointer; font-size:16px;">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                            </button>
+                            <button type="button" class="backup-action-btn delete" onclick="deleteBackupByName('${file.name}')" title="Delete Backup" style="background:transparent; border:none; color:#ef4444; cursor:pointer; font-size:16px;">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        } else if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #ef4444; padding: 20px;">Failed to load backups: ${data.message}</td></tr>`;
+        }
+    } catch (err) {
+        console.error('Error loading backup list:', err);
+        const tbody = document.getElementById('backup-list-tbody');
+        if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #ef4444; padding: 20px;">Network error loading backups list</td></tr>`;
+        }
+    }
+};
+
+window.triggerBackupNow = async function() {
+    const token = sessionStorage.getItem('token');
+    if (!token) return;
+
+    const btn = document.getElementById('btn-trigger-backup');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<i class="bi bi-arrow-repeat spin"></i> Backing up...`;
+
+    try {
+        const res = await fetch(`${API_BASE}backup/create`, {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            showNotification('Database backup created successfully!', 'success');
+            if (typeof fetchSettings === 'function') await fetchSettings();
+            loadBackupList();
+        } else {
+            showNotification('Backup failed: ' + data.message, 'error');
+        }
+    } catch (err) {
+        showNotification('Network error during backup creation', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+};
+
+// ===== PROFESSIONAL CUSTOM CONFIRM MODAL =====
+function showRestoreConfirmModal(filename, onConfirmed) {
+    // Remove existing if any
+    const existing = document.getElementById('restore-confirm-modal');
+    if (existing) existing.remove();
+
+    const shortName = filename.replace('backup_', '').replace('.json', '').replace('T', ' ').replace(/\.\d+Z$/, '');
+
+    const modal = document.createElement('div');
+    modal.id = 'restore-confirm-modal';
+    modal.style.cssText = `
+        position:fixed; inset:0; z-index:99999;
+        background:rgba(0,0,0,0.65); backdrop-filter:blur(6px);
+        display:flex; align-items:center; justify-content:center;
+        animation:fadeIn 0.2s ease;
+    `;
+    modal.innerHTML = `
+        <div style="background:#fff; border-radius:20px; width:100%; max-width:460px; margin:16px;
+                    box-shadow:0 25px 60px rgba(0,0,0,0.35); overflow:hidden;
+                    animation:slideUp 0.25s cubic-bezier(.34,1.56,.64,1);">
+
+            <!-- Red danger header -->
+            <div style="background:linear-gradient(135deg,#dc2626,#b91c1c); padding:22px 24px; position:relative;">
+                <div style="display:flex; align-items:center; gap:14px;">
+                    <div style="width:48px;height:48px; background:rgba(255,255,255,0.15); border-radius:50%;
+                                display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                        <i class="bi bi-exclamation-triangle-fill" style="font-size:22px;color:white;"></i>
+                    </div>
+                    <div>
+                        <div style="font-size:18px;font-weight:800;color:white;line-height:1.2;">Database Restore</div>
+                        <div style="font-size:12px;color:rgba(255,255,255,0.75);margin-top:3px;">⚠️ यह action Undo नहीं हो सकती</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div style="padding:24px;">
+                <!-- Backup info chip -->
+                <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:12px 16px; margin-bottom:18px; display:flex; align-items:center; gap:10px;">
+                    <i class="bi bi-file-earmark-zip" style="font-size:20px;color:#dc2626;flex-shrink:0;"></i>
+                    <div>
+                        <div style="font-size:11px;color:#9ca3af;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Backup File</div>
+                        <div style="font-size:13px;font-weight:700;color:#1e293b;word-break:break-all;">${filename}</div>
+                    </div>
+                </div>
+
+                <!-- Warning list -->
+                <div style="background:#fffbeb; border:1px solid #fde68a; border-radius:10px; padding:14px 16px; margin-bottom:20px;">
+                    <div style="font-size:12px;font-weight:700;color:#92400e;margin-bottom:10px; display:flex; align-items:center; gap:6px;">
+                        <i class="bi bi-shield-exclamation"></i> Restore करने से निम्न सब DELETE होगा:
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:6px;">
+                        ${['सभी Patients का Data', 'सभी Billing Records', 'Daily Notes & Discharge Records', 'Users & Settings'].map(item => `
+                            <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#78350f;">
+                                <i class="bi bi-x-circle-fill" style="color:#ef4444;font-size:13px;flex-shrink:0;"></i> ${item}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <!-- Typed confirmation -->
+                <div style="margin-bottom:20px;">
+                    <label style="font-size:12px;font-weight:700;color:#374151;display:block;margin-bottom:8px;">
+                        Confirm करने के लिए नीचे <span style="background:#fee2e2;color:#dc2626;padding:2px 8px;border-radius:4px;font-family:monospace;font-weight:800;">RESTORE</span> टाइप करें:
+                    </label>
+                    <input type="text" id="restore-confirm-input" placeholder="RESTORE"
+                        style="width:100%;padding:10px 14px;border:2px solid #e5e7eb;border-radius:10px;
+                               font-size:15px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+                               outline:none;box-sizing:border-box;transition:border-color 0.2s;font-family:monospace;"
+                        oninput="
+                            const btn = document.getElementById('restore-confirm-btn');
+                            const match = this.value.trim().toUpperCase() === 'RESTORE';
+                            this.style.borderColor = match ? '#16a34a' : (this.value ? '#ef4444' : '#e5e7eb');
+                            btn.disabled = !match;
+                            btn.style.opacity = match ? '1' : '0.45';
+                            btn.style.cursor = match ? 'pointer' : 'not-allowed';
+                        "
+                    >
+                </div>
+
+                <!-- Buttons -->
+                <div style="display:flex;gap:10px;">
+                    <button onclick="document.getElementById('restore-confirm-modal').remove()"
+                        style="flex:1;padding:11px;border:2px solid #e5e7eb;background:white;border-radius:10px;
+                               font-size:14px;font-weight:700;color:#6b7280;cursor:pointer;transition:all 0.15s;"
+                        onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
+                        <i class="bi bi-x-lg"></i> Cancel
+                    </button>
+                    <button id="restore-confirm-btn" disabled
+                        onclick="document.getElementById('restore-confirm-modal').remove(); (${onConfirmed.toString()})();"
+                        style="flex:1;padding:11px;border:none;background:linear-gradient(135deg,#dc2626,#b91c1c);
+                               border-radius:10px;font-size:14px;font-weight:700;color:white;
+                               cursor:not-allowed;opacity:0.45;transition:all 0.15s;box-shadow:0 4px 12px rgba(220,38,38,0.3);"
+                        onmouseover="if(!this.disabled)this.style.transform='translateY(-1px)'"
+                        onmouseout="this.style.transform=''">
+                        <i class="bi bi-arrow-repeat"></i> Restore Database
+                    </button>
+                </div>
+            </div>
+        </div>
+        <style>
+            @keyframes slideUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+        </style>
+    `;
+    document.body.appendChild(modal);
+    // Focus the input
+    setTimeout(() => {
+        const inp = document.getElementById('restore-confirm-input');
+        if (inp) inp.focus();
+    }, 100);
+}
+
+function showDeleteConfirmModal(filename, onConfirmed) {
+    const existing = document.getElementById('delete-confirm-modal');
+    if (existing) existing.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'delete-confirm-modal';
+    modal.style.cssText = `
+        position:fixed; inset:0; z-index:99999;
+        background:rgba(0,0,0,0.55); backdrop-filter:blur(5px);
+        display:flex; align-items:center; justify-content:center;
+        animation:fadeIn 0.2s ease;
+    `;
+    modal.innerHTML = `
+        <div style="background:#fff; border-radius:18px; width:100%; max-width:400px; margin:16px;
+                    box-shadow:0 20px 50px rgba(0,0,0,0.3); overflow:hidden;
+                    animation:slideUp 0.25s cubic-bezier(.34,1.56,.64,1);">
+            <div style="background:linear-gradient(135deg,#ea580c,#c2410c); padding:20px 24px;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div style="width:44px;height:44px; background:rgba(255,255,255,0.15); border-radius:50%;
+                                display:flex; align-items:center; justify-content:center;">
+                        <i class="bi bi-trash3-fill" style="font-size:20px;color:white;"></i>
+                    </div>
+                    <div>
+                        <div style="font-size:17px;font-weight:800;color:white;">Delete Backup</div>
+                        <div style="font-size:12px;color:rgba(255,255,255,0.75);margin-top:2px;">Cloud से permanently delete होगा</div>
+                    </div>
+                </div>
+            </div>
+            <div style="padding:22px 24px;">
+                <div style="background:#fff7ed; border:1px solid #fed7aa; border-radius:10px; padding:12px 16px; margin-bottom:20px; display:flex; align-items:flex-start; gap:10px;">
+                    <i class="bi bi-file-earmark-zip" style="font-size:20px;color:#ea580c;margin-top:2px;flex-shrink:0;"></i>
+                    <div>
+                        <div style="font-size:11px;color:#9ca3af;font-weight:600;text-transform:uppercase;">Delete होगी file:</div>
+                        <div style="font-size:13px;font-weight:700;color:#1e293b;word-break:break-all;margin-top:2px;">${filename}</div>
+                    </div>
+                </div>
+                <p style="font-size:13px;color:#6b7280;margin:0 0 20px 0;line-height:1.6;">
+                    यह backup <strong>Cloud Storage से permanently delete</strong> हो जाएगी और वापस नहीं आ सकती।
+                </p>
+                <div style="display:flex;gap:10px;">
+                    <button onclick="document.getElementById('delete-confirm-modal').remove()"
+                        style="flex:1;padding:11px;border:2px solid #e5e7eb;background:white;border-radius:10px;
+                               font-size:14px;font-weight:700;color:#6b7280;cursor:pointer;"
+                        onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
+                        Cancel
+                    </button>
+                    <button onclick="document.getElementById('delete-confirm-modal').remove(); (${onConfirmed.toString()})();"
+                        style="flex:1;padding:11px;border:none;background:linear-gradient(135deg,#ea580c,#c2410c);
+                               border-radius:10px;font-size:14px;font-weight:700;color:white;cursor:pointer;
+                               box-shadow:0 4px 12px rgba(234,88,12,0.3);"
+                        onmouseover="this.style.transform='translateY(-1px)'"
+                        onmouseout="this.style.transform=''">
+                        <i class="bi bi-trash3"></i> हाँ, Delete करो
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+window.restoreBackupByName = async function(filename) {
+    showRestoreConfirmModal(filename, async function() {
+        const token = sessionStorage.getItem('token');
+        if (!token) return;
+
+        showNotification('Restoring database. Please wait...', 'info');
+
+        try {
+            const res = await fetch(`${API_BASE}backup/restore/${filename}`, {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                showNotification('Database successfully restored! Reloading application...', 'success');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            } else {
+                showNotification('Restore failed: ' + data.message, 'error');
+            }
+        } catch (err) {
+            showNotification('Network error during database restoration', 'error');
+        }
+    });
+};
+
+window.deleteBackupByName = async function(filename) {
+    showDeleteConfirmModal(filename, async function() {
+        const token = sessionStorage.getItem('token');
+        if (!token) return;
+
+        try {
+            const res = await fetch(`${API_BASE}backup/${filename}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                showNotification('Backup deleted successfully', 'success');
+                loadBackupList();
+            } else {
+                showNotification('Failed to delete backup: ' + data.message, 'error');
+            }
+        } catch (err) {
+            showNotification('Network error during backup deletion', 'error');
+        }
+    });
+};
+
+window.downloadBackupFile = async function(filename) {
+    const token = sessionStorage.getItem('token');
+    if (!token) return;
+    try {
+        const res = await fetch(`${API_BASE}backup/download/${filename}`, {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+    } catch (err) {
+        showNotification('Failed to download backup file', 'error');
+    }
+};
+
+window.handleBackupUpload = async function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (!confirm(`WARNING: Are you absolutely sure you want to restore the database from the uploaded file: ${file.name}?\n\nThis will completely overwrite all current system data. This action CANNOT be undone!`)) {
+        event.target.value = '';
+        return;
+    }
+
+    const confirmation = prompt('To confirm restoration, please type "RESTORE":');
+    if (confirmation !== 'RESTORE') {
+        showNotification('Restoration cancelled. Confirmation word mismatch.', 'warning');
+        event.target.value = '';
+        return;
+    }
+
+    const token = sessionStorage.getItem('token');
+    if (!token) return;
+
+    const formData = new FormData();
+    formData.append('backupFile', file);
+
+    showNotification('Uploading backup file and restoring database. Please wait...', 'info');
+
+    try {
+        const res = await fetch(`${API_BASE}backup/restore-upload`, {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token },
+            body: formData
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            showNotification('Database successfully restored from uploaded file! Reloading...', 'success');
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        } else {
+            showNotification('Restore failed: ' + data.message, 'error');
+            event.target.value = '';
+        }
+    } catch (err) {
+        showNotification('Network error during database upload restore', 'error');
+        event.target.value = '';
+    }
 };

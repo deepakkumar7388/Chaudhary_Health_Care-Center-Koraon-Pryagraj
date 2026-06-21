@@ -1,4 +1,5 @@
 const Setting = require('../models/Setting');
+const { clearTransporterCache } = require('../config/emailService');
 
 exports.getSettings = async (req, res) => {
     try {
@@ -21,6 +22,10 @@ exports.updateSettings = async (req, res) => {
                 { upsert: true }
             );
         }
+        
+        // Clear email cache so new configurations apply immediately
+        clearTransporterCache();
+
         res.status(200).json({ success: true, message: 'Settings updated' });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });

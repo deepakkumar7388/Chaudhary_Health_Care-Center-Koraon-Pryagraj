@@ -38,7 +38,6 @@ exports.signup = async (req, res) => {
             }
         }
 
-        // Auto-generate username from email if not provided
         const finalUsername = username || email.split('@')[0];
         const newUser = new User({ name, email, mobile, username: finalUsername, password, role: finalRole, status });
         await newUser.save();
@@ -47,6 +46,15 @@ exports.signup = async (req, res) => {
             success: true,
             message: status === 'active' ? 'Account created and activated!' : 'Account created! Pending admin approval.'
         });
+
+        // Send welcome email non-blocking (does not delay the API response)
+        const { sendWelcomeEmail } = require('../config/emailService');
+        sendWelcomeEmail(email, name, finalRole).then(() => {
+            console.log(`✅ Welcome email sent to ${email}`);
+        }).catch((mailErr) => {
+            console.error(`❌ Welcome email failed for ${email}:`, mailErr.message);
+        });
+
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }

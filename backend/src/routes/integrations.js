@@ -9,11 +9,19 @@ const { configureCloudinary } = require('../config/cloudinary');
 // Get status of all integrations (SMTP, Cloudinary, FCM)
 router.get('/status', authenticate, checkRole(['admin']), async (req, res) => {
     try {
-        // SMTP Check
+        // Email Check (SMTP or HTTP API)
         const host = await Setting.findOne({ key: 'email-host' });
         const user = await Setting.findOne({ key: 'email-user' });
         const pass = await Setting.findOne({ key: 'email-pass' });
+        const apiUrl = await Setting.findOne({ key: 'email-api-url' });
+
         const isSmtpConfigured = !!(host?.value && user?.value && pass?.value) || !!(process.env.EMAIL_USER && process.env.EMAIL_PASS);
+        const isApiConfigured = !!apiUrl?.value || !!process.env.EMAIL_API_URL;
+        const isEmailConfigured = isSmtpConfigured || isApiConfigured;
+
+        let emailDetails = 'Not Configured';
+        if (isApiConfigured) emailDetails = 'HTTP API Active (Google Apps Script)';
+        else if (isSmtpConfigured) emailDetails = `SMTP Active (${user?.value || process.env.EMAIL_USER})`;
 
         // Cloudinary Check
         const isCloudinaryConfigured = await configureCloudinary();
@@ -26,8 +34,8 @@ router.get('/status', authenticate, checkRole(['admin']), async (req, res) => {
             success: true,
             status: {
                 smtp: {
-                    configured: isSmtpConfigured,
-                    details: isSmtpConfigured ? `SMTP Active (${user?.value || process.env.EMAIL_USER})` : 'Not Configured'
+                    configured: isEmailConfigured,
+                    details: emailDetails
                 },
                 cloudinary: {
                     configured: isCloudinaryConfigured,

@@ -21,7 +21,7 @@ function renderPatients() {
             </div>
             
             <div class="search-filter">
-                <input type="text" placeholder="Search patients..." class="search-input" id="patient-search" onkeyup="filterPatients()">
+                <input type="text" placeholder="🔍 Search patients by name or ID..." class="search-input" id="patient-search" onkeyup="filterPatients()" style="flex:2 1 220px;max-width:300px;">
                 <select class="filter-select" id="patient-filter" onchange="filterPatients()">
                     <option value="all">All Status</option>
                     <option value="Admitted">Admitted</option>
@@ -48,6 +48,17 @@ function renderPatients() {
                     <option value="payment">Sort by: Payment (Pending First)</option>
                     <option value="status">Sort by: Status (Admitted First)</option>
                 </select>
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <label style="font-size:12px;color:#64748b;font-weight:600;white-space:nowrap;">From:</label>
+                    <input type="date" id="patient-date-from" class="search-input" style="height:38px;padding:5px 10px;font-size:13px;width:145px;" onchange="filterPatients()">
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <label style="font-size:12px;color:#64748b;font-weight:600;white-space:nowrap;">To:</label>
+                    <input type="date" id="patient-date-to" class="search-input" style="height:38px;padding:5px 10px;font-size:13px;width:145px;" onchange="filterPatients()">
+                </div>
+                <button onclick="exportPatientsToExcel()" id="btn-export-excel" style="display:flex;align-items:center;gap:7px;background:var(--card-bg);color:var(--text-main);border:1px solid var(--border);padding:9px 18px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;box-shadow:var(--shadow);transition:all 0.2s;" onmouseover="this.style.background='var(--primary-light)';this.style.borderColor='rgba(79,70,229,0.3)';this.style.color='var(--primary)';this.style.transform='translateY(-1px)';" onmouseout="this.style.background='var(--card-bg)';this.style.borderColor='var(--border)';this.style.color='var(--text-main)';this.style.transform=''">
+                    <i class="bi bi-file-earmark-excel-fill" style="font-size:16px;color:#10b981;"></i> Export Excel
+                </button>
             </div>
             
             <div class="patients-table">
@@ -86,6 +97,11 @@ function renderPatients() {
         if (searchInput) {
             searchInput.addEventListener('keyup', filterPatients);
         }
+        // Date range filter listeners
+        const dateFromEl = document.getElementById('patient-date-from');
+        const dateToEl   = document.getElementById('patient-date-to');
+        if (dateFromEl) dateFromEl.addEventListener('change', filterPatients);
+        if (dateToEl)   dateToEl.addEventListener('change', filterPatients);
     }, 100);
 }
 
@@ -217,35 +233,39 @@ function filterPatients() {
     const paymentVal = (document.getElementById('payment-filter')?.value || 'all').toLowerCase();
     const surgeryVal = (document.getElementById('surgery-filter')?.value || 'all').toLowerCase();
     const sortVal = document.getElementById('patient-sort')?.value || 'date-desc';
+    const dateFrom = document.getElementById('patient-date-from')?.value || '';
+    const dateTo = document.getElementById('patient-date-to')?.value || '';
 
-    console.log(`[Filter Triggered] Search: '${searchVal}', Status: '${statusVal}', Type: '${typeVal}', Payment: '${paymentVal}', Surgery: '${surgeryVal}'`);
+    const fromTs = dateFrom ? new Date(dateFrom).setHours(0,0,0,0) : null;
+    const toTs   = dateTo   ? new Date(dateTo).setHours(23,59,59,999) : null;
 
     let filtered = window.allPatientsData.filter(p => {
         const pName = p.name || '';
         const pId = p.patient_id || '';
 
-        // Match Search
         const matchSearch = pName.toLowerCase().includes(searchVal) || pId.toLowerCase().includes(searchVal);
-
-        // Match Admission Status
         const pStatus = (p.status || 'Admitted').toLowerCase();
         const matchStatus = statusVal === 'all' || pStatus === statusVal;
-
-        // Match Patient Type
         const pType = (p.patient_type || 'IPD').toLowerCase();
         const matchType = typeVal === 'all' || pType === typeVal;
-
-        // Match Payment Status
         const pPay = (p.payment_status || 'Pending').toLowerCase();
         const matchPayment = paymentVal === 'all' || pPay === paymentVal;
-
-        // Match Surgery Status
         const matchSurgery = surgeryVal === 'all' || (surgeryVal === 'surgery' && isSurgeryPatient(pId));
 
-        return matchSearch && matchStatus && matchType && matchPayment && matchSurgery;
-    });
+        // Date range filter
+        let matchDate = true;
+        if (fromTs || toTs) {
+            const admTs = p.admission_date ? new Date(p.admission_date).getTime() : null;
+            if (admTs) {
+                if (fromTs && admTs < fromTs) matchDate = false;
+                if (toTs   && admTs > toTs)   matchDate = false;
+            } else {
+                matchDate = false;
+            }
+        }
 
-    console.log(`[Filter Results] Found ${filtered.length} matching patients out of ${window.allPatientsData.length}`);
+        return matchSearch && matchStatus && matchType && matchPayment && matchSurgery && matchDate;
+    });
 
     // Sorting
     filtered.sort((a, b) => {
@@ -264,7 +284,9 @@ function filterPatients() {
         return 0;
     });
 
-    // Clear old data and render newly filtered data
+    // Store currently filtered list for Excel export
+    window.currentFilteredPatients = filtered;
+
     document.getElementById('patients-table-body').innerHTML = '';
     renderPatientsTable(filtered);
 }
@@ -272,6 +294,355 @@ function filterPatients() {
 function searchPatients() {
     filterPatients();
 }
+
+// ==================== EXCEL EXPORT WITH FILTER MODAL ====================
+function exportPatientsToExcel() {
+    const allData = window.allPatientsData || [];
+    if (!allData || allData.length === 0) {
+        showNotification('कोई patient data नहीं मिला export करने के लिए।', 'warning');
+        return;
+    }
+
+    // Remove existing modal
+    const existing = document.getElementById('excel-export-modal');
+    if (existing) existing.remove();
+
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+
+    // Quick filter presets
+    const presets = [
+        { id: 'today',      label: 'आज',          icon: 'bi-calendar-day' },
+        { id: 'yesterday',  label: 'कल',           icon: 'bi-calendar-minus' },
+        { id: 'this-week',  label: 'इस हफ्ते',      icon: 'bi-calendar-week' },
+        { id: 'last-week',  label: 'पिछला हफ्ता',   icon: 'bi-calendar2-week' },
+        { id: 'this-month', label: 'इस महीने',      icon: 'bi-calendar-month' },
+        { id: 'last-month', label: 'पिछला महीना',   icon: 'bi-calendar2-month' },
+        { id: 'all',        label: 'सब Records',    icon: 'bi-database' },
+        { id: 'custom',     label: 'Custom Range',  icon: 'bi-calendar-range' },
+    ];
+
+    const modal = document.createElement('div');
+    modal.id = 'excel-export-modal';
+    modal.style.cssText = `
+        position:fixed; inset:0; z-index:99999;
+        background:rgba(0,0,0,0.6); backdrop-filter:blur(6px);
+        display:flex; align-items:center; justify-content:center;
+        animation:fadeIn 0.2s ease;
+    `;
+
+    modal.innerHTML = `
+        <div style="background:#fff; border-radius:20px; width:100%; max-width:500px; margin:16px;
+                    box-shadow:0 25px 60px rgba(0,0,0,0.3); overflow:hidden;
+                    animation:slideUp 0.25s cubic-bezier(.34,1.56,.64,1);">
+
+            <!-- Theme header -->
+            <div style="background:linear-gradient(135deg,var(--primary),var(--primary-dark)); padding:20px 24px;">
+                <div style="display:flex; align-items:center; justify-content:space-between;">
+                    <div style="display:flex; align-items:center; gap:14px;">
+                        <div style="width:44px;height:44px; background:rgba(255,255,255,0.15); border-radius:50%;
+                                    display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                            <i class="bi bi-file-earmark-excel-fill" style="font-size:20px;color:white;"></i>
+                        </div>
+                        <div>
+                            <div style="font-size:17px;font-weight:800;color:white;">Excel Export</div>
+                            <div style="font-size:12px;color:rgba(255,255,255,0.8);margin-top:2px;">
+                                कुल ${allData.length} patients available हैं
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="document.getElementById('excel-export-modal').remove()"
+                        style="background:rgba(255,255,255,0.2);border:none;width:32px;height:32px;
+                               border-radius:50%;color:white;font-size:18px;cursor:pointer;
+                               display:flex;align-items:center;justify-content:center;">&times;</button>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div style="padding:22px 24px;">
+                <div style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;
+                             letter-spacing:0.5px;margin-bottom:12px;">📅 Date Range चुनें</div>
+
+                <!-- Preset chips -->
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:18px;">
+                    ${presets.map(p => `
+                        <button id="preset-${p.id}"
+                            onclick="selectExcelPreset('${p.id}')"
+                            style="display:flex;align-items:center;gap:8px;padding:10px 14px;
+                                   border:2px solid #e5e7eb;background:#f9fafb;border-radius:10px;
+                                   font-size:13px;font-weight:600;color:#374151;cursor:pointer;
+                                   transition:all 0.15s;text-align:left;"
+                            onmouseover="if(!this.classList.contains('preset-active')){this.style.borderColor='var(--primary)';this.style.background='var(--primary-light)';}"
+                            onmouseout="if(!this.classList.contains('preset-active')){this.style.borderColor='#e5e7eb';this.style.background='#f9fafb';}">
+                            <i class="bi ${p.icon}" style="font-size:14px;color:#6b7280;"></i>
+                            ${p.label}
+                        </button>
+                    `).join('')}
+                </div>
+
+                <!-- Custom date range (hidden by default) -->
+                <div id="custom-date-section" style="display:none; background:#f8fafc; border:1px solid #e2e8f0;
+                     border-radius:12px; padding:14px; margin-bottom:18px;">
+                    <div style="font-size:12px;color:#6b7280;font-weight:600;margin-bottom:10px;">Custom Range:</div>
+                    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                        <div style="flex:1;min-width:120px;">
+                            <label style="font-size:11px;color:#9ca3af;display:block;margin-bottom:4px;">From</label>
+                            <input type="date" id="excel-date-from" value="${todayStr}"
+                                style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:8px;
+                                       font-size:13px;box-sizing:border-box;"
+                                onchange="updateExcelPreview()">
+                        </div>
+                        <div style="font-size:18px;color:#9ca3af;margin-top:16px;">→</div>
+                        <div style="flex:1;min-width:120px;">
+                            <label style="font-size:11px;color:#9ca3af;display:block;margin-bottom:4px;">To</label>
+                            <input type="date" id="excel-date-to" value="${todayStr}"
+                                style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:8px;
+                                       font-size:13px;box-sizing:border-box;"
+                                onchange="updateExcelPreview()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preview count -->
+                <div id="excel-preview-box" style="background:var(--primary-light); border:1px solid rgba(79, 70, 229, 0.25); border-radius:10px;
+                     padding:12px 16px; margin-bottom:20px; display:flex; align-items:center; gap:10px;">
+                    <i class="bi bi-person-lines-fill" style="font-size:20px;color:var(--primary);flex-shrink:0;"></i>
+                    <div>
+                        <div style="font-size:12px;color:#4b5563;font-weight:600;">Preview</div>
+                        <div id="excel-preview-text" style="font-size:14px;font-weight:800;color:var(--primary);">
+                            पहले कोई filter चुनें
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Download button -->
+                <button id="excel-download-btn" onclick="doExcelDownload()" disabled
+                    style="width:100%;padding:13px;border:none;background:#d1d5db;
+                           border-radius:12px;font-size:15px;font-weight:700;color:#9ca3af;
+                           cursor:not-allowed;transition:all 0.2s;display:flex;
+                           align-items:center;justify-content:center;gap:10px;">
+                    <i class="bi bi-file-earmark-excel-fill" style="font-size:18px;"></i>
+                    Excel Download करें
+                </button>
+            </div>
+        </div>
+        <style>
+            @keyframes slideUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+            .preset-active {
+                border-color:var(--primary) !important;
+                background:var(--primary-light) !important;
+                color:var(--primary) !important;
+            }
+            .preset-active i { color:var(--primary) !important; }
+        </style>
+    `;
+
+    document.body.appendChild(modal);
+}
+
+// Selected preset state
+window._excelFilterState = { preset: null, from: null, to: null, label: '' };
+
+window.selectExcelPreset = function(presetId) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    let fromDate, toDate, label;
+
+    // Clear active state
+    document.querySelectorAll('[id^="preset-"]').forEach(btn => {
+        btn.classList.remove('preset-active');
+        btn.style.borderColor = '#e5e7eb';
+        btn.style.background = '#f9fafb';
+        btn.style.color = '#374151';
+    });
+    const activeBtn = document.getElementById(`preset-${presetId}`);
+    if (activeBtn) activeBtn.classList.add('preset-active');
+
+    const customSection = document.getElementById('custom-date-section');
+
+    if (presetId === 'custom') {
+        customSection.style.display = 'block';
+        window._excelFilterState.preset = 'custom';
+        updateExcelPreview();
+        return;
+    }
+    customSection.style.display = 'none';
+
+    if (presetId === 'today') {
+        fromDate = new Date(today);
+        toDate = new Date(today);
+        toDate.setHours(23, 59, 59, 999);
+        label = 'Today_' + today.toISOString().split('T')[0];
+    } else if (presetId === 'yesterday') {
+        fromDate = new Date(today); fromDate.setDate(fromDate.getDate() - 1);
+        toDate = new Date(fromDate); toDate.setHours(23, 59, 59, 999);
+        label = 'Yesterday_' + fromDate.toISOString().split('T')[0];
+    } else if (presetId === 'this-week') {
+        fromDate = new Date(today);
+        const day = fromDate.getDay(); // 0=Sun
+        fromDate.setDate(fromDate.getDate() - (day === 0 ? 6 : day - 1)); // Monday
+        toDate = new Date(today); toDate.setHours(23, 59, 59, 999);
+        label = 'This_Week';
+    } else if (presetId === 'last-week') {
+        const monday = new Date(today);
+        const day = monday.getDay();
+        monday.setDate(monday.getDate() - (day === 0 ? 6 : day - 1) - 7);
+        fromDate = new Date(monday);
+        toDate = new Date(monday); toDate.setDate(toDate.getDate() + 6); toDate.setHours(23, 59, 59, 999);
+        label = 'Last_Week';
+    } else if (presetId === 'this-month') {
+        fromDate = new Date(today.getFullYear(), today.getMonth(), 1);
+        toDate = new Date(today); toDate.setHours(23, 59, 59, 999);
+        label = 'This_Month_' + today.toLocaleString('en-IN', { month: 'long', year: 'numeric' }).replace(' ', '_');
+    } else if (presetId === 'last-month') {
+        fromDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+        toDate = new Date(today.getFullYear(), today.getMonth(), 0); toDate.setHours(23, 59, 59, 999);
+        label = 'Last_Month_' + fromDate.toLocaleString('en-IN', { month: 'long', year: 'numeric' }).replace(' ', '_');
+    } else if (presetId === 'all') {
+        fromDate = null; toDate = null;
+        label = 'All_Patients';
+    }
+
+    window._excelFilterState = { preset: presetId, from: fromDate, to: toDate, label };
+    updateExcelPreview();
+};
+
+window.updateExcelPreview = function() {
+    const state = window._excelFilterState;
+    let from = state.from;
+    let to = state.to;
+    let label = state.label;
+
+    if (state.preset === 'custom') {
+        const f = document.getElementById('excel-date-from')?.value;
+        const t = document.getElementById('excel-date-to')?.value;
+        if (!f || !t) {
+            document.getElementById('excel-preview-text').textContent = 'दोनों dates भरें';
+            return;
+        }
+        from = new Date(f); from.setHours(0,0,0,0);
+        to   = new Date(t); to.setHours(23,59,59,999);
+        label = `${f}_to_${t}`;
+        window._excelFilterState.from = from;
+        window._excelFilterState.to   = to;
+        window._excelFilterState.label = label;
+    }
+
+    const allData = window.allPatientsData || [];
+    let filtered;
+
+    if (!from && !to) {
+        filtered = allData;
+    } else {
+        filtered = allData.filter(p => {
+            if (!p.admission_date) return false;
+            const d = new Date(p.admission_date).getTime();
+            if (from && d < from.getTime()) return false;
+            if (to   && d > to.getTime())   return false;
+            return true;
+        });
+    }
+
+    window._excelFilterState.filteredData = filtered;
+    window._excelFilterState.label = label;
+
+    const previewText = document.getElementById('excel-preview-text');
+    const downloadBtn = document.getElementById('excel-download-btn');
+
+    if (filtered.length > 0) {
+        previewText.textContent = `${filtered.length} patients मिले → Excel में export होंगे`;
+        downloadBtn.disabled = false;
+        downloadBtn.style.background = 'linear-gradient(135deg,var(--primary),var(--primary-dark))';
+        downloadBtn.style.color = 'white';
+        downloadBtn.style.cursor = 'pointer';
+        downloadBtn.style.boxShadow = '0 4px 14px rgba(79,70,229,0.35)';
+    } else {
+        previewText.textContent = 'इस range में कोई patient नहीं मिला';
+        downloadBtn.disabled = true;
+        downloadBtn.style.background = '#d1d5db';
+        downloadBtn.style.color = '#9ca3af';
+        downloadBtn.style.cursor = 'not-allowed';
+        downloadBtn.style.boxShadow = 'none';
+    }
+};
+
+window.doExcelDownload = function() {
+    const state = window._excelFilterState;
+    const list = state.filteredData || [];
+    if (!list.length) return;
+
+    const showPayments = canViewPayments();
+
+    const headers = [
+        'Patient ID', 'Name', 'Guardian Name', 'Age', 'Gender',
+        'Type (IPD/OPD)', 'Bed No.', 'Admission Date', 'Doctor Assigned',
+        'Problem / Condition', 'Status', 'Payment Status',
+        ...(showPayments ? ['Total Bill (₹)', 'Pending Amount (₹)'] : []),
+        'Mobile', 'Address'
+    ];
+
+    const rows = list.map(p => {
+        let admDate = '';
+        try {
+            if (p.admission_date) {
+                admDate = new Date(p.admission_date).toLocaleDateString('en-IN', {
+                    day: '2-digit', month: '2-digit', year: 'numeric'
+                });
+            }
+        } catch(e) {}
+        return [
+            p.patient_id || '',
+            p.name || '',
+            p.guardian_name || '',
+            p.age || '',
+            p.gender || '',
+            p.patient_type || 'IPD',
+            p.bed_no || (p.patient_type === 'OPD' ? 'OPD' : 'N/A'),
+            admDate,
+            p.doctor_assigned || '',
+            p.problem || '',
+            p.status || 'Admitted',
+            p.payment_status || 'Pending',
+            ...(showPayments ? [parseFloat(p.totalBill || 0), parseFloat(p.pending_amount || 0)] : []),
+            p.mobile || '',
+            p.address || ''
+        ];
+    });
+
+    function doExport() {
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+
+        // Column widths
+        ws['!cols'] = headers.map((h, i) => {
+            const maxLen = Math.max(h.length, ...rows.map(r => String(r[i] || '').length));
+            return { wch: Math.min(Math.max(maxLen + 2, 10), 40) };
+        });
+
+        // Freeze top row
+        ws['!freeze'] = { xSplit: 0, ySplit: 1 };
+
+        XLSX.utils.book_append_sheet(wb, ws, 'Patients');
+
+        const filename = `Chaudhary_HC_Patients_${state.label || 'Export'}`;
+        XLSX.writeFile(wb, `${filename}.xlsx`);
+
+        document.getElementById('excel-export-modal')?.remove();
+        showNotification(`✅ ${list.length} patients की Excel file download हो रही है!`, 'success');
+    }
+
+    if (typeof XLSX !== 'undefined') {
+        doExport();
+    } else {
+        const btn = document.getElementById('excel-download-btn');
+        if (btn) btn.textContent = '⏳ Loading Excel library...';
+        const script = document.createElement('script');
+        script.src = 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
+        script.onload = () => doExport();
+        script.onerror = () => showNotification('Excel library load नहीं हो सकी। Internet check करें।', 'error');
+        document.head.appendChild(script);
+    }
+};
 
 function viewPatient(patientId) {
     if (!window.allPatientsData) {

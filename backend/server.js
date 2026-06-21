@@ -32,6 +32,7 @@ const dischargeRoutes = require('./src/routes/discharge');
 const settingsRoutes = require('./src/routes/settings');
 const integrationsRoutes = require('./src/routes/integrations');
 const notificationsRoutes = require('./src/routes/notifications');
+const backupRoutes = require('./src/routes/backup');
 
 const app = express();
 const httpServer = http.createServer(app);
@@ -78,6 +79,7 @@ app.use('/api/discharge', dischargeRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/integrations', integrationsRoutes);
 app.use('/api/notifications', notificationsRoutes);
+app.use('/api/backup', backupRoutes);
 
 // Database Connection with Retry Logic
 let lastDbError = null;
@@ -112,6 +114,11 @@ const connectDb = () => {
                 // Run cleanup on startup and schedule it hourly
                 runUserCleanup();
                 setInterval(runUserCleanup, 3600000);
+
+                // Start Automatic Backup Scheduler
+                const { checkAndRunAutoBackup } = require('./src/utils/backupManager');
+                checkAndRunAutoBackup();
+                setInterval(checkAndRunAutoBackup, 3600000); // Check every hour
             }
         })
         .catch(err => {
