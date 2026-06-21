@@ -62,6 +62,8 @@ async function getTransporter() {
             rejectUnauthorized: false, // Allow self-signed certs on cloud environments
             minVersion: 'TLSv1.2'
         },
+        // Force IPv4 because Render has issues with IPv6 SMTP to Gmail
+        family: 4,
         // Connection pooling for faster subsequent sends
         pool: true,
         maxConnections: 3,
