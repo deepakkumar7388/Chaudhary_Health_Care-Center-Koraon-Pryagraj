@@ -1,20 +1,21 @@
-# 1. Use the official Node.js image as the base image
-FROM node:20-alpine
+# Use the official full Node.js image (not alpine) to avoid native module build issues
+# firebase-admin and other packages need build tools (python3, make, g++)
+FROM node:20-slim
 
-# 2. Set the working directory inside the container
+# Set the working directory inside the container
 WORKDIR /usr/src/app
 
-# 3. Copy package.json and package-lock.json files
+# Copy package.json and package-lock.json
 COPY package*.json ./
 
-# 4. Install production dependencies only
-RUN npm ci --only=production
+# Install all dependencies (including dev for build, then prune)
+RUN npm ci --omit=dev
 
-# 5. Copy the rest of the application source code
+# Copy the rest of the application source code
 COPY . .
 
-# 6. Expose the port (Back4app and Render will inject the PORT environment variable)
+# Expose the port (Back4app / Render will inject PORT env variable)
 EXPOSE 5000
 
-# 7. Start the application
-CMD ["npm", "start"]
+# Start the application
+CMD ["node", "server.js"]
