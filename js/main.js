@@ -1622,7 +1622,7 @@ async function initPushNotifications() {
         const messaging = firebase.messaging();
 
         // Register service worker if not already registered
-        const registration = await navigator.serviceWorker.register('/sw.js');
+        const registration = await navigator.serviceWorker.register('sw.js');
         console.log('FCM Service Worker registered successfully:', registration);
 
         // Request permission

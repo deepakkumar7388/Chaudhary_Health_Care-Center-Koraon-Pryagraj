@@ -49,7 +49,7 @@
             return null;
         }
         try {
-            const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+            const reg = await navigator.serviceWorker.register('sw.js');
             console.log('[FCM] Service Worker registered:', reg.scope);
             return reg;
         } catch (err) {
@@ -166,8 +166,8 @@
                 } else if ('Notification' in window && Notification.permission === 'granted') {
                     new Notification(title, {
                         body,
-                        icon: '/hlogo.png',
-                        badge: '/hlogo.png'
+                        icon: 'hlogo.png',
+                        badge: 'hlogo.png'
                     });
                 }
             });

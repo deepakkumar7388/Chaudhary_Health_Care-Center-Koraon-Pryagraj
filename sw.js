@@ -28,8 +28,8 @@ messaging.onBackgroundMessage(function(payload) {
     const title = payload.notification?.title || 'CHC Hospital Alert';
     const options = {
         body: payload.notification?.body || 'You have a new update.',
-        icon: '/hlogo.png',
-        badge: '/hlogo.png',
+        icon: 'hlogo.png',
+        badge: 'hlogo.png',
         vibrate: [200, 100, 200],
         tag: 'hms-notification',
         data: payload.data || {},
@@ -55,8 +55,8 @@ self.addEventListener('push', function(event) {
     const title = data.notification?.title || data.title || 'Chaudhary Health Care Center';
     const options = {
         body: data.notification?.body || data.body || 'You have a new hospital update.',
-        icon: '/hlogo.png',
-        badge: '/hlogo.png',
+        icon: 'hlogo.png',
+        badge: 'hlogo.png',
         data: data.data || {},
         vibrate: [200, 100, 200],
         tag: data.tag || 'hms-notification'
