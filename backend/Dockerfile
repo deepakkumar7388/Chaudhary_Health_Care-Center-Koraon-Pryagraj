@@ -1,21 +1,21 @@
-# Use the official full Node.js image (not alpine) to avoid native module build issues
-# firebase-admin and other packages need build tools (python3, make, g++)
-FROM node:20-slim
+# Use full Node.js Debian image (has all build tools: python3, make, g++)
+# Required for firebase-admin and other packages with native modules
+FROM node:20
 
-# Set the working directory inside the container
+# Set the working directory
 WORKDIR /usr/src/app
 
-# Copy package.json and package-lock.json
+# Copy package files first (for Docker layer caching)
 COPY package*.json ./
 
-# Install all dependencies (including dev for build, then prune)
+# Install production dependencies
 RUN npm ci --omit=dev
 
-# Copy the rest of the application source code
+# Copy the rest of the source code
 COPY . .
 
-# Expose the port (Back4app / Render will inject PORT env variable)
+# Expose port (Back4app injects PORT env variable)
 EXPOSE 5000
 
-# Start the application
+# Start the server
 CMD ["node", "server.js"]
