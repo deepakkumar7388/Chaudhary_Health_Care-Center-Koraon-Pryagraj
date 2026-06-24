@@ -169,6 +169,60 @@ body {
     text-align: center;
 }
 
+.google-auth-btn {
+    width: 100%;
+    padding: 12px;
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    color: #374151;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 20px;
+}
+
+.google-auth-btn:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.google-auth-btn img {
+    width: 20px;
+    height: 20px;
+}
+
+.auth-divider {
+    position: relative;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.auth-divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: #e5e7eb;
+}
+
+.auth-divider span {
+    position: relative;
+    background: #ffffff;
+    padding: 0 10px;
+    color: #9ca3af;
+    font-size: 13px;
+    font-weight: 500;
+}
+
 .auth-panel {
     display: none;
     animation: fadeSlideIn 0.5s ease forwards;

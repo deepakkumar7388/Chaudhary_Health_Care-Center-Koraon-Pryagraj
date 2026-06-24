@@ -1,20 +1,35 @@
 // ==================== SETTINGS MODULE ====================
 
 async function renderSettings() {
-    const role = currentUser?.role || 'admin';
-    if (role !== 'admin') {
+    const role = currentUser?.role || 'staff';
+
+
+    // Settings access: Developer (full) + Admin (restricted: General, Beds, Billing only)
+    // Staff, Doctor, Receptionist cannot access Settings at all
+    if (role !== 'developer' && role !== 'admin') {
         const moduleEl = document.getElementById('module-settings');
         if (moduleEl) {
             moduleEl.innerHTML = `
-                <div style="display:flex; height:80vh; align-items:center; justify-content:center; flex-direction:column; color:#ef4444; gap:20px;">
-                    <i class="bi bi-lock" style="font-size:48px;"></i>
-                    <h2 style="margin:0; font-family:'Outfit', sans-serif;">Access Denied</h2>
-                    <p style="margin:0; color:#64748b; font-weight:600;">You do not have permission to access System Settings.</p>
+                <div style="display:flex; height:80vh; align-items:center; justify-content:center; flex-direction:column; gap:20px; text-align:center; padding:20px;">
+                    <div style="width:80px; height:80px; background:linear-gradient(135deg,#fef3c7,#fde68a); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:36px; box-shadow:0 4px 15px rgba(251,191,36,0.3);">
+                        🔧
+                    </div>
+                    <div>
+                        <h2 style="margin:0 0 8px; font-family:'Outfit',sans-serif; color:var(--text-main); font-size:20px;">System Settings</h2>
+                        <p style="margin:0; color:#64748b; font-size:14px; max-width:320px; line-height:1.6;">
+                            Technical settings are managed by the system developer.<br>
+                            Please contact <strong>Deepak Kumar</strong> for any configuration changes.
+                        </p>
+                    </div>
+                    <a href="mailto:dk21230621@gmail.com" style="background:var(--primary); color:white; padding:10px 20px; border-radius:10px; text-decoration:none; font-size:13px; font-weight:700; display:flex; align-items:center; gap:8px;">
+                        <i class="bi bi-envelope-fill"></i> Contact Developer
+                    </a>
                 </div>
             `;
         }
         return;
     }
+
 
     const moduleEl = document.getElementById('module-settings');
     if (!moduleEl) return;
@@ -964,9 +979,41 @@ async function renderSettings() {
     loadSettings();
     // Load bed counts from saved settings into the visual editor
     setTimeout(() => loadBedCountsFromSettings(), 200);
+
+    // ---- Role-based Tab Visibility ----
+    // Admin (hospital owner) only sees: General, Bed Management, Billing
+    // Developer sees everything
+    if (role === 'admin') {
+        // Tabs to HIDE for admin
+        const adminHiddenTabs = ['notifications', 'security', 'users', 'backup'];
+        adminHiddenTabs.forEach(tab => {
+            const btn = document.getElementById(`btn-tab-${tab}`);
+            if (btn) btn.style.display = 'none';
+        });
+
+        // Change the heading from "System Settings" to "Hospital Settings" for admin
+        const heading = document.querySelector('#module-settings .module-header h2');
+        if (heading) {
+            heading.innerHTML = `
+                <span style="position: absolute; left: 0; top: 50%; transform: translateY(-50%); height: 24px; width: 4px; background: var(--primary); border-radius: 4px;"></span>
+                <i class="bi bi-hospital" style="color: var(--primary);"></i> Hospital Settings
+            `;
+        }
+    }
 }
 
+
 function showSettingsTab(tabName) {
+    const role = currentUser?.role || 'staff';
+
+    // Tabs that admin (hospital owner) is allowed to see
+    const adminAllowedTabs = ['general', 'beds', 'billing'];
+
+    // Block admin from accessing restricted tabs (guard against direct URL/JS calls)
+    if (role === 'admin' && !adminAllowedTabs.includes(tabName)) {
+        tabName = 'general'; // Redirect to general tab silently
+    }
+
     // Update active state in sidebar buttons
     document.querySelectorAll('.settings-sidebar .settings-nav-btn').forEach(btn => btn.classList.remove('active'));
     
@@ -1013,6 +1060,8 @@ function loadSettings() {
 }
 
 async function saveSettings() {
+    const role = currentUser?.role || 'staff';
+
     // Sync bed list from ward counter inputs before collecting
     if (typeof updateBedPreview === 'function') updateBedPreview();
     
@@ -1025,6 +1074,15 @@ async function saveSettings() {
             settings[element.id] = element.value;
         }
     });
+
+    // IMPORTANT: If admin is saving, merge with existing settings so developer-only
+    // fields (SMTP, SMS API, etc.) are preserved even though they are not rendered in DOM
+    let finalSettings = settings;
+    if (role === 'admin') {
+        const existingSettings = window.hospitalSettings || {};
+        finalSettings = { ...existingSettings, ...settings };
+    }
+
 
     if (!settings['hospital-name'] || !settings['hospital-name'].trim()) {
         showNotification('Hospital Name is required!', 'error');
@@ -1043,13 +1101,13 @@ async function saveSettings() {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + sessionStorage.getItem('token')
             },
-            body: JSON.stringify(settings)
+            body: JSON.stringify(finalSettings)
         });
         const result = await response.json();
         hideLoading();
         if (result.success) {
-            window.hospitalSettings = settings;
-            localStorage.setItem('hospitalSettings', JSON.stringify(settings));
+            window.hospitalSettings = finalSettings;
+            localStorage.setItem('hospitalSettings', JSON.stringify(finalSettings));
             applyGlobalSettings();
             showNotification('Settings saved and applied successfully!', 'success');
         } else {
@@ -1060,6 +1118,7 @@ async function saveSettings() {
         console.error(error);
         showNotification('Network error saving settings', 'error');
     }
+
 }
 
 function resetSettings() {

@@ -7,13 +7,14 @@ const userSchema = new mongoose.Schema({
     mobile: { type: String },
     username: { type: String, unique: true, sparse: true },
     password: { type: String, required: true },
-    role: { type: String, enum: ['admin', 'doctor', 'receptionist', 'staff'], default: 'staff' },
+    role: { type: String, enum: ['developer', 'admin', 'doctor', 'receptionist', 'staff'], default: 'staff' },
     status: { type: String, enum: ['active', 'pending', 'rejected'], default: 'pending' },
     avatar: { type: String }, // Stores image URL or base64
     billingAccess: { type: Boolean, default: false }, // Admin-controlled billing access
     fcmToken: { type: String }, // Browser push notification token
     resetPasswordToken: { type: String },
     resetPasswordExpires: { type: Date },
+    currentSessionToken: { type: String }, // Used to enforce single active session
     createdAt: { type: Date, default: Date.now }
 });
 

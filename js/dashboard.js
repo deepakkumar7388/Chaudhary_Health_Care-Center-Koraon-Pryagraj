@@ -6,12 +6,13 @@ function renderDashboard() {
 
     const role = currentUser?.role || 'admin';
 
-    const showCharts = (role === 'admin');
-    const showFinancials = (role === 'admin' || role === 'doctor');
+    const showCharts = (role === 'admin' || role === 'developer');
+    const showFinancials = (role === 'admin' || role === 'developer' || role === 'doctor');
 
     // Role-specific greeting subtitle
     const roleSubtitle = {
-        'admin': 'System Administrator Home',
+        'developer': '⚡ Developer Console — System Owner',
+        'admin': 'Hospital Overview — Management Dashboard',
         'doctor': 'Clinical Home — Patient Overview',
         'staff': 'Nursing Station — Shift Overview',
         'receptionist': 'Front Desk — Admissions Overview'
@@ -228,6 +229,11 @@ function renderDashboard() {
     updateDashboardStats();
     if (typeof renderSyncUI === 'function') renderSyncUI();
     setTimeout(() => updateRolePanels(role), 600);
+
+    // Developer-only: render tech console after stats load
+    if (role === 'developer') {
+        setTimeout(() => renderDevTechConsole(), 800);
+    }
 }
 
 // Update role-specific panels with live data from API
@@ -689,3 +695,145 @@ function renderDashboardCharts(totalPatients, totalRevenue, totalPendingAmt, pai
         });
     }
 }
+
+// ==================== DEVELOPER TECH CONSOLE ====================
+async function renderDevTechConsole() {
+    const dashContainer = document.querySelector('.dashboard-container');
+    if (!dashContainer) return;
+
+    // Remove existing console if any
+    const existing = document.getElementById('dev-tech-console');
+    if (existing) existing.remove();
+
+    const consoleEl = document.createElement('div');
+    consoleEl.id = 'dev-tech-console';
+    consoleEl.style.cssText = 'margin-top: 20px;';
+    consoleEl.innerHTML = `
+        <div style="
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            border-radius: 16px;
+            padding: 20px 24px;
+            border: 1px solid #334155;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        ">
+            <!-- Header -->
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; flex-wrap:wrap; gap:10px;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div style="width:40px; height:40px; background:rgba(251,191,36,0.15); border:1px solid #fbbf24; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px;">⚡</div>
+                    <div>
+                        <div style="color:#fbbf24; font-weight:800; font-size:16px; font-family:'Outfit',sans-serif;">Developer Tech Console</div>
+                        <div style="color:#64748b; font-size:11px; margin-top:2px;">System health & configuration — visible only to you</div>
+                    </div>
+                </div>
+                <button onclick="renderDevTechConsole()" style="background:#1e293b; border:1px solid #334155; color:#94a3b8; padding:7px 14px; border-radius:8px; cursor:pointer; font-size:12px; font-weight:600; display:flex; align-items:center; gap:6px;">
+                    <i class="bi bi-arrow-clockwise"></i> Refresh
+                </button>
+            </div>
+
+            <!-- Server Cards -->
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:12px; margin-bottom:18px;">
+                ${[
+                    { label: 'Main Backend (Render)', url: 'https://chaudhary-health-care-center-koraon-bbw0.onrender.com', id: 'srv-main' },
+                    { label: 'HMS Backend (Render)', url: 'https://hms-backend-w20q.onrender.com', id: 'srv-hms' },
+                    { label: 'Local Dev Server', url: 'http://127.0.0.1:5000', id: 'srv-local' }
+                ].map(srv => `
+                    <div style="background:#0f172a; border:1px solid #1e293b; border-radius:12px; padding:14px;">
+                        <div style="font-size:11px; color:#64748b; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">${srv.label}</div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span id="${srv.id}-dot" style="width:8px; height:8px; border-radius:50%; background:#64748b; flex-shrink:0;"></span>
+                            <span id="${srv.id}-text" style="font-size:12px; color:#94a3b8; font-weight:600;">Checking...</span>
+                        </div>
+                        <div style="margin-top:8px; font-size:10px; color:#475569; word-break:break-all;">${srv.url}</div>
+                    </div>
+                `).join('')}
+
+                <!-- Email Config Status -->
+                <div style="background:#0f172a; border:1px solid #1e293b; border-radius:12px; padding:14px;">
+                    <div style="font-size:11px; color:#64748b; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">Email (SMTP)</div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span id="smtp-dot" style="width:8px; height:8px; border-radius:50%; background:#64748b; flex-shrink:0;"></span>
+                        <span id="smtp-text" style="font-size:12px; color:#94a3b8; font-weight:600;">Checking...</span>
+                    </div>
+                    <div style="margin-top:8px; font-size:10px; color:#475569;">dk21230621@gmail.com</div>
+                </div>
+            </div>
+
+            <!-- Quick Dev Actions -->
+            <div style="border-top:1px solid #1e293b; padding-top:16px;">
+                <div style="font-size:11px; color:#64748b; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:12px;">⚙️ Quick Dev Actions</div>
+                <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                    <button onclick="showModule('settings')" style="background:#1e293b; border:1px solid #334155; color:#fbbf24; padding:8px 14px; border-radius:8px; cursor:pointer; font-size:12px; font-weight:600; display:flex; align-items:center; gap:6px; transition:all 0.2s;">
+                        <i class="bi bi-gear-fill"></i> System Settings
+                    </button>
+                    <button onclick="showModule('users')" style="background:#1e293b; border:1px solid #334155; color:#60a5fa; padding:8px 14px; border-radius:8px; cursor:pointer; font-size:12px; font-weight:600; display:flex; align-items:center; gap:6px;">
+                        <i class="bi bi-people-fill"></i> Manage Users
+                    </button>
+                    <button onclick="showModule('reports')" style="background:#1e293b; border:1px solid #334155; color:#34d399; padding:8px 14px; border-radius:8px; cursor:pointer; font-size:12px; font-weight:600; display:flex; align-items:center; gap:6px;">
+                        <i class="bi bi-bar-chart-fill"></i> Reports
+                    </button>
+                    <button onclick="window.open('https://cloud.mongodb.com','_blank')" style="background:#1e293b; border:1px solid #334155; color:#a78bfa; padding:8px 14px; border-radius:8px; cursor:pointer; font-size:12px; font-weight:600; display:flex; align-items:center; gap:6px;">
+                        <i class="bi bi-database-fill"></i> MongoDB Atlas
+                    </button>
+                    <button onclick="window.open('https://dashboard.render.com','_blank')" style="background:#1e293b; border:1px solid #334155; color:#fb923c; padding:8px 14px; border-radius:8px; cursor:pointer; font-size:12px; font-weight:600; display:flex; align-items:center; gap:6px;">
+                        <i class="bi bi-cloud-fill"></i> Render Dashboard
+                    </button>
+                    <button onclick="window.open('https://console.firebase.google.com','_blank')" style="background:#1e293b; border:1px solid #334155; color:#f87171; padding:8px 14px; border-radius:8px; cursor:pointer; font-size:12px; font-weight:600; display:flex; align-items:center; gap:6px;">
+                        <i class="bi bi-lightning-fill"></i> Firebase Console
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    dashContainer.appendChild(consoleEl);
+
+    // Check server health
+    const servers = [
+        { id: 'srv-main', url: 'https://chaudhary-health-care-center-koraon-bbw0.onrender.com/api/health' },
+        { id: 'srv-hms',  url: 'https://hms-backend-w20q.onrender.com/api/health' },
+        { id: 'srv-local', url: 'http://127.0.0.1:5000/api/health' }
+    ];
+
+    servers.forEach(async (srv) => {
+        const dot = document.getElementById(`${srv.id}-dot`);
+        const txt = document.getElementById(`${srv.id}-text`);
+        try {
+            const start = Date.now();
+            const res = await fetch(srv.url, { signal: AbortSignal.timeout(5000) });
+            const ms = Date.now() - start;
+            if (res.ok) {
+                if (dot) { dot.style.background = '#10b981'; dot.style.boxShadow = '0 0 6px #10b981'; }
+                if (txt) { txt.textContent = `Online (${ms}ms)`; txt.style.color = '#10b981'; }
+            } else {
+                if (dot) dot.style.background = '#f59e0b';
+                if (txt) { txt.textContent = `Degraded (${res.status})`; txt.style.color = '#f59e0b'; }
+            }
+        } catch {
+            if (dot) dot.style.background = '#ef4444';
+            if (txt) { txt.textContent = 'Offline / Unreachable'; txt.style.color = '#ef4444'; }
+        }
+    });
+
+    // Check SMTP (via backend status endpoint)
+    try {
+        const sRes = await fetch(`${API_BASE}integrations/status`, {
+            headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('token') }
+        });
+        const sData = await sRes.json();
+        const smtpDot = document.getElementById('smtp-dot');
+        const smtpTxt = document.getElementById('smtp-text');
+        if (sData.status?.smtp?.configured) {
+            if (smtpDot) { smtpDot.style.background = '#10b981'; smtpDot.style.boxShadow = '0 0 6px #10b981'; }
+            if (smtpTxt) { smtpTxt.textContent = 'Configured ✓'; smtpTxt.style.color = '#10b981'; }
+        } else {
+            if (smtpDot) smtpDot.style.background = '#f59e0b';
+            if (smtpTxt) { smtpTxt.textContent = 'Not Configured'; smtpTxt.style.color = '#f59e0b'; }
+        }
+    } catch {
+        const smtpDot = document.getElementById('smtp-dot');
+        const smtpTxt = document.getElementById('smtp-text');
+        if (smtpDot) smtpDot.style.background = '#64748b';
+        if (smtpTxt) smtpTxt.textContent = 'Status Unknown';
+    }
+}
+window.renderDevTechConsole = renderDevTechConsole;

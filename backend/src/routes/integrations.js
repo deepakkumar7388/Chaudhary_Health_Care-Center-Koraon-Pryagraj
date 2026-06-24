@@ -105,7 +105,7 @@ router.post('/test-fcm', authenticate, checkRole(['admin']), async (req, res) =>
     }
 });
 
-// Get public Firebase config for FCM client setup
+// Get public Firebase config for FCM client setup (Authenticated)
 router.get('/config', authenticate, (req, res) => {
     res.status(200).json({
         success: true,
@@ -115,6 +115,20 @@ router.get('/config', authenticate, (req, res) => {
             messagingSenderId: process.env.FCM_MESSAGING_SENDER_ID,
             appId: process.env.FCM_APP_ID,
             vapidKey: process.env.FCM_VAPID_KEY
+        }
+    });
+});
+
+// Get public Firebase config for Login/Signup (Unauthenticated)
+router.get('/public-config', (req, res) => {
+    res.status(200).json({
+        success: true,
+        config: {
+            apiKey: process.env.FCM_API_KEY,
+            projectId: process.env.FIREBASE_PROJECT_ID,
+            messagingSenderId: process.env.FCM_MESSAGING_SENDER_ID,
+            appId: process.env.FCM_APP_ID
+            // vapidKey is kept private for the authenticated route only
         }
     });
 });

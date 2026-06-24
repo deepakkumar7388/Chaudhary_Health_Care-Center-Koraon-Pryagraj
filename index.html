@@ -127,6 +127,12 @@
                     <!-- Login Form -->
                     <div id="login-panel" class="auth-panel active">
                         <h2>Sign In</h2>
+                        <button type="button" class="google-auth-btn" onclick="signInWithGoogle()">
+                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo">
+                            Continue with Google
+                        </button>
+                        <div class="auth-divider"><span>OR</span></div>
+
                         <form id="login-form" onsubmit="event.preventDefault(); login();">
                             <div class="input-group">
                                 <input type="email" id="login-email" placeholder="Email Address" required>
@@ -147,6 +153,12 @@
                     <!-- Signup Form -->
                     <div id="signup-panel" class="auth-panel">
                         <h2>Create Account</h2>
+                        <button type="button" class="google-auth-btn" onclick="signUpWithGoogleAutoFill()">
+                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo">
+                            Continue with Google
+                        </button>
+                        <div class="auth-divider"><span>OR</span></div>
+
                         <form id="signup-form" onsubmit="event.preventDefault(); signup();">
                             <div class="input-group">
                                 <input type="text" id="signup-name" placeholder="Full Name" required>
@@ -578,6 +590,29 @@
         </div>
     </div>
 
+    <!-- Signup OTP Modal -->
+    <div id="signup-otp-modal" class="modal" style="display:none;">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3>Verify Email to Complete Signup</h3>
+                <button class="modal-close" onclick="closeSignupOtpModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 13px; color: #64748b; margin-bottom: 20px;">We've sent a 6-digit OTP to your email. Enter it below to create your account.</p>
+                <form id="signup-otp-form" onsubmit="event.preventDefault(); verifySignupOtp();">
+                    <div class="form-group">
+                        <label>6-Digit Code (OTP)</label>
+                        <input type="text" id="signup-otp-input" required maxlength="6"
+                            style="letter-spacing: 5px; text-align: center; font-weight: bold; font-size: 18px;">
+                    </div>
+                    <div class="modal-footer" style="padding: 10px 0 0 0; background: none; border: none;">
+                        <button type="submit" class="btn-primary" style="width: 100%;">Verify & Create Account</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Forgot Password Modal (Enter Email) -->
     <div id="forgot-modal" class="modal" style="display:none;">
         <div class="modal-content" style="max-width: 400px;">
@@ -883,8 +918,9 @@
     <!-- Socket.IO Client — Real-Time Communication -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
 
-    <!-- Firebase SDK — For FCM Push Notifications -->
+    <!-- Firebase SDK — For FCM Push Notifications & Google Auth -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js"></script>
 
     <script src="js/main.js"></script>

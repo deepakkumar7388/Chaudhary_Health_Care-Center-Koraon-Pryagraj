@@ -141,8 +141,12 @@ async function loadUsers() {
         });
         const result = await response.json();
         if (result.success) {
-            localUsers = result.users;
-            localStorage.setItem('users', JSON.stringify(result.users));
+            // 🔒 SECURITY: Frontend double-protection — hide developer accounts from non-developers
+            const currentRole = currentUser?.role;
+            localUsers = currentRole === 'developer'
+                ? result.users
+                : result.users.filter(u => u.role !== 'developer');
+            localStorage.setItem('users', JSON.stringify(localUsers));
             displayUsers(); // silently update
         } else if (!cached) {
             showNotification(result.message || 'Failed to load user database', 'error');

@@ -412,6 +412,49 @@ async function sendDischargeEmail(to, patientData, summary) {
 }
 
 /**
+ * Send security alert email for new logins
+ */
+async function sendSecurityAlertEmail(to, name, ipAddress, userAgent) {
+    const time = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', hour12: true });
+    
+    const body = `
+        <div style="background-color:#fee2e2; padding:15px; border-left:4px solid #ef4444; border-radius:4px; margin-bottom:20px;">
+            <h2 style="color:#b91c1c; margin:0 0 10px 0; font-size:18px;">⚠️ Security Alert: New Login</h2>
+            <p style="margin:0; color:#7f1d1d; font-size:14px;">We noticed a new login to your account from a new device or browser.</p>
+        </div>
+        
+        <p style="color:#334155; font-size:15px;">Hello <strong>${name}</strong>,</p>
+        <p style="color:#475569; font-size:14px; line-height:1.5;">Your account was recently logged in with the following details:</p>
+        
+        <table style="width:100%; border-collapse:collapse; margin:20px 0; background-color:#f8fafc; border-radius:6px; overflow:hidden;">
+            <tr>
+                <td style="padding:12px 15px; border-bottom:1px solid #e2e8f0; color:#64748b; width:120px; font-weight:bold; font-size:13px;">Time</td>
+                <td style="padding:12px 15px; border-bottom:1px solid #e2e8f0; color:#0f172a; font-size:14px;">${time}</td>
+            </tr>
+            <tr>
+                <td style="padding:12px 15px; border-bottom:1px solid #e2e8f0; color:#64748b; font-weight:bold; font-size:13px;">IP Address</td>
+                <td style="padding:12px 15px; border-bottom:1px solid #e2e8f0; color:#0f172a; font-size:14px; font-family:monospace;">${ipAddress || 'Unknown'}</td>
+            </tr>
+            <tr>
+                <td style="padding:12px 15px; color:#64748b; font-weight:bold; font-size:13px;">Browser/Device</td>
+                <td style="padding:12px 15px; color:#0f172a; font-size:14px;">${userAgent || 'Unknown Device'}</td>
+            </tr>
+        </table>
+        
+        <p style="color:#475569; font-size:14px; line-height:1.5;">
+            <strong>Was this you?</strong> If yes, you can safely ignore this email.<br>
+            <strong>If this wasn't you:</strong> Please log in immediately and change your password, or contact your system administrator.
+        </p>
+    `;
+    
+    return sendEmail({ 
+        to, 
+        subject: `Security Alert: New Login - Chaudhary Health Care Center`, 
+        html: wrapInBrandedTemplate(body, '#ef4444') 
+    });
+}
+
+/**
  * Force refresh the cached transporter (useful when settings change from admin panel)
  */
 function clearTransporterCache() {
@@ -428,6 +471,7 @@ module.exports = {
     sendWelcomeEmail,
     sendAdmissionEmail,
     sendDischargeEmail,
+    sendSecurityAlertEmail,
     getTransporter,
     clearTransporterCache
 };

@@ -7,7 +7,123 @@ let API_BASE = (window.location.protocol === 'file:' || window.location.hostname
     ? 'http://127.0.0.1:5000/api/'
     : 'https://chaudhary-health-care-center-koraon-bbw0.onrender.com/api/';
 
+// =================== GOOGLE AUTHENTICATION & INIT =================== //
 
+// Initialize Firebase Auth globally on page load
+async function initFirebaseAuth() {
+    try {
+        const response = await fetch(`${API_BASE}integrations/public-config`);
+        if (!response.ok) return;
+        const result = await response.json();
+        if (result.success && result.config && result.config.apiKey) {
+            const { apiKey, projectId, messagingSenderId, appId } = result.config;
+            if (typeof firebase !== 'undefined' && firebase.apps.length === 0) {
+                firebase.initializeApp({
+                    apiKey,
+                    authDomain: `${projectId}.firebaseapp.com`,
+                    projectId,
+                    storageBucket: `${projectId}.appspot.com`,
+                    messagingSenderId,
+                    appId
+                });
+                console.log("Firebase Auth initialized globally");
+            }
+        }
+    } catch (e) {
+        console.error("Error initializing Firebase Auth globally:", e);
+    }
+}
+
+// Call init when script loads
+document.addEventListener('DOMContentLoaded', () => {
+    initFirebaseAuth();
+    if (sessionStorage.getItem('token')) {
+        switchToApp();
+    }
+});
+
+async function signInWithGoogle() {
+    if (typeof firebase === 'undefined' || firebase.apps.length === 0) {
+        showNotification("Firebase is not initialized. Please try again later.", "error");
+        return;
+    }
+
+    const provider = new firebase.auth.GoogleAuthProvider();
+    try {
+        const result = await firebase.auth().signInWithPopup(provider);
+        const idToken = await result.user.getIdToken();
+        
+        showLoading('Signing in with Google...');
+        const response = await fetch(`${API_BASE}auth/google-login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idToken })
+        });
+
+        const data = await response.json();
+        hideLoading();
+
+        if (response.ok && data.success) {
+            sessionStorage.setItem('token', data.token);
+            sessionStorage.setItem('user', JSON.stringify({
+                id: data.user_id,
+                username: data.username,
+                name: data.name,
+                role: data.role,
+                email: data.email,
+                avatar: data.avatar,
+                billingAccess: data.billingAccess
+            }));
+            showNotification(`Welcome back, ${data.name}!`, 'success');
+            setTimeout(() => {
+                switchToApp();
+            }, 1000);
+        } else {
+            showNotification(data.message || 'Google Login failed', 'error');
+            firebase.auth().signOut(); // clear local state
+        }
+    } catch (error) {
+        hideLoading();
+        if (error.code !== 'auth/popup-closed-by-user') {
+            console.error(error);
+            showNotification("Failed to authenticate with Google.", "error");
+        }
+    }
+}
+
+async function signUpWithGoogleAutoFill() {
+    if (typeof firebase === 'undefined' || firebase.apps.length === 0) {
+        showNotification("Firebase is not initialized. Please try again later.", "error");
+        return;
+    }
+
+    const provider = new firebase.auth.GoogleAuthProvider();
+    try {
+        const result = await firebase.auth().signInWithPopup(provider);
+        const name = result.user.displayName;
+        const email = result.user.email;
+        
+        // Auto-fill form and make fields read-only
+        const nameInput = document.getElementById('signup-name');
+        const emailInput = document.getElementById('signup-email');
+        
+        nameInput.value = name || '';
+        emailInput.value = email || '';
+        
+        nameInput.readOnly = true;
+        nameInput.style.backgroundColor = "#f3f4f6";
+        emailInput.readOnly = true;
+        emailInput.style.backgroundColor = "#f3f4f6";
+        
+        showNotification("Google info auto-filled! Please complete the remaining fields.", "success");
+        firebase.auth().signOut(); // They just used it for auto-fill
+    } catch (error) {
+        if (error.code !== 'auth/popup-closed-by-user') {
+            console.error(error);
+            showNotification("Failed to fetch info from Google.", "error");
+        }
+    }
+}
 
 // ==================== UTILITY FUNCTIONS ====================
 function showLoading(message = 'Loading...') {
@@ -204,9 +320,13 @@ async function signup() {
 
         if (result.success) {
             hideLoading();
-            showNotification('Account created! Pending admin approval.', 'success', 'Signup Complete');
-            document.getElementById('signup-form').reset();
-            toggleAuthPanel('login');
+            if (result.requiresOtp) {
+                document.getElementById('signup-otp-modal').style.display = 'flex';
+            } else {
+                showNotification(result.message || 'Account created successfully!', 'success', 'Signup Complete');
+                document.getElementById('signup-form').reset();
+                toggleAuthPanel('login');
+            }
         } else {
             document.getElementById('signup-error').textContent = result.message || 'Signup failed';
             hideLoading();
@@ -216,6 +336,47 @@ async function signup() {
         hideLoading();
         showNotification('Connection error while creating account. Please try again.', 'error');
         document.getElementById('signup-error').textContent = 'Cannot connect to server';
+    }
+}
+
+function closeSignupOtpModal() {
+    document.getElementById('signup-otp-modal').style.display = 'none';
+}
+
+async function verifySignupOtp() {
+    const email = document.getElementById('signup-email').value.trim();
+    const otp = document.getElementById('signup-otp-input').value.trim();
+
+    if (!otp || otp.length !== 6) {
+        showNotification('Please enter a valid 6-digit OTP', 'error');
+        return;
+    }
+
+    showLoading('Verifying OTP...');
+
+    try {
+        const response = await fetch(`${API_BASE}auth/verify-signup-otp`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, otp })
+        });
+
+        const result = await response.json();
+        hideLoading();
+
+        if (result.success) {
+            closeSignupOtpModal();
+            showNotification(result.message || 'Account created successfully!', 'success');
+            document.getElementById('signup-form').reset();
+            document.getElementById('signup-otp-form').reset();
+            toggleAuthPanel('login');
+        } else {
+            showNotification(result.message || 'Invalid OTP', 'error');
+        }
+    } catch (error) {
+        console.error('OTP Verification Error:', error);
+        hideLoading();
+        showNotification('Connection error during verification', 'error');
     }
 }
 
@@ -306,10 +467,11 @@ function updateUserInfo() {
         if (roleEl) {
             roleEl.textContent = currentUser.role.toUpperCase();
             // Optional: style based on role
-            const colors = { 'admin': '#ef4444', 'doctor': '#3b82f6', 'staff': '#9333ea', 'receptionist': '#ca8a04' };
+            const colors = { 'developer': '#0f172a', 'admin': '#ef4444', 'doctor': '#3b82f6', 'staff': '#9333ea', 'receptionist': '#ca8a04' };
             roleEl.style.background = colors[currentUser.role] || '#64748b';
-            roleEl.style.color = 'white';
+            roleEl.style.color = currentUser.role === 'developer' ? '#fbbf24' : 'white';
             roleEl.style.borderRadius = '4px';
+            roleEl.style.border = currentUser.role === 'developer' ? '1px solid #fbbf24' : 'none';
         }
 
         const avatarDiv = document.getElementById('sidebar-avatar');
@@ -335,13 +497,13 @@ function updateUserInfo() {
 
         const role = currentUser.role;
 
-        // Admin Menu visibility
+        // Admin Menu visibility (developer & admin both get it)
         const adminMenu = document.getElementById('admin-menu');
         if (adminMenu) {
-            adminMenu.style.display = (role === 'admin' || role === 'doctor') ? 'block' : 'none';
+            adminMenu.style.display = (role === 'developer' || role === 'admin' || role === 'doctor') ? 'block' : 'none';
         }
 
-        const hasBillingAccess = (role === 'admin') || (currentUser.billingAccess === true);
+        const hasBillingAccess = (role === 'developer' || role === 'admin') || (currentUser.billingAccess === true);
 
         document.querySelectorAll('.menu-item').forEach(item => {
             const moduleAttr = item.getAttribute('onclick');
@@ -351,7 +513,8 @@ function updateUserInfo() {
 
             let isVisible = false;
             switch (role) {
-                case 'admin': isVisible = true; break;
+                case 'developer': isVisible = true; break; // Developer sees EVERYTHING
+                case 'admin': isVisible = ['dashboard', 'patients', 'add-patient', 'daily-notes', 'billing', 'discharge', 'users', 'reports', 'settings', 'patient-record'].includes(module); break; // Admin: Has restricted Settings
                 case 'doctor': isVisible = ['dashboard', 'patients', 'add-patient', 'daily-notes', 'discharge', 'patient-record'].includes(module); break;
                 case 'staff': isVisible = ['dashboard', 'patients', 'add-patient', 'daily-notes'].includes(module); break;
                 case 'receptionist': isVisible = ['dashboard', 'patients', 'add-patient'].includes(module); break;
@@ -445,15 +608,16 @@ function showModule(moduleName, preventHashUpdate = false) {
     const role = currentUser?.role || 'admin';
 
     // Security check for unauthorized module access
-    const hasBillingAccess = (role === 'admin') || (currentUser?.billingAccess === true);
+    const hasBillingAccess = (role === 'developer' || role === 'admin') || (currentUser?.billingAccess === true);
     const permissions = {
-        'admin': ['dashboard', 'patients', 'add-patient', 'daily-notes', 'billing', 'discharge', 'users', 'reports', 'settings', 'patient-record'],
+        'developer': ['dashboard', 'patients', 'add-patient', 'daily-notes', 'billing', 'discharge', 'users', 'reports', 'settings', 'patient-record'], // Full access
+        'admin': ['dashboard', 'patients', 'add-patient', 'daily-notes', 'billing', 'discharge', 'users', 'reports', 'settings', 'patient-record'], // Settings (restricted: General, Beds, Billing only)
         'doctor': ['dashboard', 'patients', 'add-patient', 'daily-notes', 'discharge', 'patient-record'],
         'staff': ['dashboard', 'patients', 'add-patient', 'daily-notes'],
         'receptionist': ['dashboard', 'patients', 'add-patient']
     };
 
-    // Billing access is dynamic — granted by admin per user
+    // Billing access is dynamic — granted by admin/developer per user
     if (hasBillingAccess && !permissions[role]?.includes('billing')) {
         permissions[role] = [...(permissions[role] || []), 'billing'];
     }
@@ -1732,7 +1896,20 @@ window.fetch = async function (...args) {
         throw new Error('TypeError: Failed to fetch due to offline status');
     }
     try {
-        return await originalFetch(...args);
+        const response = await originalFetch(...args);
+        
+        // Global 401 Interceptor: If session is expired or concurrent login kicks user out
+        if (response.status === 401) {
+            // Check if we are already logged out to prevent infinite loops or spam
+            if (sessionStorage.getItem('token')) {
+                showNotification('Session expired. Your account was logged in from another device.', 'error', 'Security Alert');
+                setTimeout(() => {
+                    confirmLogout();
+                }, 2000);
+            }
+        }
+        
+        return response;
     } catch (error) {
         // If fetch fails and we are offline, show a professional connection warning
         if (!navigator.onLine) {
