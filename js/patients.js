@@ -183,23 +183,23 @@ function renderPatientsTable(patientsList) {
 
         return `
         <tr style="animation-delay: ${index * 0.05}s">
-            <td>${patient.patient_id}</td>
-            <td>
+            <td data-label="Patient ID">${patient.patient_id}</td>
+            <td data-label="Name & Guardian">
                 <strong>${patient.name}</strong> ${typeBadge}
                 ${hasSurgery ? '<span class="status-badge" style="background:#e0e7ff; color:#4f46e5; border:1px solid #c7d2fe; font-size:10px; padding:2px 6px; margin-left:6px;">Surgery Done</span>' : ''}
                 <br><small style="color:#666">${guardian}</small>
             </td>
-            <td>${patient.age}/${patient.gender?.charAt(0) || ''}</td>
-            <td>${bedDisplay}</td>
-            <td>${new Date(patient.admission_date).toLocaleDateString()}</td>
-            <td><span class="status-badge ${(patient.status || '').toLowerCase() === 'discharged' ? 'payment-pending' : 'payment-paid'}">${(patient.status || 'Admitted').toUpperCase()}</span></td>
+            <td data-label="Age/Gen">${patient.age}/${patient.gender?.charAt(0) || ''}</td>
+            <td data-label="Bed No.">${bedDisplay}</td>
+            <td data-label="Admission Date">${new Date(patient.admission_date).toLocaleDateString()}</td>
+            <td data-label="Status"><span class="status-badge ${(patient.status || '').toLowerCase() === 'discharged' ? 'payment-pending' : 'payment-paid'}">${(patient.status || 'Admitted').toUpperCase()}</span></td>
 
-            <td>
+            <td data-label="${canViewPayments() ? 'Payment Status' : 'Pay Status'}">
                 <span class="status-badge payment-${payStatus.toLowerCase()}">${payStatus}</span>
                 ${canViewPayments() && payStatus === 'Pending' && patient.pending_amount ?
                 `<br><span style="color:#e67e22;font-size:11px;">${window.currencySymbol || '₹'}${patient.pending_amount} pending</span>` : ''}
             </td>
-            <td class="action-buttons-cell">
+            <td class="action-buttons-cell" data-label="Actions">
                 <button class="action-btn-pro view-btn" onclick="viewPatient('${patient.patient_id}')" title="View Info"><i class="fas fa-eye"></i></button>
                 
                 ${(currentUser && (currentUser.role === 'admin' || currentUser.role === 'doctor')) ?

@@ -113,7 +113,8 @@ async function login() {
                 role: result.role,
                 email: result.email,
                 mobile: result.mobile,
-                avatar: result.avatar || null
+                avatar: result.avatar || null,
+                billingAccess: result.billingAccess || false
             };
 
             sessionStorage.setItem('user', JSON.stringify(currentUser));
@@ -340,6 +341,8 @@ function updateUserInfo() {
             adminMenu.style.display = (role === 'admin' || role === 'doctor') ? 'block' : 'none';
         }
 
+        const hasBillingAccess = (role === 'admin') || (currentUser.billingAccess === true);
+
         document.querySelectorAll('.menu-item').forEach(item => {
             const moduleAttr = item.getAttribute('onclick');
             if (!moduleAttr) return;
@@ -349,11 +352,17 @@ function updateUserInfo() {
             let isVisible = false;
             switch (role) {
                 case 'admin': isVisible = true; break;
-                case 'doctor': isVisible = ['dashboard', 'patients', 'add-patient', 'daily-notes', 'discharge', 'patient-record', 'billing'].includes(module); break;
+                case 'doctor': isVisible = ['dashboard', 'patients', 'add-patient', 'daily-notes', 'discharge', 'patient-record'].includes(module); break;
                 case 'staff': isVisible = ['dashboard', 'patients', 'add-patient', 'daily-notes'].includes(module); break;
                 case 'receptionist': isVisible = ['dashboard', 'patients', 'add-patient'].includes(module); break;
                 default: isVisible = ['dashboard'].includes(module);
             }
+
+            // Billing module: only show if user has billing access
+            if (module === 'billing') {
+                isVisible = hasBillingAccess;
+            }
+
             item.style.display = isVisible ? 'flex' : 'none';
         });
 
@@ -436,12 +445,18 @@ function showModule(moduleName, preventHashUpdate = false) {
     const role = currentUser?.role || 'admin';
 
     // Security check for unauthorized module access
+    const hasBillingAccess = (role === 'admin') || (currentUser?.billingAccess === true);
     const permissions = {
         'admin': ['dashboard', 'patients', 'add-patient', 'daily-notes', 'billing', 'discharge', 'users', 'reports', 'settings', 'patient-record'],
-        'doctor': ['dashboard', 'patients', 'add-patient', 'daily-notes', 'discharge', 'patient-record', 'billing'],
+        'doctor': ['dashboard', 'patients', 'add-patient', 'daily-notes', 'discharge', 'patient-record'],
         'staff': ['dashboard', 'patients', 'add-patient', 'daily-notes'],
         'receptionist': ['dashboard', 'patients', 'add-patient']
     };
+
+    // Billing access is dynamic — granted by admin per user
+    if (hasBillingAccess && !permissions[role]?.includes('billing')) {
+        permissions[role] = [...(permissions[role] || []), 'billing'];
+    }
 
     const allowedModules = permissions[role] || ['dashboard'];
 

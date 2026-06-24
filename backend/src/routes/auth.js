@@ -16,6 +16,7 @@ router.post('/verify-password', authenticate, authController.verifyPassword);
 router.get('/users', authenticate, checkRole(['admin']), authController.getUsers);
 router.put('/users/:id', authenticate, upload.single('avatar'), authController.updateUser);
 router.delete('/users/:id', authenticate, checkRole(['admin']), authController.deleteUser);
+router.put('/users/:id/billing-access', authenticate, checkRole(['admin']), authController.toggleBillingAccess);
 router.post('/fcm-token', authenticate, authController.updateFcmToken);
 
 module.exports = router;

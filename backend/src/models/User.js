@@ -10,6 +10,7 @@ const userSchema = new mongoose.Schema({
     role: { type: String, enum: ['admin', 'doctor', 'receptionist', 'staff'], default: 'staff' },
     status: { type: String, enum: ['active', 'pending', 'rejected'], default: 'pending' },
     avatar: { type: String }, // Stores image URL or base64
+    billingAccess: { type: Boolean, default: false }, // Admin-controlled billing access
     fcmToken: { type: String }, // Browser push notification token
     resetPasswordToken: { type: String },
     resetPasswordExpires: { type: Date },

@@ -238,32 +238,235 @@
         gap: 8px;
         padding: 14px 16px;
     }
+
+    .patients-container .search-filter input,
+    .patients-container .search-filter select {
+        max-width: none;
+    }
 }
 
 @media (max-width: 768px) {
     .patients-container {
-        padding: 15px;
+        padding: 14px;
+        border-radius: 16px;
     }
 
     .patients-container .module-header {
         flex-direction: column;
         align-items: flex-start;
-        gap: 15px;
+        gap: 12px;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
     }
 
+    .patients-container .module-header h2 {
+        font-size: 20px;
+        padding-left: 12px;
+    }
+
+    .patients-container .module-header h2::before {
+        height: 20px;
+        width: 3px;
+    }
+
+    /* ==================== SEARCH FILTER MOBILE ==================== */
     .patients-container .search-filter {
         flex-direction: column;
-        padding: 14px;
+        padding: 12px;
+        gap: 8px;
+        border-radius: 12px;
+        margin-bottom: 16px;
     }
+
     .patients-container .search-filter input,
     .patients-container .search-filter select,
     .patients-container .search-filter button,
     .patients-container .search-filter div {
         width: 100% !important;
+        max-width: 100% !important;
+        flex: none !important;
+        min-width: 0 !important;
+        box-sizing: border-box;
     }
 
-    .patients-table th, .patients-table td {
-        padding: 12px 10px;
+    .patients-container .search-filter input {
+        height: 42px;
+        font-size: 14px;
+        padding: 8px 12px;
+        border-radius: 10px;
+    }
+
+    .patients-container .search-filter select {
+        height: 42px;
+        font-size: 13px;
+        padding: 8px 12px;
+        border-radius: 10px;
+        -webkit-appearance: none;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        padding-right: 32px;
+    }
+
+    .patients-container .search-filter button {
+        height: 42px !important;
+        justify-content: center !important;
+        border-radius: 10px !important;
+        font-size: 13px !important;
+    }
+
+    /* Date filter containers */
+    .patients-container .search-filter div[style*="display:flex"][style*="gap:6px"] {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center;
+    }
+
+    .patients-container .search-filter div[style*="display:flex"][style*="gap:6px"] input {
+        width: 100% !important;
+        flex: 1 !important;
+    }
+
+    /* ==================== TABLE → MOBILE CARD VIEW ==================== */
+    .patients-table {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: none;
+        border: none;
+        background: transparent;
+    }
+
+    .patients-table table {
+        min-width: 0;
+    }
+
+    .patients-table thead {
+        display: none;
+    }
+
+    .patients-table tbody tr {
+        display: flex;
+        flex-direction: column;
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 10px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        gap: 6px;
+    }
+
+    .patients-table tbody tr:hover {
+        background: var(--card-bg);
+    }
+
+    .patients-table td {
+        display: flex;
+        align-items: center;
+        padding: 3px 0;
+        border-bottom: none;
+        font-size: 13px;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
+    .patients-table td::before {
+        content: attr(data-label);
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        min-width: 90px;
+        flex-shrink: 0;
+    }
+
+    .patients-table td:first-child {
+        font-weight: 700;
+        font-size: 14px;
+        color: var(--primary);
+        padding-bottom: 4px;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 4px;
+    }
+
+    /* Action buttons row */
+    .patients-table td.action-buttons-cell {
+        padding-top: 8px;
+        border-top: 1px solid var(--border);
+        margin-top: 4px;
+        justify-content: flex-start;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .patients-table td.action-buttons-cell::before {
+        display: none;
+    }
+
+    .action-btn-pro {
+        height: 36px;
+        width: 36px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--background);
+    }
+
+    .action-btn-pro i {
+        font-size: 14px;
+    }
+
+    /* Status badges on mobile */
+    .patients-table .status-badge {
+        font-size: 10px;
+        padding: 3px 8px;
+    }
+
+    .patients-table th,
+    .patients-table td {
+        padding: 3px 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .patients-container {
+        padding: 10px;
+        border-radius: 12px;
+    }
+
+    .patients-container .module-header h2 {
+        font-size: 18px;
+    }
+
+    .patients-container .search-filter {
+        padding: 10px;
+        gap: 6px;
+    }
+
+    .patients-container .search-filter input,
+    .patients-container .search-filter select {
+        height: 40px;
+        font-size: 13px;
+    }
+
+    .patients-table tbody tr {
+        padding: 12px;
+        margin-bottom: 8px;
+    }
+
+    .patients-table td {
+        font-size: 12px;
+    }
+
+    .patients-table td::before {
+        font-size: 10px;
+        min-width: 80px;
+    }
+
+    .action-btn-pro {
+        height: 34px;
+        width: 34px;
     }
 }
 
@@ -336,4 +539,5 @@
         width: 100%;
         justify-content: center;
     }
-}
+}
+

@@ -49,6 +49,7 @@ function renderUsers() {
                                 <th>Email</th>
                                 <th>Role</th>
                                 <th>Status</th>
+                                <th>Billing Access</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -227,6 +228,16 @@ function displayUsers() {
                 <td><span class="role-pill role-${user.role}">${user.role.toUpperCase()}</span></td>
                 <td><span class="status-badge status-${user.status}">${user.status.charAt(0).toUpperCase() + user.status.slice(1)}</span></td>
                 <td>
+                    ${user.role === 'admin'
+                        ? `<span style="font-size:11px;color:#6b7280;font-style:italic;">Always On</span>`
+                        : `<label class="billing-toggle" title="${user.billingAccess ? 'Revoke Billing Access' : 'Grant Billing Access'}">
+                               <input type="checkbox" ${user.billingAccess ? 'checked' : ''}
+                                   onchange="toggleBillingAccess('${user._id}', this.checked)">
+                               <span class="billing-slider"></span>
+                           </label>`
+                    }
+                </td>
+                <td>
                     <div class="action-buttons">
                         ${actionButtons}
                         <button class="btn-icon" title="Edit User" onclick="editUser('${user._id}')">
@@ -383,6 +394,37 @@ async function deleteUser(id) {
     }
 }
 
+async function toggleBillingAccess(userId, grant) {
+    try {
+        const response = await fetch(`${API_BASE}auth/users/${userId}/billing-access`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+            },
+            credentials: 'include',
+            body: JSON.stringify({ billingAccess: grant })
+        });
+        const result = await response.json();
+        if (result.success) {
+            showNotification(
+                grant ? 'Billing access granted successfully.' : 'Billing access revoked.',
+                grant ? 'success' : 'warning',
+                'Billing Access'
+            );
+            // Update local cache
+            const user = localUsers.find(u => u._id === userId);
+            if (user) user.billingAccess = grant;
+        } else {
+            showNotification(result.message || 'Failed to update billing access.', 'error');
+            loadUsers(); // Reload to reset toggle state
+        }
+    } catch (err) {
+        showNotification('Network error. Please try again.', 'error');
+        loadUsers();
+    }
+}
+
 // Global exposure
 window.renderUsers = renderUsers;
 window.loadUsers = loadUsers;
@@ -393,4 +435,5 @@ window.saveUser = saveUser;
 window.deleteUser = deleteUser;
 window.editUser = editUser;
 window.quickUpdateStatus = quickUpdateStatus;
+window.toggleBillingAccess = toggleBillingAccess;
 

@@ -97,7 +97,8 @@ exports.login = async (req, res) => {
             role: user.role,
             email: user.email,
             mobile: user.mobile,
-            avatar: user.avatar || null
+            avatar: user.avatar || null,
+            billingAccess: user.role === 'admin' ? true : (user.billingAccess || false)
         });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
@@ -187,6 +188,34 @@ exports.updateUser = async (req, res) => {
         const user = await User.findByIdAndUpdate(targetId, updateData, { new: true }).select('-password');
         if (!user) return res.status(404).json({ success: false, message: 'User not found' });
         res.status(200).json({ success: true, user });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+// Toggle Billing Access — Admin Only
+exports.toggleBillingAccess = async (req, res) => {
+    try {
+        const { billingAccess } = req.body;
+        if (typeof billingAccess !== 'boolean') {
+            return res.status(400).json({ success: false, message: 'billingAccess must be true or false.' });
+        }
+
+        const user = await User.findById(req.params.id);
+        if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+        if (user.role === 'admin') {
+            return res.status(400).json({ success: false, message: 'Admin always has billing access. No change needed.' });
+        }
+
+        user.billingAccess = billingAccess;
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: `Billing access ${billingAccess ? 'granted' : 'revoked'} successfully.`,
+            billingAccess: user.billingAccess
+        });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
