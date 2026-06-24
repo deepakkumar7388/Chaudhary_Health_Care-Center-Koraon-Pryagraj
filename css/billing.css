@@ -712,6 +712,27 @@
     }
 }
 
+/* Patient Info Grid in Invoice */
+.patient-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+}
+
+/* Billing Footer (Payment Ledger + Totals) */
+.billing-footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+    gap: 30px;
+}
+
+/* Bills table actions cell */
+.bill-actions-cell {
+    text-align: right;
+    white-space: nowrap;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
     .dashboard-cards { grid-template-columns: repeat(2, 1fr); }

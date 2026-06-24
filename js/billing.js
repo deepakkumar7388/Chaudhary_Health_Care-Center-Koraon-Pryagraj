@@ -116,7 +116,7 @@ function renderBilling() {
                     </div>
                     
                     <div class="patient-info-summary">
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
+                        <div class="patient-info-grid">
                             <div class="info-column">
                                 <p><strong>Patient ID:</strong> <span id="b-patient-id" class="editable-span"></span></p>
                                 <p><strong>Name:</strong> <span id="b-patient-name" class="editable-span" style="font-weight:900;"></span></p>
@@ -147,7 +147,7 @@ function renderBilling() {
                         </table>
                     </div>
 
-                    <div class="billing-footer" style="display:flex; justify-content:space-between; margin-top:30px; gap:30px;">
+                    <div class="billing-footer">
                         <div class="payment-history-wrap">
                             <h4 class="history-title"><i class="bi bi-clock-history"></i> Payment Ledger</h4>
                             <div id="add-payment-panel" class="no-print" style="margin-bottom:15px; padding:10px; background:#f8fafc; border-radius:8px;">
@@ -367,19 +367,19 @@ function showBillingTab(tab) {
                     
                     return `
                     <tr>
-                        <td><strong>${bill.patient}</strong>${typeBadge}</td>
-                        <td style="color:#64748b; font-size:12px; font-weight:700;">INV-${bill.id}</td>
-                        <td>${new Date(bill.bill_date).toLocaleDateString('en-IN')}</td>
-                        <td style="font-weight:800;">${window.currencySymbol || '₹'}${bill.amount.toLocaleString()}</td>
-                        <td style="color:${bill.remaining > 0 ? '#ef4444' : '#10b981'}; font-weight:700;">
+                        <td data-label="Patient"><strong>${bill.patient}</strong>${typeBadge}</td>
+                        <td data-label="Invoice ID" style="color:#64748b; font-size:12px; font-weight:700;">INV-${bill.id}</td>
+                        <td data-label="Date">${new Date(bill.bill_date).toLocaleDateString('en-IN')}</td>
+                        <td data-label="Amount" style="font-weight:800;">${window.currencySymbol || '₹'}${bill.amount.toLocaleString()}</td>
+                        <td data-label="Due" style="color:${bill.remaining > 0 ? '#ef4444' : '#10b981'}; font-weight:700;">
                             ${window.currencySymbol || '₹'}${bill.remaining.toLocaleString()}
                         </td>
-                        <td>
+                        <td data-label="Status">
                             <span class="status-badge ${statusClass}">
                                 <i class="bi ${statusIcon}"></i> ${bill.status}
                             </span>
                         </td>
-                        <td style="text-align:right;">
+                        <td data-label="Actions" class="bill-actions-cell">
                             <button class="bill-action-btn bill-btn-view" title="View Details" onclick="viewBill('${bill.id}')">
                                 <i class="bi bi-eye"></i>
                             </button>

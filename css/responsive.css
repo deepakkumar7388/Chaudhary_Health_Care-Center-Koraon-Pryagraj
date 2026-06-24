@@ -451,130 +451,362 @@
         flex-shrink: 0 !important;
     }
 
-    /* Bills table — horizontal scroll */
+    /* =============================================
+       BILLS LIST — MOBILE CARD VIEW
+       ============================================= */
     .bills-list {
-        overflow-x: auto !important;
-        -webkit-overflow-scrolling: touch !important;
+        overflow: visible !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
     }
 
+    /* Hide the normal table header */
     .bills-table {
-        min-width: 600px !important;
+        min-width: unset !important;
+        width: 100% !important;
     }
 
-    .bills-table th,
+    .bills-table thead {
+        display: none !important;
+    }
+
+    /* Each row becomes a card */
+    .bills-table tbody tr {
+        display: flex !important;
+        flex-direction: column !important;
+        background: var(--card-bg) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 14px !important;
+        padding: 14px !important;
+        margin-bottom: 10px !important;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.06) !important;
+        gap: 8px !important;
+        transition: box-shadow 0.2s ease !important;
+    }
+
+    .bills-table tbody tr:hover td {
+        background: transparent !important;
+    }
+
+    .bills-table tbody tr:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+    }
+
+    /* Each td becomes a label-value row */
     .bills-table td {
-        padding: 12px 14px !important;
+        display: flex !important;
+        align-items: center !important;
+        padding: 3px 0 !important;
+        border-bottom: none !important;
         font-size: 13px !important;
-        white-space: nowrap !important;
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+        white-space: normal !important;
+    }
+
+    /* Show label before each cell */
+    .bills-table td::before {
+        content: attr(data-label);
+        font-size: 10px !important;
+        font-weight: 700 !important;
+        color: var(--text-muted) !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+        min-width: 80px !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* Patient name row — highlighted first row */
+    .bills-table td:first-child {
+        font-weight: 700 !important;
+        font-size: 15px !important;
+        color: var(--text-main) !important;
+        padding-bottom: 8px !important;
+        border-bottom: 1px solid var(--border) !important;
+        margin-bottom: 4px !important;
+        flex-wrap: wrap !important;
+    }
+
+    .bills-table td:first-child::before {
+        display: none !important;
+    }
+
+    /* Actions cell — right-aligned buttons row */
+    .bills-table td.bill-actions-cell {
+        justify-content: flex-start !important;
+        padding-top: 8px !important;
+        border-top: 1px solid var(--border) !important;
+        margin-top: 4px !important;
+        text-align: left !important;
+    }
+
+    .bills-table td.bill-actions-cell::before {
+        display: none !important;
     }
 
     /* Action buttons — larger touch targets */
     .bill-action-btn {
-        width: 36px !important;
-        height: 36px !important;
+        width: 38px !important;
+        height: 38px !important;
         font-size: 15px !important;
     }
 
-    /* A4 Invoice on mobile */
+    /* =============================================
+       A4 INVOICE MODAL — MOBILE
+       ============================================= */
+
+    /* Overlay padding */
     .billing-report-overlay {
-        padding: 16px 8px !important;
+        padding: 60px 10px 20px !important;
     }
 
+    /* Invoice container */
     .a4-bill-container {
-        padding: 16px !important;
-        border-radius: 8px !important;
+        padding: 16px 14px !important;
+        border-radius: 10px !important;
     }
 
+    /* Floating action buttons — scrollable row at top */
     .report-actions-top {
-        top: 10px !important;
-        right: 10px !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        padding: 10px 12px !important;
+        background: rgba(15, 23, 42, 0.92) !important;
+        backdrop-filter: blur(6px) !important;
+        -webkit-backdrop-filter: blur(6px) !important;
+        display: flex !important;
+        justify-content: flex-end !important;
         gap: 8px !important;
+        z-index: 1060 !important;
+        border-radius: 0 !important;
     }
 
-    /* Invoice header */
+    .report-actions-top .btn {
+        padding: 6px 12px !important;
+        font-size: 12px !important;
+    }
+
+    /* Invoice header — logo + info */
     .chk-header {
-        gap: 12px !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 8px !important;
         padding-bottom: 10px !important;
     }
 
-    .hospital-logo img {
-        height: 45px !important;
+    .chk-header .hospital-logo img {
+        height: 40px !important;
     }
 
     .hospital-title {
-        font-size: 16px !important;
+        font-size: 15px !important;
     }
 
     .hospital-subtitle {
         font-size: 10px !important;
     }
 
-    /* Patient info summary in invoice */
+    .chk-header .report-meta {
+        text-align: left !important;
+        width: 100% !important;
+    }
+
+    /* Patient info grid → single column */
+    .patient-info-grid {
+        grid-template-columns: 1fr !important;
+        gap: 4px !important;
+    }
+
     .patient-info-summary {
-        flex-direction: column !important;
-        padding: 12px !important;
-        gap: 10px !important;
+        padding: 10px !important;
+        gap: 6px !important;
     }
 
     .info-column p {
         font-size: 11px !important;
+        margin-bottom: 5px !important;
     }
 
-    /* Billing table in invoice */
+    .info-column p strong {
+        min-width: 75px !important;
+        font-size: 10px !important;
+    }
+
+    /* Billing items table — horizontal scroll */
+    .billing-table-wrap {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        border-radius: 6px !important;
+    }
+
+    .billing-table {
+        min-width: 420px !important;
+    }
+
     .billing-table th {
         font-size: 10px !important;
         padding: 6px 8px !important;
+        white-space: nowrap !important;
     }
 
     .billing-table td {
         font-size: 10px !important;
-        padding: 4px 6px !important;
+        padding: 3px 6px !important;
     }
 
-    /* Totals — full width on mobile */
-    .bill-footer-section {
-        justify-content: stretch !important;
+    .calc-input {
+        font-size: 10px !important;
+        height: 22px !important;
     }
 
+    /* Billing footer — stack vertically */
+    .billing-footer {
+        flex-direction: column !important;
+        gap: 16px !important;
+        margin-top: 16px !important;
+    }
+
+    /* Payment history section */
+    .payment-history-wrap {
+        width: 100% !important;
+    }
+
+    .history-title {
+        font-size: 13px !important;
+        margin-bottom: 8px !important;
+    }
+
+    /* Add payment panel — make inputs touch-friendly */
+    #add-payment-panel > div {
+        flex-direction: column !important;
+        gap: 8px !important;
+    }
+
+    #add-payment-panel input[type="number"],
+    #add-payment-panel select {
+        width: 100% !important;
+        padding: 10px 12px !important;
+        font-size: 13px !important;
+        border-radius: 8px !important;
+        border: 1px solid var(--border) !important;
+    }
+
+    #add-payment-panel .btn {
+        width: 100% !important;
+        padding: 10px 16px !important;
+        justify-content: center !important;
+        font-size: 13px !important;
+    }
+
+    /* Totals wrapper — full width */
     .totals-wrapper {
         width: 100% !important;
     }
 
-    /* Auth signature box */
+    .totals-table td {
+        font-size: 13px !important;
+        padding: 6px 4px !important;
+    }
+
+    /* Bill status indicator */
+    #bill-status {
+        font-size: 14px !important;
+        padding: 10px !important;
+    }
+
+    /* Signature box */
     .auth-sign-box {
-        margin-top: 30px !important;
+        margin-top: 24px !important;
         padding-right: 0 !important;
         text-align: center !important;
+    }
+
+    /* OPD paid banner responsive */
+    #opd-paid-banner {
+        flex-direction: row !important;
+        gap: 10px !important;
+        padding: 10px 12px !important;
+    }
+
+    #opd-paid-banner > div:last-child {
+        white-space: nowrap !important;
+        font-size: 12px !important;
+        padding: 5px 10px !important;
     }
 }
 
 @media (max-width: 480px) {
     .billing-container .module-title {
-        font-size: 18px !important;
+        font-size: 16px !important;
     }
 
     .dash-card {
-        padding: 12px !important;
+        padding: 10px !important;
     }
 
     .card-info .label {
-        font-size: 10px !important;
+        font-size: 9px !important;
     }
 
     .card-info .value {
-        font-size: 18px !important;
+        font-size: 16px !important;
     }
 
     .card-icon {
-        width: 36px !important;
-        height: 36px !important;
-        font-size: 16px !important;
-        border-radius: 10px !important;
+        width: 30px !important;
+        height: 30px !important;
+        font-size: 13px !important;
+        border-radius: 8px !important;
+    }
+
+    /* Bills list card view — even more compact */
+    .bills-table tbody tr {
+        padding: 12px !important;
+        border-radius: 12px !important;
+        margin-bottom: 8px !important;
+    }
+
+    .bills-table td {
+        font-size: 12px !important;
+    }
+
+    .bills-table td:first-child {
+        font-size: 14px !important;
+    }
+
+    .bills-table td::before {
+        min-width: 70px !important;
+        font-size: 9px !important;
     }
 
     .status-badge {
         font-size: 10px !important;
-        padding: 4px 8px !important;
+        padding: 3px 8px !important;
+    }
+
+    .bill-action-btn {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 14px !important;
+    }
+
+    /* Invoice — compact on very small phones */
+    .a4-bill-container {
+        padding: 12px 10px !important;
+    }
+
+    .billing-table {
+        min-width: 360px !important;
+    }
+
+    .billing-table th,
+    .billing-table td {
+        font-size: 9px !important;
+        padding: 3px 5px !important;
     }
 }
 
