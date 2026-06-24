@@ -809,8 +809,13 @@ async function renderDevTechConsole() {
                 if (txt) { txt.textContent = `Degraded (${res.status})`; txt.style.color = '#f59e0b'; }
             }
         } catch {
-            if (dot) dot.style.background = '#ef4444';
-            if (txt) { txt.textContent = 'Offline / Unreachable'; txt.style.color = '#ef4444'; }
+            if (srv.id === 'srv-local' && window.location.hostname !== '127.0.0.1' && window.location.hostname !== 'localhost') {
+                if (dot) dot.style.background = '#64748b';
+                if (txt) { txt.textContent = 'Skipped (Live Env)'; txt.style.color = '#64748b'; }
+            } else {
+                if (dot) dot.style.background = '#ef4444';
+                if (txt) { txt.textContent = 'Offline / Unreachable'; txt.style.color = '#ef4444'; }
+            }
         }
     });
 

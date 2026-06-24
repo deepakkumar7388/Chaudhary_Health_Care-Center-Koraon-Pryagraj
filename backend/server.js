@@ -81,6 +81,10 @@ app.use('/api/integrations', integrationsRoutes);
 app.use('/api/notifications', notificationsRoutes);
 app.use('/api/backup', backupRoutes);
 
+// Health Check Route for Developer Tech Console
+app.get('/api/health', (req, res) => {
+    res.status(200).json({ status: 'ok', timestamp: new Date() });
+});
 // Database Connection with Retry Logic
 let lastDbError = null;
 let cleanupScheduled = false;
