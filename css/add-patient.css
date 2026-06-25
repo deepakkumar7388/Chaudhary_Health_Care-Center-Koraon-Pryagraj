@@ -99,11 +99,8 @@
 .form-section:nth-child(3) h3 i { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
 
 /* Form Grid */
-.form-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-}
+
+ > * { min-width: 0; }
 
 .form-group {
     display: flex;
@@ -168,40 +165,181 @@
         border-radius: 12px;
     }
 
-    .form-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-    }
+    
+ > * { min-width: 0; }
 
     .form-section {
         padding: 12px 14px;
     }
 }
 
-@media (max-width: 480px) {
+/* TRUE MOBILE APP FEEL */
+@media (max-width: 768px) {
+    /* Container adjustments */
     .add-patient-container {
-        padding: 12px;
+        padding: 0 10px 70px 10px; /* space for bottom nav and button */
+        border: none;
+        box-shadow: none;
+        background: transparent;
+    }
+
+    .add-patient-container .module-header {
+        border-bottom: none !important;
+        padding-bottom: 0 !important;
+        margin-bottom: 16px !important;
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: flex-start !important;
+        align-items: center !important;
+        gap: 10px !important;
     }
 
     .add-patient-container .module-header h2 {
-        font-size: 20px;
+        font-size: 18px !important;
+        font-weight: 700 !important;
+        flex: 1 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        order: 2 !important;
+        padding-left: 0 !important;
+        margin: 0 !important;
+    }
+    .add-patient-container .module-header h2::before { display: none; }
+
+    /* Clean Icon-only Back Button */
+    .add-patient-container .module-header .btn {
+        order: 1 !important;
+        background: transparent !important;
+        color: var(--text-main) !important;
+        border: none !important;
+        width: 32px !important;
+        height: 32px !important;
+        border-radius: 50% !important;
+        padding: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        box-shadow: none !important;
+        font-size: 0 !important; /* Hide 'Back' text */
+    }
+    .add-patient-container .module-header .btn i {
+        font-size: 20px !important;
+        margin: 0 !important;
+    }
+    .add-patient-container .module-header .btn:hover {
+        background: rgba(0,0,0,0.05) !important;
     }
 
-    .form-grid {
-        grid-template-columns: 1fr;
-        gap: 8px;
+    /* OPD/IPD Toggle */
+    .form-section[style*="padding-bottom: 0"] {
+        background: transparent;
+        border: none;
+        padding: 0;
+        margin-bottom: 12px;
+    }
+    
+    .form-section[style*="padding-bottom: 0"] > div {
+        background: var(--card-bg, #fff);
+        padding: 4px;
+        border-radius: 10px;
+        box-shadow: 0 1px 5px rgba(0,0,0,0.04);
+    }
+    
+    label[id^="type-btn-"] {
+        border: none !important;
+        border-radius: 6px !important;
+        font-size: 13px !important;
+        padding: 8px 10px !important;
     }
 
+    /* Form Sections as App Cards */
+    .form-section {
+        background: var(--card-bg, #fff);
+        border: none;
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 14px;
+        box-shadow: 0 1px 8px rgba(0,0,0,0.05);
+    }
+
+    .form-section h3 {
+        font-size: 13px;
+        border-bottom: none;
+        padding-bottom: 0;
+        margin-bottom: 12px;
+        color: var(--primary);
+    }
+    
+    .form-section h3 i {
+        background: rgba(99, 102, 241, 0.1);
+        border-radius: 6px;
+        width: 24px;
+        height: 24px;
+        font-size: 11px;
+    }
+
+    /* Single column grid for mobile */
+    
+ > * { min-width: 0; }
+
+    /* Native App Style Inputs */
+    .form-group label {
+        font-size: 11px;
+        color: #64748b;
+        margin-bottom: 2px;
+        text-transform: none;
+        font-weight: 500;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        background: var(--background);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px 12px;
+        font-size: 13px;
+        color: #1e293b;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        background: var(--card-bg);
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .form-group[style*="grid-column: span 2"] {
+        grid-column: span 1 !important;
+    }
+
+    /* Sticky Action Buttons at bottom */
     .form-actions {
+        position: fixed;
+        bottom: 60px; /* Above Bottom Navigation */
+        left: 0;
+        width: 100%;
+        background: var(--card-bg, #fff);
+        padding: 10px 16px;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+        z-index: 10;
+        margin: 0;
+        display: flex;
+        gap: 10px;
         flex-direction: row;
-        flex-wrap: wrap;
-        gap: 8px;
+        align-items: center;
+        border-top: 1px solid var(--background);
     }
 
     .form-actions button {
-        flex: 1 1 auto;
-        min-width: 120px;
-        padding: 8px 12px;
-        font-size: 12px;
+        flex: 1;
+        padding: 10px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: none;
+        letter-spacing: 0;
     }
 }

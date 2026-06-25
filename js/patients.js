@@ -2,7 +2,7 @@
 
 // Role-based helper: only admin & doctor can see payment rupee amounts
 function canViewPayments() {
-    return currentUser && (currentUser.role === 'admin' || currentUser.role === 'doctor');
+    return currentUser && (currentUser.role === 'admin' || currentUser.role === 'developer' || currentUser.role === 'doctor');
 }
 
 function renderPatients() {
@@ -99,9 +99,9 @@ function renderPatients() {
         }
         // Date range filter listeners
         const dateFromEl = document.getElementById('patient-date-from');
-        const dateToEl   = document.getElementById('patient-date-to');
+        const dateToEl = document.getElementById('patient-date-to');
         if (dateFromEl) dateFromEl.addEventListener('change', filterPatients);
-        if (dateToEl)   dateToEl.addEventListener('change', filterPatients);
+        if (dateToEl) dateToEl.addEventListener('change', filterPatients);
     }, 100);
 }
 
@@ -179,15 +179,36 @@ function renderPatientsTable(patientsList) {
         let bedDisplay = `<span>${bedText}</span>`;
 
         const hasSurgery = isSurgeryPatient(patient.patient_id);
-        const typeBadge = `<span class="status-badge" style="background:${pType === 'OPD' ? '#ecfdf5; color:#059669; border:1px solid #a7f3d0' : '#eff6ff; color:#2563eb; border:1px solid #bfdbfe'}; font-size:10px; padding:2px 6px; margin-left:6px;">${pType}</span>`;
+        const badgeClass = pType === 'OPD' ? 'badge-opd' : 'badge-ipd';
+        const typeBadge = `<span class="status-badge ${badgeClass}" style="font-size:10px; padding:2px 6px; margin-left:6px;">${pType}</span>`;
 
         return `
         <tr style="animation-delay: ${index * 0.05}s">
             <td data-label="Patient ID">${patient.patient_id}</td>
-            <td data-label="Name & Guardian">
-                <strong>${patient.name}</strong> ${typeBadge}
-                ${hasSurgery ? '<span class="status-badge" style="background:#e0e7ff; color:#4f46e5; border:1px solid #c7d2fe; font-size:10px; padding:2px 6px; margin-left:6px;">Surgery Done</span>' : ''}
-                <br><small style="color:#666">${guardian}</small>
+            <td data-label="Name" class="name-guardian-cell">
+                <div style="display: flex; flex-direction: column; flex: 1; width: 100%;">
+                    <!-- Mobile View: Split Rows -->
+                    <div class="d-md-none" style="display: flex; flex-direction: row; margin-bottom: 6px; align-items: flex-start;">
+                        <div style="color:#64748b; font-weight:700; font-size:12px; text-transform:uppercase; margin-right:8px; width: 110px; flex-shrink: 0;">PATIENT NAME:</div>
+                        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                            <strong style="color:var(--text-main); font-size:14px;">${patient.name}</strong> ${typeBadge}
+                            ${hasSurgery ? '<span class="status-badge" style="background:#e0e7ff; color:#4f46e5; border:1px solid #c7d2fe; font-size:10px; padding:2px 6px;">Surgery</span>' : ''}
+                        </div>
+                    </div>
+                    ${guardian ? `<div class="d-md-none" style="display: flex; flex-direction: row; align-items: flex-start;">
+                        <div style="color:#64748b; font-weight:700; font-size:12px; text-transform:uppercase; margin-right:8px; width: 110px; flex-shrink: 0;">GUARDIAN:</div>
+                        <div style="color:var(--text-main); font-size:13.5px;">${guardian}</div>
+                    </div>` : ''}
+
+                    <!-- Desktop View: Combined Row -->
+                    <div class="d-none d-md-flex" style="flex-direction: column;">
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <strong>${patient.name}</strong> ${typeBadge}
+                            ${hasSurgery ? '<span class="status-badge" style="background:#e0e7ff; color:#4f46e5; border:1px solid #c7d2fe; font-size:10px; padding:2px 6px;">Surgery Done</span>' : ''}
+                        </div>
+                        ${guardian ? `<div style="color:#64748b; font-size:12px; margin-top:2px;">${guardian}</div>` : ''}
+                    </div>
+                </div>
             </td>
             <td data-label="Age/Gen">${patient.age}/${patient.gender?.charAt(0) || ''}</td>
             <td data-label="Bed No.">${bedDisplay}</td>
@@ -202,14 +223,14 @@ function renderPatientsTable(patientsList) {
             <td class="action-buttons-cell" data-label="Actions">
                 <button class="action-btn-pro view-btn" onclick="viewPatient('${patient.patient_id}')" title="View Info"><i class="fas fa-eye"></i></button>
                 
-                ${(currentUser && (currentUser.role === 'admin' || currentUser.role === 'doctor')) ?
+                ${(currentUser && (currentUser.role === 'admin' || currentUser.role === 'developer' || currentUser.role === 'doctor')) ?
                 `<button class="action-btn-pro edit-btn" onclick="editPatient('${patient.patient_id}')" title="${isDischarged ? 'View Details (Discharged)' : 'Edit Patient'}"><i class="${isDischarged ? 'fas fa-info-circle' : 'fas fa-edit'}"></i></button>` : ''}
                 
                 ${(!isDischarged && pType === 'IPD') ? `<button class="action-btn-pro transfer-btn" onclick="openTransferBedModal('${patient.patient_id}')" title="Transfer Bed"><i class="fas fa-exchange-alt"></i></button>` : ''}
                 
                 ${(!isDischarged && pType === 'OPD') ? `<button class="action-btn-pro edit-btn" style="background:#6366f1; color:white; border-color:#6366f1;" onclick="convertOpdToIpd('${patient.patient_id}')" title="Admit to IPD (Convert)"><i class="fas fa-bed"></i></button>` : ''}
                 
-                ${(currentUser && currentUser.role === 'admin') ?
+                ${(currentUser && (currentUser.role === 'admin' || currentUser.role === 'developer')) ?
                 `<button class="action-btn-pro delete-btn" onclick="deletePatient('${patient.patient_id}')" title="Delete Patient"><i class="fas fa-trash"></i></button>` : ''}
                 
                 ${(currentUser && currentUser.role !== 'receptionist' && !isDischarged) ?
@@ -236,8 +257,8 @@ function filterPatients() {
     const dateFrom = document.getElementById('patient-date-from')?.value || '';
     const dateTo = document.getElementById('patient-date-to')?.value || '';
 
-    const fromTs = dateFrom ? new Date(dateFrom).setHours(0,0,0,0) : null;
-    const toTs   = dateTo   ? new Date(dateTo).setHours(23,59,59,999) : null;
+    const fromTs = dateFrom ? new Date(dateFrom).setHours(0, 0, 0, 0) : null;
+    const toTs = dateTo ? new Date(dateTo).setHours(23, 59, 59, 999) : null;
 
     let filtered = window.allPatientsData.filter(p => {
         const pName = p.name || '';
@@ -258,7 +279,7 @@ function filterPatients() {
             const admTs = p.admission_date ? new Date(p.admission_date).getTime() : null;
             if (admTs) {
                 if (fromTs && admTs < fromTs) matchDate = false;
-                if (toTs   && admTs > toTs)   matchDate = false;
+                if (toTs && admTs > toTs) matchDate = false;
             } else {
                 matchDate = false;
             }
@@ -312,14 +333,14 @@ function exportPatientsToExcel() {
 
     // Quick filter presets
     const presets = [
-        { id: 'today',      label: 'आज',          icon: 'bi-calendar-day' },
-        { id: 'yesterday',  label: 'कल',           icon: 'bi-calendar-minus' },
-        { id: 'this-week',  label: 'इस हफ्ते',      icon: 'bi-calendar-week' },
-        { id: 'last-week',  label: 'पिछला हफ्ता',   icon: 'bi-calendar2-week' },
-        { id: 'this-month', label: 'इस महीने',      icon: 'bi-calendar-month' },
-        { id: 'last-month', label: 'पिछला महीना',   icon: 'bi-calendar2-month' },
-        { id: 'all',        label: 'सब Records',    icon: 'bi-database' },
-        { id: 'custom',     label: 'Custom Range',  icon: 'bi-calendar-range' },
+        { id: 'today', label: 'आज', icon: 'bi-calendar-day' },
+        { id: 'yesterday', label: 'कल', icon: 'bi-calendar-minus' },
+        { id: 'this-week', label: 'इस हफ्ते', icon: 'bi-calendar-week' },
+        { id: 'last-week', label: 'पिछला हफ्ता', icon: 'bi-calendar2-week' },
+        { id: 'this-month', label: 'इस महीने', icon: 'bi-calendar-month' },
+        { id: 'last-month', label: 'पिछला महीना', icon: 'bi-calendar2-month' },
+        { id: 'all', label: 'सब Records', icon: 'bi-database' },
+        { id: 'custom', label: 'Custom Range', icon: 'bi-calendar-range' },
     ];
 
     const modal = document.createElement('div');
@@ -332,7 +353,7 @@ function exportPatientsToExcel() {
     `;
 
     modal.innerHTML = `
-        <div style="background:#fff; border-radius:20px; width:100%; max-width:500px; margin:16px;
+        <div style="background: var(--card-bg); border-radius:20px; width:100%; max-width:500px; margin:16px;
                     box-shadow:0 25px 60px rgba(0,0,0,0.3); overflow:hidden;
                     animation:slideUp 0.25s cubic-bezier(.34,1.56,.64,1);">
 
@@ -381,7 +402,7 @@ function exportPatientsToExcel() {
                 </div>
 
                 <!-- Custom date range (hidden by default) -->
-                <div id="custom-date-section" style="display:none; background:#f8fafc; border:1px solid #e2e8f0;
+                <div id="custom-date-section" style="display:none; background:var(--background); border:1px solid var(--border);
                      border-radius:12px; padding:14px; margin-bottom:18px;">
                     <div style="font-size:12px;color:#6b7280;font-weight:600;margin-bottom:10px;">Custom Range:</div>
                     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
@@ -443,7 +464,7 @@ function exportPatientsToExcel() {
 // Selected preset state
 window._excelFilterState = { preset: null, from: null, to: null, label: '' };
 
-window.selectExcelPreset = function(presetId) {
+window.selectExcelPreset = function (presetId) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     let fromDate, toDate, label;
@@ -507,7 +528,7 @@ window.selectExcelPreset = function(presetId) {
     updateExcelPreview();
 };
 
-window.updateExcelPreview = function() {
+window.updateExcelPreview = function () {
     const state = window._excelFilterState;
     let from = state.from;
     let to = state.to;
@@ -520,11 +541,11 @@ window.updateExcelPreview = function() {
             document.getElementById('excel-preview-text').textContent = 'दोनों dates भरें';
             return;
         }
-        from = new Date(f); from.setHours(0,0,0,0);
-        to   = new Date(t); to.setHours(23,59,59,999);
+        from = new Date(f); from.setHours(0, 0, 0, 0);
+        to = new Date(t); to.setHours(23, 59, 59, 999);
         label = `${f}_to_${t}`;
         window._excelFilterState.from = from;
-        window._excelFilterState.to   = to;
+        window._excelFilterState.to = to;
         window._excelFilterState.label = label;
     }
 
@@ -538,7 +559,7 @@ window.updateExcelPreview = function() {
             if (!p.admission_date) return false;
             const d = new Date(p.admission_date).getTime();
             if (from && d < from.getTime()) return false;
-            if (to   && d > to.getTime())   return false;
+            if (to && d > to.getTime()) return false;
             return true;
         });
     }
@@ -566,7 +587,7 @@ window.updateExcelPreview = function() {
     }
 };
 
-window.doExcelDownload = function() {
+window.doExcelDownload = function () {
     const state = window._excelFilterState;
     const list = state.filteredData || [];
     if (!list.length) return;
@@ -589,7 +610,7 @@ window.doExcelDownload = function() {
                     day: '2-digit', month: '2-digit', year: 'numeric'
                 });
             }
-        } catch(e) {}
+        } catch (e) { }
         return [
             p.patient_id || '',
             p.name || '',
@@ -701,9 +722,9 @@ function viewPatient(patientId) {
                 </h3>
                 <button class="modal-close" style="color: white; opacity: 0.8;" onclick="this.closest('.modal').remove()">&times;</button>
             </div>
-            <div style="padding: 25px; background: #f8fafc; max-height: 80vh; overflow-y: auto;">
-                <div style="display: flex; align-items: center; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #e2e8f0;">
-                    <div style="width: 65px; height: 65px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 30px; color: #a0aec0; margin-right: 20px;">
+            <div style="padding: 25px; background: var(--background); max-height: 80vh; overflow-y: auto;">
+                <div style="display: flex; align-items: center; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+                    <div style="width: 65px; height: 65px; border-radius: 50%; background: var(--border); display: flex; align-items: center; justify-content: center; font-size: 30px; color: #a0aec0; margin-right: 20px;">
                         <i class="bi ${gender.toLowerCase() === 'female' ? 'bi-gender-female' : 'bi-gender-male'}"></i>
                     </div>
                     <div style="flex: 1;">
@@ -720,28 +741,28 @@ function viewPatient(patientId) {
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                    <div style="background: white; padding: 15px; border-radius: 12px; border: 1px solid #edf2f7;">
+                    <div style="background: var(--card-bg); padding: 15px; border-radius: 12px; border: 1px solid #edf2f7;">
                         <div style="font-size: 11px; text-transform: uppercase; color: #a0aec0; font-weight: 700; margin-bottom: 8px;">
                             <i class="bi bi-people"></i> Guardian
                         </div>
                         <div style="color: #2d3748; font-weight: 600; font-size: 14px;">${guardian}</div>
                     </div>
 
-                    <div style="background: white; padding: 15px; border-radius: 12px; border: 1px solid #edf2f7;">
+                    <div style="background: var(--card-bg); padding: 15px; border-radius: 12px; border: 1px solid #edf2f7;">
                         <div style="font-size: 11px; text-transform: uppercase; color: #a0aec0; font-weight: 700; margin-bottom: 8px;">
                             <i class="fa-solid fa-bed"></i> Bed Assignment
                         </div>
                         <div style="color: #2d3748; font-weight: 600; font-size: 14px;">${bed}</div>
                     </div>
 
-                    <div style="background: white; padding: 15px; border-radius: 12px; border: 1px solid #edf2f7; grid-column: 1 / -1;">
+                    <div style="background: var(--card-bg); padding: 15px; border-radius: 12px; border: 1px solid #edf2f7; grid-column: 1 / -1;">
                         <div style="font-size: 11px; text-transform: uppercase; color: #a0aec0; font-weight: 700; margin-bottom: 8px;">
                             <i class="bi bi-geo-alt"></i> Address
                         </div>
                         <div style="color: #4a5568; font-size: 14px;">${address}</div>
                     </div>
 
-                    <div style="background: white; padding: 15px; border-radius: 12px; border: 1px solid #edf2f7; grid-column: 1 / -1;">
+                    <div style="background: var(--card-bg); padding: 15px; border-radius: 12px; border: 1px solid #edf2f7; grid-column: 1 / -1;">
                         <div style="font-size: 11px; text-transform: uppercase; color: #a0aec0; font-weight: 700; margin-bottom: 12px;">
                             <i class="bi bi-activity"></i> Medical Summary
                         </div>
@@ -754,13 +775,13 @@ function viewPatient(patientId) {
 
                     <!-- Surgery Information -->
                     ${surgeries.length > 0 ? `
-                    <div style="background: white; padding: 15px; border-radius: 12px; border: 1px solid #edf2f7; grid-column: 1 / -1; border-left: 4px solid #805ad5;">
+                    <div style="background: var(--card-bg); padding: 15px; border-radius: 12px; border: 1px solid #edf2f7; grid-column: 1 / -1; border-left: 4px solid #805ad5;">
                         <div style="font-size: 11px; text-transform: uppercase; color: #805ad5; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
                             <i class="bi bi-hospital"></i> Surgery History
                         </div>
                         <div style="display: flex; flex-direction: column; gap: 10px;">
                             ${surgeries.map(s => `
-                                <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 12px; border-bottom: 1px dotted #e2e8f0; margin-bottom: 12px;">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 12px; border-bottom: 1px dotted var(--border); margin-bottom: 12px;">
                                     <div style="flex: 1;">
                                         <div style="font-size: 14px; font-weight: 700; color: #2d3748; display:flex; align-items:center; gap:8px;">
                                             <span>${s.surgeryName}</span>
@@ -777,7 +798,7 @@ function viewPatient(patientId) {
                                         ` : ''}
 
                                         ${s.witnessName || s.guardianName ? `
-                                            <div style="font-size: 11px; color: #4a5568; margin-top: 6px; background: #f8fafc; padding: 6px 10px; border-radius: 4px; display: inline-block;">
+                                            <div style="font-size: 11px; color: #4a5568; margin-top: 6px; background: var(--background); padding: 6px 10px; border-radius: 4px; display: inline-block;">
                                                 ${s.guardianName ? `अभिभावक: <strong>${s.guardianName}</strong>` : ''}
                                                 ${s.witnessName ? ` | गवाह: <strong>${s.witnessName}</strong>` : ''}
                                             </div>
@@ -786,7 +807,7 @@ function viewPatient(patientId) {
                                         ${s.guardianSignature ? `
                                             <div style="margin-top: 8px; display: flex; align-items: center; gap: 10px;">
                                                 <span style="font-size: 11px; color: #718096; font-weight: 600;">Guardian Signature Proof:</span>
-                                                <img src="${s.guardianSignature}" style="max-height: 45px; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px; background: #fff;" alt="Sign Proof">
+                                                <img src="${s.guardianSignature}" style="max-height: 45px; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px; background: var(--card-bg);" alt="Sign Proof">
                                             </div>
                                         ` : ''}
                                     </div>
@@ -800,7 +821,7 @@ function viewPatient(patientId) {
                     ` : ''}
 
                     <!-- Payment Box -->
-                    <div style="background: white; padding: 15px; border-radius: 12px; border: 1px solid #edf2f7; grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="background: var(--card-bg); padding: 15px; border-radius: 12px; border: 1px solid #edf2f7; grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center;">
                         <div>
                             <div style="font-size: 11px; text-transform: uppercase; color: #a0aec0; font-weight: 700;">Billing Summary</div>
                             ${canViewPayments() ? `<div style="font-size: 12px; color: #718096;">Total Bill: ${window.currencySymbol || '₹'}${totalBill}</div>` : ''}
@@ -873,7 +894,7 @@ function editPatient(patientId) {
                 </h3>
                 <button class="modal-close" style="color: white;" onclick="window.closePatientModal(this.closest('.modal'))">&times;</button>
             </div>
-            <div style="padding: 25px; background: white; max-height: 80vh; overflow-y: auto;">
+            <div style="padding: 25px; background: var(--card-bg); max-height: 80vh; overflow-y: auto;">
                 <form id="edit-patient-form" onsubmit="event.preventDefault(); ${isReadOnly ? 'this.closest(\'.modal\').remove()' : `savePatientEdit('${patient.patient_id || patient.id}')`}">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
                         <div style="grid-column: span 2;">
@@ -921,9 +942,9 @@ function editPatient(patientId) {
                         <textarea id="edit-p-address" class="search-input" style="width:100%; height:60px; padding:10px;" ${isReadOnly ? 'disabled' : ''}>${pAddress}</textarea>
                     </div>
 
-                    <hr style="border: none; border-top: 1px dashed #e2e8f0; margin: 25px 0;">
+                    <hr style="border: none; border-top: 1px dashed var(--border); margin: 25px 0;">
                     
-                    <div id="edit-bed-details-container" style="background: #edf2f7; padding: 15px; border-radius: 10px; display: ${pType === 'OPD' ? 'none' : 'block'};">
+                    <div id="edit-bed-details-container" style="background: var(--background); padding: 15px; border-radius: 10px; display: ${pType === 'OPD' ? 'none' : 'block'};">
                         <h4 style="margin: 0 0 10px 0; font-size: 14px; display: flex; align-items: center; gap: 8px;">
                             <i class="fa-solid fa-bed"></i> Ward / Bed Stay Details
                         </h4>
@@ -979,7 +1000,7 @@ function editPatient(patientId) {
                         <button type="submit" class="btn-primary" style="padding: 10px 40px; border-radius: 8px; font-weight: 700;">
                             <i class="bi bi-floppy"></i> Save All Changes
                         </button>
-                        <button type="button" class="btn" style="background:#f1f5f9;" onclick="window.closePatientModal(this.closest('.modal'))">Cancel</button>
+                        <button type="button" class="btn" style="background:var(--background);" onclick="window.closePatientModal(this.closest('.modal'))">Cancel</button>
                         `}
                     </div>
                 </form>
@@ -1031,9 +1052,9 @@ function openTransferBedModal(patientId) {
                 </h3>
                 <button class="modal-close" style="color: white;" onclick="window.closePatientModal(this.closest('.modal'))">&times;</button>
             </div>
-            <div style="padding: 25px; background: white;">
+            <div style="padding: 25px; background: var(--card-bg);">
                 <form id="transfer-bed-form" onsubmit="event.preventDefault(); saveTransferBed('${patient.patient_id || patient.id}')">
-                    <div style="margin-bottom: 20px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <div style="margin-bottom: 20px; padding: 10px; background: var(--background); border-radius: 8px; border: 1px solid var(--border);">
                         <div style="font-size: 13px; color: #475569; margin-bottom: 5px;"><strong>Patient:</strong> ${patient.name}</div>
                         <div style="font-size: 13px; color: #475569;"><strong>Current Bed:</strong> ${patient.bed_no || 'Unassigned'}</div>
                     </div>
@@ -1054,7 +1075,7 @@ function openTransferBedModal(patientId) {
                         <button type="submit" class="btn-primary" style="padding: 10px 30px; border-radius: 8px; font-weight: 700; background: #4b5563;">
                             <i class="bi bi-arrow-left-right"></i> Confirm Transfer
                         </button>
-                        <button type="button" class="btn" style="background:#f1f5f9;" onclick="window.closePatientModal(this.closest('.modal'))">Cancel</button>
+                        <button type="button" class="btn" style="background:var(--background);" onclick="window.closePatientModal(this.closest('.modal'))">Cancel</button>
                     </div>
                 </form>
             </div>
@@ -1244,7 +1265,7 @@ async function loadAvailableBedsForEdit(currentBed, gender) {
 }
 
 function deletePatient(patientId) {
-    if (currentUser?.role !== 'admin') {
+    if (currentUser?.role !== 'admin' && currentUser?.role !== 'developer') {
         showNotification('Access Denied. Only Admin can delete patients.', 'error');
         return;
     }
@@ -1268,7 +1289,7 @@ function deletePatient(patientId) {
             @keyframes deleteModalSlideUp { from { opacity: 0; transform: translateY(30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
             @keyframes deleteShake { 0%,100% { transform: translateX(0); } 20%,60% { transform: translateX(-6px); } 40%,80% { transform: translateX(6px); } }
             .delete-modal-box {
-                background: #fff; border-radius: 16px; width: 420px; max-width: 92vw;
+                background: var(--card-bg); border-radius: 16px; width: 420px; max-width: 92vw;
                 box-shadow: 0 25px 60px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.05);
                 animation: deleteModalSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
                 overflow: hidden; position: relative; z-index: 10001;
@@ -1290,7 +1311,7 @@ function deletePatient(patientId) {
             .delete-modal-header p { margin: 0; font-size: 13px; color: #b91c1c; opacity: 0.8; }
             .delete-modal-body { padding: 24px 28px; }
             .delete-patient-info {
-                background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;
+                background: var(--background); border: 1px solid var(--border); border-radius: 10px;
                 padding: 14px 16px; margin-bottom: 18px; display: flex; align-items: center; gap: 12px;
             }
             .del-avatar {
@@ -1310,7 +1331,7 @@ function deletePatient(patientId) {
             .delete-warning-text strong { color: #dc2626; }
             .delete-step2-area { display: none; }
             #delete-confirm-input {
-                width: 100% !important; padding: 12px 14px !important; border: 2px solid #e2e8f0 !important;
+                width: 100% !important; padding: 12px 14px !important; border: 2px solid var(--border) !important;
                 border-radius: 10px !important; font-size: 14px !important; font-weight: 600 !important;
                 text-align: center !important; letter-spacing: 3px !important;
                 color: #1e293b !important; outline: none !important;
@@ -1319,7 +1340,7 @@ function deletePatient(patientId) {
                 box-sizing: border-box !important; pointer-events: auto !important;
                 position: relative !important; z-index: 10002 !important;
                 -webkit-user-select: text !important; user-select: text !important;
-                background: #fff !important; cursor: text !important;
+                background: var(--card-bg)!important; cursor: text !important;
             }
             #delete-confirm-input:focus { border-color: #ef4444 !important; }
             #delete-confirm-input.matched { border-color: #ef4444 !important; background: #fef2f2 !important; }
@@ -1335,11 +1356,11 @@ function deletePatient(patientId) {
                 padding: 0 28px 24px; display: flex; gap: 10px;
             }
             .delete-btn-cancel {
-                flex: 1; padding: 12px; border: 1px solid #e2e8f0; background: #f8fafc;
+                flex: 1; padding: 12px; border: 1px solid var(--border); background: var(--background);
                 border-radius: 10px; font-size: 14px; font-weight: 600; color: #475569;
                 cursor: pointer; transition: all 0.2s;
             }
-            .delete-btn-cancel:hover { background: #e2e8f0; }
+            .delete-btn-cancel:hover { background: var(--border); }
             .delete-btn-proceed {
                 flex: 1; padding: 12px; border: none;
                 background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
@@ -1356,7 +1377,7 @@ function deletePatient(patientId) {
                 display: flex; justify-content: center; gap: 8px; margin-bottom: 16px;
             }
             .delete-step-dot {
-                width: 8px; height: 8px; border-radius: 50%; background: #e2e8f0; transition: all 0.3s;
+                width: 8px; height: 8px; border-radius: 50%; background: var(--border); transition: all 0.3s;
             }
             .delete-step-dot.active { background: #ef4444; width: 24px; border-radius: 4px; }
         </style>
@@ -1529,12 +1550,12 @@ window.handleSurgerySignatureUpload = function (input) {
             img.onload = function () {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
-                
+
                 // Limit maximum dimensions to 1000px for performance and size
                 const maxDim = 1000;
                 let width = img.width;
                 let height = img.height;
-                
+
                 if (width > maxDim || height > maxDim) {
                     if (width > height) {
                         height = Math.round((height * maxDim) / width);
@@ -1544,14 +1565,14 @@ window.handleSurgerySignatureUpload = function (input) {
                         height = maxDim;
                     }
                 }
-                
+
                 canvas.width = width;
                 canvas.height = height;
                 ctx.drawImage(img, 0, 0, width, height);
-                
+
                 // Compress to JPEG with 0.7 quality (typically reduces size by 90-95%)
                 const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
-                
+
                 const imgEl = document.getElementById('surgery-sig-preview-img');
                 const placeholder = document.getElementById('surgery-sig-placeholder');
                 if (imgEl && placeholder) {
@@ -1592,12 +1613,12 @@ function openSurgeryModal(patientId) {
     const sWardNo = draft ? draft.wardNo : (savedRecord.ward_no || '');
     const sProvisional = draft ? draft.provisional : (savedRecord.provisional || '');
     const sFinal = draft ? draft.finalDiag : (savedRecord.final || '');
-    
+
     const sWitnessName = draft ? draft.witnessName : '';
     const sWitnessAddress = draft ? draft.witnessAddress : '';
     const sWitnessDate = draft ? draft.witnessDate : new Date().toISOString().split('T')[0];
     const sWitnessPlace = draft ? draft.witnessPlace : '';
-    
+
     const sGuardianName = draft ? draft.guardianName : '';
     const sGuardianAddress = draft ? draft.guardianAddress : '';
     const sGuardianDate = draft ? draft.guardianDate : new Date().toISOString().split('T')[0];
@@ -1615,58 +1636,58 @@ function openSurgeryModal(patientId) {
 
     modal.innerHTML = `
         <div class="modal-content" style="max-width: 800px; width: 95%; max-height: 90vh; overflow-y: auto; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); border: 1px solid #cbd5e1;">
-            <div class="modal-header" style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 16px 24px;">
+            <div class="modal-header" style="background: var(--background); border-bottom: 1px solid var(--border); padding: 16px 24px;">
                 <h3 style="margin: 0; font-size: 18px; color: #1e293b; display: flex; align-items: center; gap: 8px;">
                     <i class="bi bi-hospital" style="color:#805ad5;"></i> Add Surgery Event & Operation Consent
                 </h3>
                 <button class="modal-close" style="font-size: 24px; color: #94a3b8; background: none; border: none; cursor: pointer;" onclick="window.closePatientModal(this.closest('.modal'))">&times;</button>
             </div>
             <div style="padding: 24px;">
-                <p style="margin-top:0; color:#475569; font-size:14px; margin-bottom:20px; padding: 10px 14px; background: #f1f5f9; border-radius: 6px; border-left: 4px solid #6366f1;">
+                <p style="margin-top:0; color:#475569; font-size:14px; margin-bottom:20px; padding: 10px 14px; background: var(--background); border-radius: 6px; border-left: 4px solid #6366f1;">
                     <i class="bi bi-person-circle"></i> Recording surgery for patient: <strong style="color: #0f172a;">${patientObj ? patientObj.name : patientId}</strong>
                 </p>
 
                 <!-- SECTION 1: SURGERY & DIAGNOSIS DETAILS -->
-                <h4 style="margin: 0 0 12px 0; font-size: 13px; color: #4f46e5; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; font-weight:700;">
+                <h4 style="margin: 0 0 12px 0; font-size: 13px; color: #4f46e5; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); padding-bottom: 6px; font-weight:700;">
                     <i class="bi bi-file-earmark-medical"></i> Surgery & Diagnosis Information
                 </h4>
                 <div class="surgery-form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
                     <div>
                         <label style="display:block; font-size:12px; font-weight:600; color:#475569; margin-bottom:6px;">Surgery Name / Procedure *</label>
-                        <input type="text" id="surgery-name" value="${sName}" placeholder="Appendectomy" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background:#fff;">
+                        <input type="text" id="surgery-name" value="${sName}" placeholder="Appendectomy" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background: var(--card-bg);">
                     </div>
                     <div>
                         <label style="display:block; font-size:12px; font-weight:600; color:#475569; margin-bottom:6px;">Surgeon Name *</label>
-                        <input type="text" id="surgeon-name" value="${sSurgeon}" placeholder="Dr. Bhoopendra Chaudhary" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background:#fff;">
+                        <input type="text" id="surgeon-name" value="${sSurgeon}" placeholder="Dr. Bhoopendra Chaudhary" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background: var(--card-bg);">
                     </div>
                     <div>
                         <label style="display:block; font-size:12px; font-weight:600; color:#475569; margin-bottom:6px;">Surgery Date *</label>
-                        <input type="date" id="surgery-date" value="${sDate}" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background:#fff;">
+                        <input type="date" id="surgery-date" value="${sDate}" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background: var(--card-bg);">
                     </div>
                     <div>
                         <label style="display:block; font-size:12px; font-weight:600; color:#475569; margin-bottom:6px;">Surgery Base Charges (${window.currencySymbol || '₹'}) *</label>
-                        <input type="number" id="surgery-cost" value="${sCost}" placeholder="0" min="0" onfocus="this.select()" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background:#fff;">
+                        <input type="number" id="surgery-cost" value="${sCost}" placeholder="0" min="0" onfocus="this.select()" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background: var(--card-bg);">
                     </div>
                     <div>
                         <label style="display:block; font-size:12px; font-weight:600; color:#475569; margin-bottom:6px;">INDOOR No. (IPD No.) <span style="font-weight: normal; color: #94a3b8;">(Optional)</span></label>
-                        <input type="text" id="surgery-indoor-no" placeholder="Indoor No. (Optional)" value="${sIndoorNo}" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background:#fff;">
+                        <input type="text" id="surgery-indoor-no" placeholder="Indoor No. (Optional)" value="${sIndoorNo}" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background: var(--card-bg);">
                     </div>
                     <div>
                         <label style="display:block; font-size:12px; font-weight:600; color:#475569; margin-bottom:6px;">WARD No. <span style="font-weight: normal; color: #94a3b8;">(Optional)</span></label>
-                        <input type="text" id="surgery-ward-no" placeholder="Ward No. (Optional)" value="${sWardNo}" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background:#fff;">
+                        <input type="text" id="surgery-ward-no" placeholder="Ward No. (Optional)" value="${sWardNo}" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background: var(--card-bg);">
                     </div>
                     <div style="grid-column: span 2;">
                         <label style="display:block; font-size:12px; font-weight:600; color:#475569; margin-bottom:6px;">Provisional Diagnosis <span style="font-weight: normal; color: #94a3b8;">(Optional)</span></label>
-                        <input type="text" id="surgery-provisional" placeholder="Provisional Diagnosis (Optional)" value="${sProvisional}" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background:#fff;">
+                        <input type="text" id="surgery-provisional" placeholder="Provisional Diagnosis (Optional)" value="${sProvisional}" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background: var(--card-bg);">
                     </div>
                     <div style="grid-column: span 2;">
                         <label style="display:block; font-size:12px; font-weight:600; color:#475569; margin-bottom:6px;">Final Diagnosis <span style="font-weight: normal; color: #94a3b8;">(Optional)</span></label>
-                        <input type="text" id="surgery-final" placeholder="Final Diagnosis (Optional)" value="${sFinal}" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background:#fff;">
+                        <input type="text" id="surgery-final" placeholder="Final Diagnosis (Optional)" value="${sFinal}" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background: var(--card-bg);">
                     </div>
                 </div>
 
                 <!-- SECTION 2: HINDI CONSENT WARNING CALLOUT -->
-                <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 16px; margin-bottom: 24px; border-radius: 8px; font-size: 14px; color: #b45309; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                <div style="background: var(--card-bg); border-left: 4px solid #f59e0b; padding: 16px; margin-bottom: 24px; border-radius: 8px; font-size: 14px; color: #b45309; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                     <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px; font-weight:700;">
                         <i class="bi bi-heart-pulse" style="font-size:16px;"></i> 
                         <span>शल्य चिकित्सा एवं निश्चेतक हेतु सहमति (Operation Consent Form)</span>
@@ -1678,54 +1699,54 @@ function openSurgeryModal(patientId) {
                 <div class="surgery-consent-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
                     
                     <!-- WITNESS COLUMN -->
-                    <div style="background: #f8fafc; padding: 16px; border: 1px solid #e2e8f0; border-radius: 8px;">
+                    <div style="background: var(--background); padding: 16px; border: 1px solid var(--border); border-radius: 8px;">
                         <h5 style="margin: 0 0 12px 0; font-size: 13px; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; display:flex; align-items:center; gap:6px; border-bottom:1px solid #cbd5e1; padding-bottom:6px; font-weight:700;">
                             <i class="bi bi-person-lock"></i> साक्षी गवाह (Witness Details)
                         </h5>
                         <div style="display:flex; flex-direction:column; gap:10px;">
                             <div>
                                 <label style="display:block; font-size:11px; font-weight:600; color:#64748b; margin-bottom:4px;">गवाह का नाम (Witness Name)</label>
-                                <input type="text" id="surgery-witness-name" value="${sWitnessName}" autocomplete="off" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background:#fff;">
+                                <input type="text" id="surgery-witness-name" value="${sWitnessName}" autocomplete="off" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background: var(--card-bg);">
                             </div>
                             <div>
                                 <label style="display:block; font-size:11px; font-weight:600; color:#64748b; margin-bottom:4px;">वर्तमान पता (Address)</label>
-                                <input type="text" id="surgery-witness-address" value="${sWitnessAddress}" autocomplete="off" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background:#fff;">
+                                <input type="text" id="surgery-witness-address" value="${sWitnessAddress}" autocomplete="off" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background: var(--card-bg);">
                             </div>
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                                 <div>
                                     <label style="display:block; font-size:11px; font-weight:600; color:#64748b; margin-bottom:4px;">दिनांक (Date)</label>
-                                    <input type="date" id="surgery-witness-date" value="${sWitnessDate}" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background:#fff;">
+                                    <input type="date" id="surgery-witness-date" value="${sWitnessDate}" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background: var(--card-bg);">
                                 </div>
                                 <div>
                                     <label style="display:block; font-size:11px; font-weight:600; color:#64748b; margin-bottom:4px;">स्थान (Place)</label>
-                                    <input type="text" id="surgery-witness-place" value="${sWitnessPlace}" placeholder="" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background:#fff;">
+                                    <input type="text" id="surgery-witness-place" value="${sWitnessPlace}" placeholder="" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background: var(--card-bg);">
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- GUARDIAN COLUMN -->
-                    <div style="background: #f8fafc; padding: 16px; border: 1px solid #e2e8f0; border-radius: 8px;">
+                    <div style="background: var(--background); padding: 16px; border: 1px solid var(--border); border-radius: 8px;">
                         <h5 style="margin: 0 0 12px 0; font-size: 13px; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; display:flex; align-items:center; gap:6px; border-bottom:1px solid #cbd5e1; padding-bottom:6px; font-weight:700;">
                             <i class="bi bi-pencil"></i> रोगी से संबंधित हस्ताक्षरकर्ता (Guardian Details)
                         </h5>
                         <div style="display:flex; flex-direction:column; gap:10px;">
                             <div>
                                 <label style="display:block; font-size:11px; font-weight:600; color:#64748b; margin-bottom:4px;">अभिभावक का नाम (Guardian Name)</label>
-                                <input type="text" id="surgery-guardian-name" value="${sGuardianName}" autocomplete="off" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background:#fff;">
+                                <input type="text" id="surgery-guardian-name" value="${sGuardianName}" autocomplete="off" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background: var(--card-bg);">
                             </div>
                             <div>
                                 <label style="display:block; font-size:11px; font-weight:600; color:#64748b; margin-bottom:4px;">वर्तमान पता (Address)</label>
-                                <input type="text" id="surgery-guardian-address" value="${sGuardianAddress}" autocomplete="off" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background:#fff;">
+                                <input type="text" id="surgery-guardian-address" value="${sGuardianAddress}" autocomplete="off" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background: var(--card-bg);">
                             </div>
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                                 <div>
                                     <label style="display:block; font-size:11px; font-weight:600; color:#64748b; margin-bottom:4px;">दिनांक (Date)</label>
-                                    <input type="date" id="surgery-guardian-date" value="${sGuardianDate}" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background:#fff;">
+                                    <input type="date" id="surgery-guardian-date" value="${sGuardianDate}" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background: var(--card-bg);">
                                 </div>
                                 <div>
                                     <label style="display:block; font-size:11px; font-weight:600; color:#64748b; margin-bottom:4px;">स्थान (Place)</label>
-                                    <input type="text" id="surgery-guardian-place" value="${sGuardianPlace}" placeholder="" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background:#fff;">
+                                    <input type="text" id="surgery-guardian-place" value="${sGuardianPlace}" placeholder="" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background: var(--card-bg);">
                                 </div>
                             </div>
                         </div>
@@ -1733,16 +1754,16 @@ function openSurgeryModal(patientId) {
 
                 </div>
                 <!-- SECTION 4: SIGNATURE UPLOAD & WEBCAM CAPTURE SIDE-BY-SIDE -->
-                <h4 style="margin: 0 0 12px 0; font-size: 13px; color: #4f46e5; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; font-weight:700;">
+                <h4 style="margin: 0 0 12px 0; font-size: 13px; color: #4f46e5; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); padding-bottom: 6px; font-weight:700;">
                     <i class="bi bi-pencil"></i> Patient Signature Proof
                 </h4>
                 <div class="surgery-signature-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; align-items: start;">
                     
                     <!-- UPLOAD & WEBCAM TRIGGERS -->
-                    <div style="background: #f8fafc; padding: 16px; border: 1px dashed #94a3b8; border-radius: 8px; text-align: center;">
+                    <div style="background: var(--background); padding: 16px; border: 1px dashed #94a3b8; border-radius: 8px; text-align: center;">
                         <div style="margin-bottom: 12px;">
                             <label style="display:block; font-size:12px; font-weight:600; color:#475569; margin-bottom:6px; text-align:left;">Method 1: Upload Image (Gallery / Native Camera)</label>
-                            <input type="file" id="surgery-sig-upload" accept="image/*" onchange="handleSurgerySignatureUpload(this)" style="font-size: 12px; width: 100%; padding: 4px; border: 1px solid #cbd5e1; border-radius: 4px; background:#fff;">
+                            <input type="file" id="surgery-sig-upload" accept="image/*" onchange="handleSurgerySignatureUpload(this)" style="font-size: 12px; width: 100%; padding: 4px; border: 1px solid #cbd5e1; border-radius: 4px; background: var(--card-bg);">
                         </div>
                         <div style="margin: 10px 0; font-size: 12px; font-weight: 700; color: #64748b;">— OR —</div>
                         <div style="text-align: center;">
@@ -1765,7 +1786,7 @@ function openSurgeryModal(patientId) {
                     </div>
 
                     <!-- PREVIEW BOX -->
-                    <div style="background: #ffffff; padding: 12px; border: 1px solid #94a3b8; border-radius: 8px; text-align: center; height: 185px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; overflow: hidden;">
+                    <div style="background: var(--card-bg); padding: 12px; border: 1px solid #94a3b8; border-radius: 8px; text-align: center; height: 185px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; overflow: hidden;">
                         <img id="surgery-sig-preview-img" src="${sSignature || ''}" style="max-height: 100%; max-width: 100%; display: ${sSignature ? 'block' : 'none'}; object-fit: contain;">
                         <div id="surgery-sig-placeholder" style="color: #94a3b8; display:${sSignature ? 'none' : 'flex'}; flex-direction:column; align-items:center; gap:8px;">
                             <i class="bi bi-file-earmark-ruled" style="font-size:32px;"></i>
@@ -1774,8 +1795,8 @@ function openSurgeryModal(patientId) {
                     </div>
 
                 </div>                <!-- ACTIONS BUTTONS -->
-                <div class="surgery-actions" style="display:flex; justify-content:flex-end; gap:12px; border-top:1px solid #e2e8f0; padding-top:16px; margin-top:20px;">
-                    <button class="btn" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; padding:10px 20px; border-radius:4px; cursor:pointer; font-weight:600; font-size:14px; transition:all 0.2s;" onclick="window.closePatientModal(this.closest('.modal'))">Cancel</button>
+                <div class="surgery-actions" style="display:flex; justify-content:flex-end; gap:12px; border-top:1px solid var(--border); padding-top:16px; margin-top:20px;">
+                    <button class="btn" style="background:var(--background); color:#475569; border:1px solid #cbd5e1; padding:10px 20px; border-radius:4px; cursor:pointer; font-weight:600; font-size:14px; transition:all 0.2s;" onclick="window.closePatientModal(this.closest('.modal'))">Cancel</button>
                     <button class="btn btn-primary" style="background:linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color:#fff; border:none; padding:10px 20px; border-radius:4px; cursor:pointer; font-weight:600; font-size:14px; transition:all 0.2s; box-shadow:0 4px 12px var(--primary-light);" onclick="saveSurgery('${patientId}', this)">Confirm Surgery Event</button>
                 </div>
             </div>
@@ -1872,12 +1893,12 @@ function openSurgeryModal(patientId) {
 
         if (video && canvas && previewImg) {
             const ctx = canvas.getContext('2d');
-            
+
             // Limit snap dimensions as well (max 1000px)
             const maxDim = 1000;
             let width = video.videoWidth || 640;
             let height = video.videoHeight || 480;
-            
+
             if (width > maxDim || height > maxDim) {
                 if (width > height) {
                     height = Math.round((height * maxDim) / width);
@@ -1887,7 +1908,7 @@ function openSurgeryModal(patientId) {
                     height = maxDim;
                 }
             }
-            
+
             canvas.width = width;
             canvas.height = height;
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -2195,11 +2216,11 @@ window.closePatientModal = function (modalEl) {
     }
 };
 
-window.toggleEditPatientTypeFields = function() {
+window.toggleEditPatientTypeFields = function () {
     const editType = document.getElementById('edit-p-type')?.value;
     const bedDetailsContainer = document.getElementById('edit-bed-details-container');
     const bedSelect = document.getElementById('edit-p-bed-no');
-    
+
     if (editType === 'OPD') {
         if (bedDetailsContainer) bedDetailsContainer.style.display = 'none';
         if (bedSelect) bedSelect.removeAttribute('required');
@@ -2217,13 +2238,13 @@ window.toggleEditPatientTypeFields = function() {
     }
 };
 
-window.convertOpdToIpd = function(patientId) {
+window.convertOpdToIpd = function (patientId) {
     const patient = window.allPatientsData?.find(p => String(p.patient_id) === String(patientId));
     if (!patient) return;
-    
+
     // Remove any existing IPD confirm modal
     document.getElementById('ipd-confirm-modal')?.remove();
-    
+
     const modal = document.createElement('div');
     modal.id = 'ipd-confirm-modal';
     modal.innerHTML = `
@@ -2236,7 +2257,7 @@ window.convertOpdToIpd = function(patientId) {
             @keyframes ipdFadeIn { from { opacity: 0; } to { opacity: 1; } }
             @keyframes ipdSlideUp { from { opacity: 0; transform: translateY(24px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
             .ipd-modal-box {
-                background: #fff; border-radius: 18px; width: 420px; max-width: 94vw;
+                background: var(--card-bg); border-radius: 18px; width: 420px; max-width: 94vw;
                 box-shadow: 0 30px 70px rgba(0,0,0,0.22), 0 0 0 1px rgba(99,102,241,0.1);
                 animation: ipdSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
                 overflow: hidden;
@@ -2257,7 +2278,7 @@ window.convertOpdToIpd = function(patientId) {
             .ipd-modal-header p { margin: 0; font-size: 12px; color: rgba(255,255,255,0.75); }
             .ipd-modal-body { padding: 22px 28px; }
             .ipd-patient-card {
-                background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 12px;
+                background: var(--background); border: 1px solid var(--border); border-radius: 12px;
                 padding: 14px 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 14px;
             }
             .ipd-avatar {
@@ -2268,17 +2289,17 @@ window.convertOpdToIpd = function(patientId) {
             }
             .ipd-info-text { font-size: 13px; color: #475569; line-height: 1.6; }
             .ipd-warning-box {
-                background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px;
+                background: var(--card-bg); border: 1px solid #fde68a; border-radius: 10px;
                 padding: 12px 14px; font-size: 12px; color: #92400e; display: flex; gap: 10px;
                 margin-bottom: 20px; align-items: flex-start;
             }
             .ipd-modal-footer { padding: 0 28px 24px; display: flex; gap: 10px; }
             .ipd-btn-cancel {
-                flex: 1; padding: 12px; border: 1px solid #e2e8f0; background: #f8fafc;
+                flex: 1; padding: 12px; border: 1px solid var(--border); background: var(--background);
                 border-radius: 10px; font-size: 14px; font-weight: 600; color: #475569;
                 cursor: pointer; transition: all 0.2s;
             }
-            .ipd-btn-cancel:hover { background: #e2e8f0; }
+            .ipd-btn-cancel:hover { background: var(--border); }
             .ipd-btn-confirm {
                 flex: 2; padding: 12px; border: none;
                 background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
@@ -2321,17 +2342,17 @@ window.convertOpdToIpd = function(patientId) {
         </div>
     `;
     document.body.appendChild(modal);
-    
+
     // Cancel button
     document.getElementById('ipd-cancel-btn').addEventListener('click', () => {
         document.getElementById('ipd-confirm-modal')?.remove();
     });
-    
+
     // Close on overlay background click
-    document.getElementById('ipd-overlay-bg').addEventListener('mousedown', function(e) {
+    document.getElementById('ipd-overlay-bg').addEventListener('mousedown', function (e) {
         if (e.target === this) document.getElementById('ipd-confirm-modal')?.remove();
     });
-    
+
     // Confirm button — open the edit modal in IPD Admission mode
     document.getElementById('ipd-proceed-btn').addEventListener('click', () => {
         document.getElementById('ipd-confirm-modal')?.remove();
@@ -2344,7 +2365,7 @@ window.convertOpdToIpd = function(patientId) {
                     toggleEditPatientTypeFields();
                 }
             }
-            
+
             // ── Modal को IPD Admission mode में transform करें ──
             // 1. Header title aur icon badlo
             const modalHeader = document.querySelector('.modal-content .modal-header');
@@ -2356,12 +2377,12 @@ window.convertOpdToIpd = function(patientId) {
                 modalHeader.style.background = 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)';
                 modalHeader.style.borderBottom = 'none';
             }
-            
+
             // 2. Patient Type field ko hide karo (IPD already set hai)
-            const typeRow = document.getElementById('edit-p-type')?.closest('div[style*="grid-column: span 2"]') 
-                         || document.getElementById('edit-p-type')?.closest('div');
+            const typeRow = document.getElementById('edit-p-type')?.closest('div[style*="grid-column: span 2"]')
+                || document.getElementById('edit-p-type')?.closest('div');
             if (typeRow) typeRow.style.display = 'none';
-            
+
             // 3. Save button text badlo
             const submitBtn = document.querySelector('#edit-patient-form button[type="submit"]');
             if (submitBtn) {
@@ -2369,7 +2390,7 @@ window.convertOpdToIpd = function(patientId) {
                 submitBtn.style.background = 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)';
                 submitBtn.style.border = 'none';
             }
-            
+
             // 4. Top pe IPD Admission Banner jodo
             const form = document.getElementById('edit-patient-form');
             if (form && !document.getElementById('ipd-admission-banner')) {
@@ -2397,13 +2418,13 @@ window.convertOpdToIpd = function(patientId) {
                 `;
                 form.insertBefore(banner, form.firstChild);
             }
-            
+
             showNotification('Bed Number चुनें और Save करें — IPD Admission होगा।', 'info');
         }, 280);
     });
 };
 
 // WhatsApp feature disabled — abhi ke liye use nahi ho rahi
-window.shareOpdWhatsApp = function(patientId) {
+window.shareOpdWhatsApp = function (patientId) {
     showNotification('WhatsApp feature abhi available nahi hai.', 'info');
-};
+};

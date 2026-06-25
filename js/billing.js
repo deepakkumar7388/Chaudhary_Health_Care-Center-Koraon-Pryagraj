@@ -98,7 +98,7 @@ function renderBilling() {
                             @page { margin: 10mm; }
                             body { -webkit-print-color-adjust: exact; print-color-adjust: exact; font-family: 'Outfit', sans-serif; }
                             .billing-table th { background-color: #1e293b !important; color: white !important; }
-                            .patient-info-summary { background-color: #f8fafc !important; }
+                            .patient-info-summary { background-color: var(--background) !important; }
                         }
                         .print-only { display: none; }
                     </style>
@@ -150,7 +150,7 @@ function renderBilling() {
                     <div class="billing-footer">
                         <div class="payment-history-wrap">
                             <h4 class="history-title"><i class="bi bi-clock-history"></i> Payment Ledger</h4>
-                            <div id="add-payment-panel" class="no-print" style="margin-bottom:15px; padding:10px; background:#f8fafc; border-radius:8px;">
+                            <div id="add-payment-panel" class="no-print" style="margin-bottom:15px; padding:10px; background:var(--background); border-radius:8px;">
                                 <div style="display:flex; gap:10px;">
                                     <input type="number" id="pay-amt" placeholder="Amount" style="width:100px; padding:5px;">
                                     <select id="pay-mode" style="padding:5px;"><option>Cash</option><option>Online</option><option>Cheque</option></select>
@@ -158,7 +158,7 @@ function renderBilling() {
                                 </div>
                             </div>
                             <table class="history-table" style="width:100%; font-size:11px;">
-                                <thead style="background:#f1f5f9;"><tr><th>Date</th><th>Mode</th><th>Amount</th><th class="no-print">Act</th></tr></thead>
+                                <thead style="background:var(--background);"><tr><th>Date</th><th>Mode</th><th>Amount</th><th class="no-print">Act</th></tr></thead>
                                 <tbody id="payment-history-body"></tbody>
                             </table>
                         </div>

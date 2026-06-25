@@ -7,6 +7,15 @@
     box-shadow: var(--shadow);
     animation: fadeIn 0.5s ease;
     border: 1px solid var(--border);
+    max-width: 100%;
+    min-width: 0;
+}
+
+@media (max-width: 768px) {
+    .patients-container {
+        padding: 16px;
+        border-radius: 16px;
+    }
 }
 
 .patients-container .module-header {
@@ -144,7 +153,8 @@
     gap: 8px;
     flex-wrap: wrap;
     align-items: center;
-    border-bottom: none; /* remove table border if conflicting with flex */
+    border-bottom: none;
+    /* remove table border if conflicting with flex */
 }
 
 /* Ensure the td maintains bottom border inside the table */
@@ -164,7 +174,8 @@
     border: 1px solid transparent;
     transition: all 0.2s ease;
     cursor: pointer;
-    color: #64748b; /* Professional muted gray color */
+    color: #64748b;
+    /* Professional muted gray color */
 }
 
 .action-btn-pro i {
@@ -191,7 +202,7 @@
 }
 
 .action-btn-pro.transfer-btn:hover {
-    background: #f1f5f9;
+    background: var(--background);
     color: #475569;
     border-color: #cbd5e1;
     box-shadow: 0 2px 4px rgba(71, 85, 105, 0.1);
@@ -351,10 +362,11 @@
         background: var(--card-bg);
         border: 1px solid var(--border);
         border-radius: 12px;
-        padding: 14px;
-        margin-bottom: 10px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        gap: 6px;
+        padding: 12px !important;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        gap: 0px !important;
+        /* Reduce gap between rows */
     }
 
     .patients-table tbody tr:hover {
@@ -363,41 +375,58 @@
 
     .patients-table td {
         display: flex;
+        flex-direction: row;
         align-items: center;
-        padding: 3px 0;
+        padding: 2px 0 !important;
+        /* Override responsive.css padding !important */
         border-bottom: none;
-        font-size: 13px;
-        flex-wrap: wrap;
-        gap: 4px;
+        font-size: 13.5px;
+        flex-wrap: nowrap;
+        gap: 6px;
     }
 
     .patients-table td::before {
-        content: attr(data-label);
-        font-size: 11px;
+        content: attr(data-label) ":";
+        font-size: 12px;
         font-weight: 700;
-        color: var(--text-muted);
+        color: #64748b;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        min-width: 90px;
         flex-shrink: 0;
+        width: 110px;
+        /* Standardize width for all labels */
+    }
+
+    /* Hide the automatic label for cells using custom split layout */
+    .patients-table td.name-guardian-cell::before {
+        display: none;
+    }
+
+    /* Target the text inside td directly */
+    .patients-table td span,
+    .patients-table td strong {
+        color: var(--text-main);
+        flex: 1;
+        text-align: left;
     }
 
     .patients-table td:first-child {
-        font-weight: 700;
-        font-size: 14px;
+        font-weight: 800;
+        font-size: 16px;
         color: var(--primary);
-        padding-bottom: 4px;
-        border-bottom: 1px solid var(--border);
+        padding-bottom: 8px;
+        border-bottom: 1px dashed var(--border);
         margin-bottom: 4px;
     }
 
     /* Action buttons row */
     .patients-table td.action-buttons-cell {
-        padding-top: 8px;
-        border-top: 1px solid var(--border);
+        padding-top: 12px;
+        border-top: 1px dashed var(--border);
         margin-top: 4px;
-        justify-content: flex-start;
-        gap: 6px;
+        justify-content: flex-end;
+        /* Align buttons to right for better thumb access */
+        gap: 8px;
         flex-wrap: wrap;
     }
 
@@ -406,26 +435,22 @@
     }
 
     .action-btn-pro {
-        height: 36px;
-        width: 36px;
+        height: 38px;
+        width: 38px;
         border: 1px solid var(--border);
-        border-radius: 8px;
+        border-radius: 10px;
         background: var(--background);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     }
 
     .action-btn-pro i {
-        font-size: 14px;
+        font-size: 16px;
     }
 
     /* Status badges on mobile */
     .patients-table .status-badge {
-        font-size: 10px;
-        padding: 3px 8px;
-    }
-
-    .patients-table th,
-    .patients-table td {
-        padding: 3px 0;
+        font-size: 11px;
+        padding: 4px 10px;
     }
 }
 
@@ -540,4 +565,3 @@
         justify-content: center;
     }
 }
-

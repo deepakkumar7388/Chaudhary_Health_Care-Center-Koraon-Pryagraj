@@ -8,8 +8,8 @@ function renderAddPatient() {
         <div class="add-patient-container">
             <div class="module-header">
                 <h2 id="add-patient-title">Admit/Register New Patient</h2>
-                <button class="btn" onclick="showModule('patients')">
-                    <i class="bi bi-arrow-left"></i> Back
+                <button class="btn" onclick="goBack('patients')">
+                    <i class="bi bi-arrow-left"></i> <span>Back</span>
                 </button>
             </div>
             
@@ -23,7 +23,7 @@ function renderAddPatient() {
                             <i class="fas fa-bed" style="font-size:15px;"></i>
                             <span>IPD</span>
                         </label>
-                        <label id="type-btn-opd" onclick="selectPatientType('OPD')" style="flex:1; display:flex; align-items:center; justify-content:center; gap:7px; padding:10px 12px; border-radius:10px; cursor:pointer; border:2px solid #e2e8f0; background:#f8fafc; color:#475569; font-weight:600; font-size:13px; transition:all 0.2s; user-select:none;">
+                        <label id="type-btn-opd" onclick="selectPatientType('OPD')" style="flex:1; display:flex; align-items:center; justify-content:center; gap:7px; padding:10px 12px; border-radius:10px; cursor:pointer; border:2px solid var(--border); background:var(--background); color:var(--text-muted); font-weight:600; font-size:13px; transition:all 0.2s; user-select:none;">
                             <input type="radio" name="p-type" value="OPD" style="display:none;">
                             <i class="bi bi-person-check" style="font-size:15px;"></i>
                             <span>OPD</span>
@@ -217,7 +217,7 @@ window.selectPatientType = function(type) {
 
         // Buttons style
         if (opdBtn) { opdBtn.style.background='linear-gradient(135deg,#059669,#047857)'; opdBtn.style.color='#fff'; opdBtn.style.borderColor='#059669'; }
-        if (ipdBtn) { ipdBtn.style.background='#f8fafc'; ipdBtn.style.color='#475569'; ipdBtn.style.borderColor='#e2e8f0'; }
+        if (ipdBtn) { ipdBtn.style.background='var(--background)'; ipdBtn.style.color='var(--text-muted)'; ipdBtn.style.borderColor='var(--border)'; }
 
         // Show/hide sections
         if (opdForm) opdForm.style.display = 'block';
@@ -244,7 +244,7 @@ window.selectPatientType = function(type) {
 
         // Buttons style
         if (ipdBtn) { ipdBtn.style.background='var(--primary)'; ipdBtn.style.color='#fff'; ipdBtn.style.borderColor='var(--primary)'; }
-        if (opdBtn) { opdBtn.style.background='#f8fafc'; opdBtn.style.color='#475569'; opdBtn.style.borderColor='#e2e8f0'; }
+        if (opdBtn) { opdBtn.style.background='var(--background)'; opdBtn.style.color='var(--text-muted)'; opdBtn.style.borderColor='var(--border)'; }
 
         // Show/hide sections
         if (ipdForm) ipdForm.style.display = 'block';

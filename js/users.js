@@ -228,11 +228,11 @@ function displayUsers() {
                         </div>
                     </div>
                 </td>
-                <td><code style="background:#f1f5f9; padding:2px 6px; border-radius:4px;">${user.email || 'N/A'}</code></td>
+                <td><code style="background:var(--background); padding:2px 6px; border-radius:4px;">${user.email || 'N/A'}</code></td>
                 <td><span class="role-pill role-${user.role}">${user.role.toUpperCase()}</span></td>
                 <td><span class="status-badge status-${user.status}">${user.status.charAt(0).toUpperCase() + user.status.slice(1)}</span></td>
                 <td>
-                    ${user.role === 'admin'
+                    ${(user.role === 'admin' || user.role === 'developer')
                         ? `<span style="font-size:11px;color:#6b7280;font-style:italic;">Always On</span>`
                         : `<label class="billing-toggle" title="${user.billingAccess ? 'Revoke Billing Access' : 'Grant Billing Access'}">
                                <input type="checkbox" ${user.billingAccess ? 'checked' : ''}

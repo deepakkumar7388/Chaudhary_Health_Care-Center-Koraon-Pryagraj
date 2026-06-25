@@ -4,7 +4,7 @@ let allPatientsForRecord = []; // API-fetched cache
 
 // Role-based helper: only admin & doctor can see payment amounts
 function canViewPaymentsInRecord() {
-    return currentUser && (currentUser.role === 'admin' || currentUser.role === 'doctor');
+    return currentUser && (currentUser.role === 'admin' || currentUser.role === 'developer' || currentUser.role === 'doctor');
 }
 
 // ── Date / Time Formatting Helpers ──────────────────────────────────────
@@ -45,11 +45,11 @@ function renderPatientRecord() {
                 <p style="margin: 0; color: var(--text-muted); font-size: 12px; font-weight: 500;">Search and view patient medical history, admission vitals, medications, and final billing records</p>
             </div>
 
-            <div class="search-section no-print" style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px;">
+            <div class="search-section no-print" style="background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px;">
                 <h3 style="margin-top:0;"><i class="bi bi-search"></i> Select Patient for Case Record</h3>
                 <div style="position:relative; display:flex; gap:10px;">
-                    <input type="text" id="record-patient-search" class="search-input" placeholder="Search by ID or Name..." style="flex:1; padding:12px; border-radius:8px; border:2px solid #e2e8f0; font-size:15px;" oninput="filterRecordPatients(this.value)" onclick="filterRecordPatients(this.value)">
-                    <div id="record-search-results" class="autocomplete-dropdown" style="display:none; position:absolute; top:100%; left:0; right:0; z-index:1000; background:white; border:1px solid #ddd; border-radius:8px; box-shadow:0 10px 25px rgba(0,0,0,0.1); margin-top:5px; max-height:300px; overflow-y:auto;"></div>
+                    <input type="text" id="record-patient-search" class="search-input" placeholder="Search by ID or Name..." style="flex:1; padding:12px; border-radius:8px; border:2px solid var(--border); font-size:15px;" oninput="filterRecordPatients(this.value)" onclick="filterRecordPatients(this.value)">
+                    <div id="record-search-results" class="autocomplete-dropdown" style="display:none; position:absolute; top:100%; left:0; right:0; z-index:1000; background: var(--card-bg); border:1px solid #ddd; border-radius:8px; box-shadow:0 10px 25px rgba(0,0,0,0.1); margin-top:5px; max-height:300px; overflow-y:auto;"></div>
                 </div>
             </div>
 
@@ -196,12 +196,12 @@ function renderPatientRecord() {
                             <h4 style="color: #2b6cb0; margin-bottom: 8px; border-bottom: 2px solid #edf2f7; padding-bottom: 5px; font-weight: bold; font-size: 14px;"><i class="fa-solid fa-bed"></i> 1. Ward & Bed Stay Timeline</h4>
                             <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
                                 <thead>
-                                    <tr style="background: #f8fafc; border-bottom: 2px solid #cbd5e1; text-align: left;">
-                                        <th style="padding: 6px; border: 1px solid #cbd5e1;">Ward Type</th>
-                                        <th style="padding: 6px; border: 1px solid #cbd5e1;">Bed No.</th>
-                                        <th style="padding: 6px; border: 1px solid #cbd5e1;">From Date</th>
-                                        <th style="padding: 6px; border: 1px solid #cbd5e1;">To Date</th>
-                                        <th style="padding: 6px; border: 1px solid #cbd5e1; text-align: right;">Rate / Day</th>
+                                    <tr style="background: var(--background); border-bottom: 2px solid var(--border); text-align: left;">
+                                        <th style="padding: 6px; border: 1px solid var(--border);">Ward Type</th>
+                                        <th style="padding: 6px; border: 1px solid var(--border);">Bed No.</th>
+                                        <th style="padding: 6px; border: 1px solid var(--border);">From Date</th>
+                                        <th style="padding: 6px; border: 1px solid var(--border);">To Date</th>
+                                        <th style="padding: 6px; border: 1px solid var(--border); text-align: right;">Rate / Day</th>
                                     </tr>
                                 </thead>
                                 <tbody id="journey-bed-history">
@@ -215,12 +215,12 @@ function renderPatientRecord() {
                             <h4 style="color: #2b6cb0; margin-bottom: 8px; border-bottom: 2px solid #edf2f7; padding-bottom: 5px; font-weight: bold; font-size: 14px;"><i class="bi bi-hospital"></i> 2. Surgeries & Interventions</h4>
                             <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
                                 <thead>
-                                    <tr style="background: #f8fafc; border-bottom: 2px solid #cbd5e1; text-align: left;">
-                                        <th style="padding: 6px; border: 1px solid #cbd5e1;">Surgery/Procedure</th>
-                                        <th style="padding: 6px; border: 1px solid #cbd5e1;">Surgeon</th>
-                                        <th style="padding: 6px; border: 1px solid #cbd5e1;">Date</th>
-                                        <th style="padding: 6px; border: 1px solid #cbd5e1; text-align: right;">Charges</th>
-                                        <th style="padding: 6px; border: 1px solid #cbd5e1; text-align: center;">Guardian Proof</th>
+                                    <tr style="background: var(--background); border-bottom: 2px solid var(--border); text-align: left;">
+                                        <th style="padding: 6px; border: 1px solid var(--border);">Surgery/Procedure</th>
+                                        <th style="padding: 6px; border: 1px solid var(--border);">Surgeon</th>
+                                        <th style="padding: 6px; border: 1px solid var(--border);">Date</th>
+                                        <th style="padding: 6px; border: 1px solid var(--border); text-align: right;">Charges</th>
+                                        <th style="padding: 6px; border: 1px solid var(--border); text-align: center;">Guardian Proof</th>
                                     </tr>
                                 </thead>
                                 <tbody id="journey-surgery-history">
@@ -234,17 +234,17 @@ function renderPatientRecord() {
                             <h4 style="color: #2b6cb0; margin-bottom: 8px; border-bottom: 2px solid #edf2f7; padding-bottom: 5px; font-weight: bold; font-size: 14px;"><i class="bi bi-activity"></i> 3. Clinical Observation Chart (Vitals Log)</h4>
                             <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
                                 <thead>
-                                    <tr style="background: #f8fafc; border-bottom: 2px solid #cbd5e1; text-align: left;">
-                                        <th style="padding: 5px; border: 1px solid #cbd5e1;">Date & Time</th>
-                                        <th style="padding: 5px; border: 1px solid #cbd5e1;">Pulse</th>
-                                        <th style="padding: 5px; border: 1px solid #cbd5e1;">BP</th>
-                                        <th style="padding: 5px; border: 1px solid #cbd5e1;">Temp</th>
-                                        <th style="padding: 5px; border: 1px solid #cbd5e1;">SpO2</th>
-                                        <th style="padding: 5px; border: 1px solid #cbd5e1;">RBS</th>
-                                        <th style="padding: 5px; border: 1px solid #cbd5e1;">Urine (ml)</th>
-                                        <th style="padding: 5px; border: 1px solid #cbd5e1;">Drain (ml)</th>
-                                        <th style="padding: 5px; border: 1px solid #cbd5e1;">Pain Score</th>
-                                        <th style="padding: 5px; border: 1px solid #cbd5e1;">Observer</th>
+                                    <tr style="background: var(--background); border-bottom: 2px solid var(--border); text-align: left;">
+                                        <th style="padding: 5px; border: 1px solid var(--border);">Date & Time</th>
+                                        <th style="padding: 5px; border: 1px solid var(--border);">Pulse</th>
+                                        <th style="padding: 5px; border: 1px solid var(--border);">BP</th>
+                                        <th style="padding: 5px; border: 1px solid var(--border);">Temp</th>
+                                        <th style="padding: 5px; border: 1px solid var(--border);">SpO2</th>
+                                        <th style="padding: 5px; border: 1px solid var(--border);">RBS</th>
+                                        <th style="padding: 5px; border: 1px solid var(--border);">Urine (ml)</th>
+                                        <th style="padding: 5px; border: 1px solid var(--border);">Drain (ml)</th>
+                                        <th style="padding: 5px; border: 1px solid var(--border);">Pain Score</th>
+                                        <th style="padding: 5px; border: 1px solid var(--border);">Observer</th>
                                     </tr>
                                 </thead>
                                 <tbody id="journey-vitals-history">
@@ -258,12 +258,12 @@ function renderPatientRecord() {
                             <h4 style="color: #2b6cb0; margin-bottom: 8px; border-bottom: 2px solid #edf2f7; padding-bottom: 5px; font-weight: bold; font-size: 14px;"><i class="bi bi-capsule"></i> 4. Medication & Treatment Logs</h4>
                             <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
                                 <thead>
-                                    <tr style="background: #f8fafc; border-bottom: 2px solid #cbd5e1; text-align: left;">
-                                        <th style="padding: 5px; border: 1px solid #cbd5e1;">Prescribed</th>
-                                        <th style="padding: 5px; border: 1px solid #cbd5e1;">Medicine Name</th>
-                                        <th style="padding: 5px; border: 1px solid #cbd5e1;">Type & Dose</th>
-                                        <th style="padding: 5px; border: 1px solid #cbd5e1;">Status</th>
-                                        <th style="padding: 5px; border: 1px solid #cbd5e1;">Administered Details</th>
+                                    <tr style="background: var(--background); border-bottom: 2px solid var(--border); text-align: left;">
+                                        <th style="padding: 5px; border: 1px solid var(--border);">Prescribed</th>
+                                        <th style="padding: 5px; border: 1px solid var(--border);">Medicine Name</th>
+                                        <th style="padding: 5px; border: 1px solid var(--border);">Type & Dose</th>
+                                        <th style="padding: 5px; border: 1px solid var(--border);">Status</th>
+                                        <th style="padding: 5px; border: 1px solid var(--border);">Administered Details</th>
                                     </tr>
                                 </thead>
                                 <tbody id="journey-meds-history">
@@ -279,7 +279,7 @@ function renderPatientRecord() {
                                 <div style="flex: 1.2;">
                                     <table style="width: 100%; border-collapse: collapse; font-size:11px;">
                                         <thead>
-                                            <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; text-align: left;">
+                                            <tr style="background: var(--background); border-bottom: 1px solid var(--border); text-align: left;">
                                                 <th style="padding: 5px;">Payment Date</th>
                                                 <th style="padding: 5px;">Mode</th>
                                                 <th style="padding: 5px; text-align: right;">Amount Paid</th>
@@ -290,7 +290,7 @@ function renderPatientRecord() {
                                         </tbody>
                                     </table>
                                 </div>
-                                <div style="flex: 0.8; background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px; border-radius: 8px;">
+                                <div style="flex: 0.8; background: var(--background); border: 1px solid var(--border); padding: 10px; border-radius: 8px;">
                                     <table style="width: 100%; line-height: 1.6;">
                                         <tr>
                                             <td><strong>Total Bill:</strong></td>
@@ -300,7 +300,7 @@ function renderPatientRecord() {
                                             <td><strong>Discount:</strong></td>
                                             <td style="text-align: right; color: #ef4444;" id="j-discount">₹0</td>
                                         </tr>
-                                        <tr style="border-top: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1; font-weight: bold;">
+                                        <tr style="border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); font-weight: bold;">
                                             <td><strong>Net Payable:</strong></td>
                                             <td style="text-align: right;" id="j-net-payable">₹0</td>
                                         </tr>
@@ -308,7 +308,7 @@ function renderPatientRecord() {
                                             <td><strong>Total Paid:</strong></td>
                                             <td style="text-align: right;" id="j-total-paid">₹0</td>
                                         </tr>
-                                        <tr style="border-top: 2px double #cbd5e1; font-weight: 900; color: #ef4444; font-size: 13px;">
+                                        <tr style="border-top: 2px double var(--border); font-weight: 900; color: #ef4444; font-size: 13px;">
                                             <td><strong>Balance Due:</strong></td>
                                             <td style="text-align: right;" id="j-balance-due">₹0</td>
                                         </tr>
@@ -327,7 +327,7 @@ function renderPatientRecord() {
                 margin: 0 auto;
             }
             .a4-container {
-                background: white;
+                background: var(--card-bg);
                 box-shadow: 0 10px 30px rgba(0,0,0,0.1);
                 border-radius: 8px;
                 padding: 10px;
@@ -338,7 +338,7 @@ function renderPatientRecord() {
                 min-height: 1123px; /* A4 height */
                 margin: 0 auto;
                 padding: 40px;
-                background: white;
+                background: var(--card-bg);
                 color: #000;
                 font-family: serif;
             }
@@ -347,7 +347,7 @@ function renderPatientRecord() {
                 .main-content { margin: 0 !important; padding: 0 !important; width: 100% !important; box-shadow: none !important; }
                 .a4-container { box-shadow: none; padding: 0; width: 100% !important; max-width: 100% !important; }
                 .record-paper { width: 100%; padding: 0; margin: 0; box-shadow: none; border: none; }
-                body { background: white !important; color: black !important; }
+                body { background: var(--card-bg) !important; color: black !important; }
                 input[type="date"]::-webkit-inner-spin-button,
                 input[type="date"]::-webkit-calendar-picker-indicator {
                     display: none;
@@ -718,11 +718,11 @@ async function populatePatientJourney(patientId, p) {
                 const end = b.end_date ? fmtDate(b.end_date) : 'Present';
                 return `
                     <tr>
-                        <td style="padding:6px; border:1px solid #cbd5e1;">${b.ward_type}</td>
-                        <td style="padding:6px; border:1px solid #cbd5e1;">${b.bed_no}</td>
-                        <td style="padding:6px; border:1px solid #cbd5e1;">${start}</td>
-                        <td style="padding:6px; border:1px solid #cbd5e1;">${end}</td>
-                        <td style="padding:6px; border:1px solid #cbd5e1; text-align:right;">₹${b.daily_charge || 0}</td>
+                        <td style="padding:6px; border:1px solid var(--border);">${b.ward_type}</td>
+                        <td style="padding:6px; border:1px solid var(--border);">${b.bed_no}</td>
+                        <td style="padding:6px; border:1px solid var(--border);">${start}</td>
+                        <td style="padding:6px; border:1px solid var(--border);">${end}</td>
+                        <td style="padding:6px; border:1px solid var(--border); text-align:right;">₹${b.daily_charge || 0}</td>
                     </tr>
                 `;
             }).join('');
@@ -732,15 +732,15 @@ async function populatePatientJourney(patientId, p) {
             const start = fmtDate(p.admission_date);
             bedHistoryTbody.innerHTML = `
                 <tr>
-                    <td style="padding:6px; border:1px solid #cbd5e1;">${p.ward_type || 'General Ward'}</td>
-                    <td style="padding:6px; border:1px solid #cbd5e1;">${p.bed_no || '-'}</td>
-                    <td style="padding:6px; border:1px solid #cbd5e1;">${start}</td>
-                    <td style="padding:6px; border:1px solid #cbd5e1;">Present</td>
-                    <td style="padding:6px; border:1px solid #cbd5e1; text-align:right;">₹${currentCharge}</td>
+                    <td style="padding:6px; border:1px solid var(--border);">${p.ward_type || 'General Ward'}</td>
+                    <td style="padding:6px; border:1px solid var(--border);">${p.bed_no || '-'}</td>
+                    <td style="padding:6px; border:1px solid var(--border);">${start}</td>
+                    <td style="padding:6px; border:1px solid var(--border);">Present</td>
+                    <td style="padding:6px; border:1px solid var(--border); text-align:right;">₹${currentCharge}</td>
                 </tr>
             `;
         } else {
-            bedHistoryTbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:10px; color:#cbd5e1;">No Bed Stay History found.</td></tr>`;
+            bedHistoryTbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:10px; color:var(--border);">No Bed Stay History found.</td></tr>`;
         }
     }
 
@@ -751,20 +751,20 @@ async function populatePatientJourney(patientId, p) {
             surgeryHistoryTbody.innerHTML = p.surgeries.map(s => {
                 const date = fmtDate(s.surgeryDate);
                 const imgProof = s.guardianSignature 
-                    ? `<img src="${s.guardianSignature}" style="max-height: 35px; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px; background: #fff;" alt="Sign Proof">`
-                    : '<span style="color:#cbd5e1; font-style:italic;">No Proof</span>';
+                    ? `<img src="${s.guardianSignature}" style="max-height: 35px; border: 1px solid var(--border); border-radius: 4px; padding: 2px; background: var(--card-bg);" alt="Sign Proof">`
+                    : '<span style="color:var(--border); font-style:italic;">No Proof</span>';
                 return `
                     <tr>
-                        <td style="padding:6px; border:1px solid #cbd5e1; font-weight:bold;">${s.surgeryName}</td>
-                        <td style="padding:6px; border:1px solid #cbd5e1;">${s.surgeonName}</td>
-                        <td style="padding:6px; border:1px solid #cbd5e1;">${date}</td>
-                        <td style="padding:6px; border:1px solid #cbd5e1; text-align:right;">₹${s.cost || 0}</td>
-                        <td style="padding:6px; border:1px solid #cbd5e1; text-align:center;">${imgProof}</td>
+                        <td style="padding:6px; border:1px solid var(--border); font-weight:bold;">${s.surgeryName}</td>
+                        <td style="padding:6px; border:1px solid var(--border);">${s.surgeonName}</td>
+                        <td style="padding:6px; border:1px solid var(--border);">${date}</td>
+                        <td style="padding:6px; border:1px solid var(--border); text-align:right;">₹${s.cost || 0}</td>
+                        <td style="padding:6px; border:1px solid var(--border); text-align:center;">${imgProof}</td>
                     </tr>
                 `;
             }).join('');
         } else {
-            surgeryHistoryTbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:10px; color:#cbd5e1;">No surgical procedures recorded.</td></tr>`;
+            surgeryHistoryTbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:10px; color:var(--border);">No surgical procedures recorded.</td></tr>`;
         }
     }
 
@@ -785,20 +785,20 @@ async function populatePatientJourney(patientId, p) {
                     vitals.sort((a, b) => new Date(a.date + ' ' + a.time) - new Date(b.date + ' ' + b.time));
                     vitalsTbody.innerHTML = vitals.map(v => `
                         <tr>
-                            <td style="padding:5px; border:1px solid #cbd5e1;">${v.date} ${v.time}</td>
-                            <td style="padding:5px; border:1px solid #cbd5e1; font-weight:bold;">${v.pulse || '-'}</td>
-                            <td style="padding:5px; border:1px solid #cbd5e1;">${v.bp || '-'}</td>
-                            <td style="padding:5px; border:1px solid #cbd5e1;">${v.temp || '-'}</td>
-                            <td style="padding:5px; border:1px solid #cbd5e1;">${v.spo2 || '-'}</td>
-                            <td style="padding:5px; border:1px solid #cbd5e1;">${v.rbs || '-'}</td>
-                            <td style="padding:5px; border:1px solid #cbd5e1;">${v.urineOutput || '-'}</td>
-                            <td style="padding:5px; border:1px solid #cbd5e1;">${v.drainOutput || '-'}</td>
-                            <td style="padding:5px; border:1px solid #cbd5e1;">${v.painScore || '-'}</td>
-                            <td style="padding:5px; border:1px solid #cbd5e1; color:#4a5568;">${v.addedBy}</td>
+                            <td style="padding:5px; border:1px solid var(--border);">${v.date} ${v.time}</td>
+                            <td style="padding:5px; border:1px solid var(--border); font-weight:bold;">${v.pulse || '-'}</td>
+                            <td style="padding:5px; border:1px solid var(--border);">${v.bp || '-'}</td>
+                            <td style="padding:5px; border:1px solid var(--border);">${v.temp || '-'}</td>
+                            <td style="padding:5px; border:1px solid var(--border);">${v.spo2 || '-'}</td>
+                            <td style="padding:5px; border:1px solid var(--border);">${v.rbs || '-'}</td>
+                            <td style="padding:5px; border:1px solid var(--border);">${v.urineOutput || '-'}</td>
+                            <td style="padding:5px; border:1px solid var(--border);">${v.drainOutput || '-'}</td>
+                            <td style="padding:5px; border:1px solid var(--border);">${v.painScore || '-'}</td>
+                            <td style="padding:5px; border:1px solid var(--border); color:#4a5568;">${v.addedBy}</td>
                         </tr>
                     `).join('');
                 } else {
-                    vitalsTbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:10px; color:#cbd5e1;">No clinical observations charted.</td></tr>`;
+                    vitalsTbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:10px; color:var(--border);">No clinical observations charted.</td></tr>`;
                 }
             }
 
@@ -817,16 +817,16 @@ async function populatePatientJourney(patientId, p) {
                             : '-';
                         return `
                             <tr>
-                                <td style="padding:5px; border:1px solid #cbd5e1;">${m.date} ${m.time}</td>
-                                <td style="padding:5px; border:1px solid #cbd5e1; font-weight:bold;">${m.drugName}</td>
-                                <td style="padding:5px; border:1px solid #cbd5e1;">${m.medType || 'Medicine'} (${m.dose})</td>
-                                <td style="padding:5px; border:1px solid #cbd5e1;">${statusText}</td>
-                                <td style="padding:5px; border:1px solid #cbd5e1; font-size:10px; color:#4a5568;">${doneDetails}</td>
+                                <td style="padding:5px; border:1px solid var(--border);">${m.date} ${m.time}</td>
+                                <td style="padding:5px; border:1px solid var(--border); font-weight:bold;">${m.drugName}</td>
+                                <td style="padding:5px; border:1px solid var(--border);">${m.medType || 'Medicine'} (${m.dose})</td>
+                                <td style="padding:5px; border:1px solid var(--border);">${statusText}</td>
+                                <td style="padding:5px; border:1px solid var(--border); font-size:10px; color:#4a5568;">${doneDetails}</td>
                             </tr>
                         `;
                     }).join('');
                 } else {
-                    medsTbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:10px; color:#cbd5e1;">No medications prescribed.</td></tr>`;
+                    medsTbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:10px; color:var(--border);">No medications prescribed.</td></tr>`;
                 }
             }
         }
@@ -849,13 +849,13 @@ async function populatePatientJourney(patientId, p) {
                     if (patientBill.payments && patientBill.payments.length > 0) {
                         ledgerTbody.innerHTML = patientBill.payments.map(pay => `
                             <tr>
-                                <td style="padding:5px; border-bottom: 1px solid #e2e8f0;">${fmtDate(pay.date)}</td>
-                                <td style="padding:5px; border-bottom: 1px solid #e2e8f0; font-weight:bold;">${pay.mode}</td>
-                                <td style="padding:5px; border-bottom: 1px solid #e2e8f0; text-align:right; font-weight:bold; color:#10b981;">₹${pay.amount}</td>
+                                <td style="padding:5px; border-bottom: 1px solid var(--border);">${fmtDate(pay.date)}</td>
+                                <td style="padding:5px; border-bottom: 1px solid var(--border); font-weight:bold;">${pay.mode}</td>
+                                <td style="padding:5px; border-bottom: 1px solid var(--border); text-align:right; font-weight:bold; color:#10b981;">₹${pay.amount}</td>
                             </tr>
                         `).join('');
                     } else {
-                        ledgerTbody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding:10px; color:#cbd5e1;">No payments received yet.</td></tr>`;
+                        ledgerTbody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding:10px; color:var(--border);">No payments received yet.</td></tr>`;
                     }
                 }
 
@@ -965,7 +965,7 @@ async function populatePatientJourney(patientId, p) {
                 
                 const ledgerTbody = document.getElementById('journey-financial-history');
                 if (ledgerTbody) {
-                    ledgerTbody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding:10px; color:#cbd5e1;">No financial ledger recorded in Billing.</td></tr>`;
+                    ledgerTbody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding:10px; color:var(--border);">No financial ledger recorded in Billing.</td></tr>`;
                 }
             }
         }

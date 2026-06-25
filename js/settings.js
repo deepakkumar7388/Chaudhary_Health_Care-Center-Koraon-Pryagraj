@@ -48,9 +48,9 @@ async function renderSettings() {
                     display: flex;
                     gap: 0;
                     margin-top: 20px;
-                    background: #ffffff;
+                    background: var(--card-bg);
                     border-radius: 16px;
-                    border: 1px solid #e2e8f0;
+                    border: 1px solid var(--border);
                     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
                     overflow: hidden;
                 }
@@ -58,13 +58,38 @@ async function renderSettings() {
                 /* Sidebar Navigation */
                 .settings-sidebar {
                     width: 250px;
-                    background: #f8fafc;
-                    border-right: 1px solid #e2e8f0;
+                    background: var(--background);
+                    border-right: 1px solid var(--border);
                     padding: 24px 16px;
                     display: flex;
                     flex-direction: column;
                     gap: 6px;
                     flex-shrink: 0;
+                }
+
+                @media (max-width: 768px) {
+                    .settings-layout {
+                        flex-direction: column;
+                    }
+                    .settings-sidebar {
+                        width: 100%;
+                        border-right: none;
+                        border-bottom: 1px solid var(--border);
+                        padding: 16px;
+                        flex-direction: row;
+                        overflow-x: auto;
+                        white-space: nowrap;
+                    }
+                    .settings-nav-btn {
+                        padding: 8px 12px;
+                        font-size: 13px;
+                    }
+                    .settings-nav-btn span {
+                        display: none;
+                    }
+                    .settings-nav-btn.active span {
+                        display: inline;
+                    }
                 }
                 .settings-nav-btn {
                     display: flex;
@@ -102,7 +127,7 @@ async function renderSettings() {
                     flex-grow: 1;
                     padding: 32px;
                     min-width: 0;
-                    background: #ffffff;
+                    background: var(--card-bg);
                 }
                 
                 /* Form Styling */
@@ -118,7 +143,7 @@ async function renderSettings() {
                     display: flex;
                     align-items: center;
                     gap: 8px;
-                    border-bottom: 1px solid #f1f5f9;
+                    border-bottom: 1px solid var(--background);
                     padding-bottom: 12px;
                     margin-top: 0;
                 }
@@ -131,6 +156,7 @@ async function renderSettings() {
                     display: flex;
                     flex-direction: column;
                     gap: 8px;
+                    min-width: 0;
                 }
                 .form-group label {
                     font-size: 13px;
@@ -144,7 +170,7 @@ async function renderSettings() {
                     font-size: 14px;
                     font-weight: 500;
                     color: #334155;
-                    background: #ffffff;
+                    background: var(--card-bg);
                     outline: none;
                     transition: all 0.2s;
                 }
@@ -159,15 +185,15 @@ async function renderSettings() {
                     align-items: center;
                     gap: 12px;
                     padding: 12px 16px;
-                    border: 1px solid #e2e8f0;
+                    border: 1px solid var(--border);
                     border-radius: 8px;
-                    background: #f8fafc;
+                    background: var(--background);
                     cursor: pointer;
                     transition: all 0.2s;
                 }
                 .form-group-checkbox:hover {
                     border-color: var(--primary, #4f46e5);
-                    background: #ffffff;
+                    background: var(--card-bg);
                 }
                 .form-group-checkbox input[type="checkbox"] {
                     width: 18px;
@@ -201,13 +227,13 @@ async function renderSettings() {
                     background: var(--card-bg, #111827) !important;
                 }
                 body.dark-theme .form-group-checkbox label {
-                    color: var(--text-main, #f1f5f9) !important;
+                    color: var(--text-main, var(--background)) !important;
                 }
 
                 /* Backup module layout & styles */
                 .backup-status-card {
-                    background: #f8fafc;
-                    border: 1px solid #e2e8f0;
+                    background: var(--background);
+                    border: 1px solid var(--border);
                     border-radius: 12px;
                     padding: 20px;
                     margin-bottom: 24px;
@@ -232,7 +258,7 @@ async function renderSettings() {
                     color: #0f172a;
                 }
                 body.dark-theme .backup-status-title {
-                    color: #f1f5f9;
+                    color: var(--background);
                 }
                 .backup-status-desc {
                     font-size: 13px;
@@ -246,7 +272,7 @@ async function renderSettings() {
                     border-radius: 12px;
                     padding: 30px;
                     text-align: center;
-                    background: #ffffff;
+                    background: var(--card-bg);
                     cursor: pointer;
                     transition: all 0.2s;
                     margin-bottom: 24px;
@@ -257,7 +283,7 @@ async function renderSettings() {
                 }
                 .backup-upload-zone:hover {
                     border-color: var(--primary, #4f46e5);
-                    background: #f8fafc;
+                    background: var(--background);
                 }
                 body.dark-theme .backup-upload-zone:hover {
                     background: #111827;
@@ -269,12 +295,12 @@ async function renderSettings() {
                 }
                 .backup-table th {
                     text-align: left;
-                    background: #f1f5f9;
+                    background: var(--background);
                     padding: 12px 16px;
                     font-size: 13px;
                     font-weight: 700;
                     color: #475569;
-                    border-bottom: 2px solid #e2e8f0;
+                    border-bottom: 2px solid var(--border);
                 }
                 body.dark-theme .backup-table th {
                     background: #1f2937;
@@ -285,14 +311,14 @@ async function renderSettings() {
                     padding: 12px 16px;
                     font-size: 13px;
                     color: #334155;
-                    border-bottom: 1px solid #e2e8f0;
+                    border-bottom: 1px solid var(--border);
                 }
                 body.dark-theme .backup-table td {
                     color: #cbd5e1;
                     border-bottom-color: #1f2937;
                 }
                 .backup-table tr:hover {
-                    background: #f8fafc;
+                    background: var(--background);
                 }
                 body.dark-theme .backup-table tr:hover {
                     background: #111827;
@@ -389,20 +415,20 @@ async function renderSettings() {
                                         <i class="bi bi-people-fill" style="color:var(--primary);"></i> Doctor Management
                                     </h4>
                                     <!-- Form to add new doctor -->
-                                    <div style="display: grid; grid-template-columns: 2fr 2fr 1fr auto; gap: 10px; align-items: flex-end; margin-bottom: 20px;">
-                                        <div class="form-group" style="margin:0;">
+                                    <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-bottom: 20px;">
+                                        <div class="form-group" style="margin:0; flex: 2 1 180px;">
                                             <label style="font-size:11px; margin-bottom:4px;">Doctor Name</label>
-                                            <input type="text" id="doc-add-name" placeholder="Dr. John Doe" style="padding: 8px 12px; font-size:13px;">
+                                            <input type="text" id="doc-add-name" placeholder="Dr. John Doe" style="padding: 8px 12px; font-size:13px; width: 100%;">
                                         </div>
-                                        <div class="form-group" style="margin:0;">
+                                        <div class="form-group" style="margin:0; flex: 2 1 150px;">
                                             <label style="font-size:11px; margin-bottom:4px;">Department</label>
-                                            <input type="text" id="doc-add-dept" placeholder="Cardiology, Medicine..." style="padding: 8px 12px; font-size:13px;">
+                                            <input type="text" id="doc-add-dept" placeholder="Cardiology, Medicine..." style="padding: 8px 12px; font-size:13px; width: 100%;">
                                         </div>
-                                        <div class="form-group" style="margin:0;">
+                                        <div class="form-group" style="margin:0; flex: 1 1 100px;">
                                             <label style="font-size:11px; margin-bottom:4px;">Consultation Fee (₹)</label>
-                                            <input type="number" id="doc-add-fee" placeholder="500" min="0" style="padding: 8px 12px; font-size:13px;">
+                                            <input type="number" id="doc-add-fee" placeholder="500" min="0" style="padding: 8px 12px; font-size:13px; width: 100%;">
                                         </div>
-                                        <button type="button" class="btn btn-primary" onclick="addDoctorToSettingsList()" style="padding: 9px 16px; font-size:13px; font-weight:700; background:var(--primary); color:#fff; border:none; border-radius:8px; cursor:pointer;">
+                                        <button type="button" class="btn btn-primary" onclick="addDoctorToSettingsList()" style="flex: 1 0 auto; padding: 9px 16px; font-size:13px; font-weight:700; background:var(--primary); color:#fff; border:none; border-radius:8px; cursor:pointer; height: 37px; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">
                                             <i class="bi bi-plus-lg"></i> Add
                                         </button>
                                     </div>
@@ -492,7 +518,7 @@ async function renderSettings() {
                             .bed-mgmt-header h3 { margin:0; font-size:18px; font-weight:800; color:#0f172a; }
                             .bed-mgmt-header p { margin:4px 0 0; font-size:12px; color:#64748b; }
                             .ward-cards-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:24px; }
-                            .ward-card { background:#fff; border:1px solid #e2e8f0; border-radius:14px; padding:20px; transition:all 0.3s cubic-bezier(0.4,0,0.2,1); position:relative; overflow:hidden; }
+                            .ward-card { background: var(--card-bg); border:1px solid var(--border); border-radius:14px; padding:20px; transition:all 0.3s cubic-bezier(0.4,0,0.2,1); position:relative; overflow:hidden; }
                             .ward-card:hover { transform:translateY(-2px); box-shadow:0 8px 25px rgba(0,0,0,0.08); }
                             .ward-card::before { content:''; position:absolute; top:0; left:0; right:0; height:4px; }
                             .ward-card.male-ward::before { background:linear-gradient(90deg, #3b82f6, #60a5fa); }
@@ -504,27 +530,27 @@ async function renderSettings() {
                             .male-ward .ward-card-icon { background:#eff6ff; color:#3b82f6; }
                             .female-ward .ward-card-icon { background:#fdf2f8; color:#ec4899; }
                             .icu-ward .ward-card-icon { background:#fef2f2; color:#ef4444; }
-                            .private-ward .ward-card-icon { background:#fffbeb; color:#f59e0b; }
+                            .private-ward .ward-card-icon { background: var(--card-bg); color:#f59e0b; }
                             .ward-card-title { font-size:14px; font-weight:700; color:#1e293b; }
                             .ward-card-subtitle { font-size:11px; color:#94a3b8; font-weight:500; }
                             .ward-counter { display:flex; align-items:center; gap:12px; justify-content:center; margin:8px 0; }
-                            .ward-counter-btn { width:36px; height:36px; border-radius:10px; border:1px solid #e2e8f0; background:#f8fafc; color:#475569; font-size:18px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+                            .ward-counter-btn { width:36px; height:36px; border-radius:10px; border:1px solid var(--border); background:var(--background); color:#475569; font-size:18px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
                             .ward-counter-btn:hover { background:#6366f1; color:#fff; border-color:#6366f1; transform:scale(1.08); }
                             .ward-counter-btn:active { transform:scale(0.95); }
-                            .ward-counter-input { width:64px; height:40px; text-align:center; font-size:20px; font-weight:800; color:#1e293b; border:2px solid #e2e8f0; border-radius:10px; background:#fff; outline:none; transition:border-color 0.2s; }
+                            .ward-counter-input { width:64px; height:40px; text-align:center; font-size:20px; font-weight:800; color:#1e293b; border:2px solid var(--border); border-radius:10px; background: var(--card-bg); outline:none; transition:border-color 0.2s; }
                             .ward-counter-input:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,0.15); }
                             .ward-card-label { text-align:center; font-size:11px; color:#94a3b8; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; }
-                            .bed-prefix-tag { display:inline-block; padding:3px 10px; background:#f1f5f9; border-radius:6px; font-size:11px; font-weight:600; color:#475569; margin-top:8px; }
-                            .bed-preview-section { background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; padding:20px; }
+                            .bed-prefix-tag { display:inline-block; padding:3px 10px; background:var(--background); border-radius:6px; font-size:11px; font-weight:600; color:#475569; margin-top:8px; }
+                            .bed-preview-section { background:var(--background); border:1px solid var(--border); border-radius:14px; padding:20px; }
                             .bed-preview-title { font-size:14px; font-weight:700; color:#1e293b; margin-bottom:12px; display:flex; align-items:center; gap:8px; }
                             .bed-preview-ward { margin-bottom:12px; }
                             .bed-preview-ward-title { font-size:12px; font-weight:700; color:#475569; margin-bottom:6px; display:flex; align-items:center; gap:6px; }
                             .bed-preview-grid { display:flex; flex-wrap:wrap; gap:6px; }
-                            .bed-chip { padding:4px 10px; border-radius:6px; font-size:11px; font-weight:600; background:#fff; border:1px solid #e2e8f0; color:#475569; transition:all 0.2s; }
+                            .bed-chip { padding:4px 10px; border-radius:6px; font-size:11px; font-weight:600; background: var(--card-bg); border:1px solid var(--border); color:#475569; transition:all 0.2s; }
                             .bed-chip.male { border-color:#bfdbfe; color:#2563eb; background:#eff6ff; }
                             .bed-chip.female { border-color:#fbcfe8; color:#db2777; background:#fdf2f8; }
                             .bed-chip.icu { border-color:#fecaca; color:#dc2626; background:#fef2f2; }
-                            .bed-chip.private { border-color:#fde68a; color:#d97706; background:#fffbeb; }
+                            .bed-chip.private { border-color:#fde68a; color:#d97706; background: var(--card-bg); }
                             .bed-total-badge { display:inline-flex; align-items:center; gap:6px; padding:8px 16px; background:linear-gradient(135deg, #6366f1, #8b5cf6); color:#fff; border-radius:10px; font-size:13px; font-weight:700; margin-top:16px; }
                             .bed-gender-note { display:flex; align-items:flex-start; gap:10px; padding:14px 16px; background:linear-gradient(135deg, #fef3c7, #fef9c3); border:1px solid #fde68a; border-radius:10px; margin-bottom:20px; }
                             .bed-gender-note i { color:#f59e0b; font-size:16px; margin-top:1px; }
@@ -534,7 +560,7 @@ async function renderSettings() {
 
                             /* Dark theme overrides for bed management */
                             body.dark-theme .bed-mgmt-header h3 {
-                                color: var(--text-main, #f1f5f9) !important;
+                                color: var(--text-main, var(--background)) !important;
                             }
                             body.dark-theme .bed-mgmt-header p {
                                 color: var(--text-muted, #94a3b8) !important;
@@ -544,12 +570,12 @@ async function renderSettings() {
                                 border-color: var(--border, #1f2937) !important;
                             }
                             body.dark-theme .ward-card-title {
-                                color: var(--text-main, #f1f5f9) !important;
+                                color: var(--text-main, var(--background)) !important;
                             }
                             body.dark-theme .ward-counter-btn {
                                 border-color: var(--border, #1f2937) !important;
                                 background: var(--background, #090d16) !important;
-                                color: var(--text-main, #f1f5f9) !important;
+                                color: var(--text-main, var(--background)) !important;
                             }
                             body.dark-theme .ward-counter-btn:hover {
                                 background: var(--primary, #4f46e5) !important;
@@ -557,7 +583,7 @@ async function renderSettings() {
                                 border-color: var(--primary, #4f46e5) !important;
                             }
                             body.dark-theme .ward-counter-input {
-                                color: var(--text-main, #f1f5f9) !important;
+                                color: var(--text-main, var(--background)) !important;
                                 border-color: var(--border, #1f2937) !important;
                                 background: var(--background, #090d16) !important;
                             }
@@ -570,7 +596,7 @@ async function renderSettings() {
                                 border-color: var(--border, #1f2937) !important;
                             }
                             body.dark-theme .bed-preview-title {
-                                color: var(--text-main, #f1f5f9) !important;
+                                color: var(--text-main, var(--background)) !important;
                             }
                             body.dark-theme .bed-preview-ward-title {
                                 color: var(--text-muted, #94a3b8) !important;
@@ -1016,20 +1042,20 @@ function showSettingsTab(tabName) {
 
     // Update active state in sidebar buttons
     document.querySelectorAll('.settings-sidebar .settings-nav-btn').forEach(btn => btn.classList.remove('active'));
-    
+
     const targetBtn = document.getElementById(`btn-tab-${tabName}`);
     if (targetBtn) targetBtn.classList.add('active');
 
     // Update active settings content view
     document.querySelectorAll('.settings-tab-content').forEach(content => content.style.display = 'none');
-    
+
     const targetContent = document.getElementById(`settings-${tabName}`);
     if (targetContent) targetContent.style.display = 'block';
 
     if (tabName === 'integrations') {
         if (typeof checkIntegrationStatus === 'function') checkIntegrationStatus();
     }
-    
+
     if (tabName === 'backup') {
         if (typeof loadBackupList === 'function') loadBackupList();
     }
@@ -1064,7 +1090,7 @@ async function saveSettings() {
 
     // Sync bed list from ward counter inputs before collecting
     if (typeof updateBedPreview === 'function') updateBedPreview();
-    
+
     const settings = {};
     document.querySelectorAll('#settings-content input, #settings-content select, #settings-content textarea').forEach(element => {
         if (!element.id) return;
@@ -1078,7 +1104,7 @@ async function saveSettings() {
     // IMPORTANT: If admin is saving, merge with existing settings so developer-only
     // fields (SMTP, SMS API, etc.) are preserved even though they are not rendered in DOM
     let finalSettings = settings;
-    if (role === 'admin') {
+    if (role === 'admin' || role === 'developer') {
         const existingSettings = window.hospitalSettings || {};
         finalSettings = { ...existingSettings, ...settings };
     }
@@ -1156,7 +1182,7 @@ function generateBedListFromCounts() {
     const femaleCount = parseInt(document.getElementById('ward-female-count')?.value) || 0;
     const icuCount = parseInt(document.getElementById('ward-icu-count')?.value) || 0;
     const privateCount = parseInt(document.getElementById('ward-private-count')?.value) || 0;
-    
+
     const beds = [];
     for (let i = 1; i <= maleCount; i++) beds.push(`Male-G${i}`);
     for (let i = 1; i <= femaleCount; i++) beds.push(`Female-G${i}`);
@@ -1171,21 +1197,21 @@ function updateBedPreview() {
     const icuCount = parseInt(document.getElementById('ward-icu-count')?.value) || 0;
     const privateCount = parseInt(document.getElementById('ward-private-count')?.value) || 0;
     const total = maleCount + femaleCount + icuCount + privateCount;
-    
+
     // Update hidden input
     const beds = generateBedListFromCounts();
     const hiddenInput = document.getElementById('hospital-beds');
     if (hiddenInput) hiddenInput.value = beds.join(', ');
-    
+
     // Update ward count settings
     const wcs = document.getElementById('ward-male-count-setting');
     // Store ward counts in hidden inputs for saving
-    
+
     const previewEl = document.getElementById('bed-preview-content');
     if (!previewEl) return;
-    
+
     let html = '';
-    
+
     // Male Ward
     if (maleCount > 0) {
         html += `<div class="bed-preview-ward">
@@ -1194,7 +1220,7 @@ function updateBedPreview() {
         for (let i = 1; i <= maleCount; i++) html += `<span class="bed-chip male">Male-G${i}</span>`;
         html += `</div></div>`;
     }
-    
+
     // Female Ward
     if (femaleCount > 0) {
         html += `<div class="bed-preview-ward">
@@ -1203,7 +1229,7 @@ function updateBedPreview() {
         for (let i = 1; i <= femaleCount; i++) html += `<span class="bed-chip female">Female-G${i}</span>`;
         html += `</div></div>`;
     }
-    
+
     // ICU
     if (icuCount > 0) {
         html += `<div class="bed-preview-ward">
@@ -1212,7 +1238,7 @@ function updateBedPreview() {
         for (let i = 1; i <= icuCount; i++) html += `<span class="bed-chip icu">ICU-${i}</span>`;
         html += `</div></div>`;
     }
-    
+
     // Private
     if (privateCount > 0) {
         html += `<div class="bed-preview-ward">
@@ -1221,7 +1247,7 @@ function updateBedPreview() {
         for (let i = 1; i <= privateCount; i++) html += `<span class="bed-chip private">Private-${i}</span>`;
         html += `</div></div>`;
     }
-    
+
     html += `<div class="bed-total-badge"><i class="bi bi-hospital"></i> Total: ${total} Beds</div>`;
     previewEl.innerHTML = html;
 }
@@ -1229,23 +1255,23 @@ function updateBedPreview() {
 function loadBedCountsFromSettings() {
     const savedBeds = (window.hospitalSettings || {})['hospital-beds'] || '';
     if (!savedBeds) return;
-    
+
     const bedList = savedBeds.split(',').map(b => b.trim()).filter(b => b);
     const maleCount = bedList.filter(b => b.startsWith('Male-G')).length;
     const femaleCount = bedList.filter(b => b.startsWith('Female-G')).length;
     const icuCount = bedList.filter(b => b.startsWith('ICU-')).length;
     const privateCount = bedList.filter(b => b.startsWith('Private-')).length;
-    
+
     const maleInput = document.getElementById('ward-male-count');
     const femaleInput = document.getElementById('ward-female-count');
     const icuInput = document.getElementById('ward-icu-count');
     const privateInput = document.getElementById('ward-private-count');
-    
+
     if (maleInput) maleInput.value = maleCount || 20;
     if (femaleInput) femaleInput.value = femaleCount || 20;
     if (icuInput) icuInput.value = icuCount || 7;
     if (privateInput) privateInput.value = privateCount || 5;
-    
+
     updateBedPreview();
 }
 
@@ -1273,17 +1299,17 @@ function applyTheme(theme, mode) {
         root.style.setProperty('--background', '#0f172a');
         root.style.setProperty('--card-bg', '#1e293b');
         root.style.setProperty('--sidebar-bg', '#1e293b');
-        root.style.setProperty('--text-main', '#f8fafc');
+        root.style.setProperty('--text-main', 'var(--background)');
         root.style.setProperty('--text-muted', '#94a3b8');
         root.style.setProperty('--border', '#334155');
     } else {
         document.body.classList.remove('dark-theme');
-        root.style.setProperty('--background', '#f8fafc');
+        root.style.setProperty('--background', 'var(--background)');
         root.style.setProperty('--card-bg', '#ffffff');
         root.style.setProperty('--sidebar-bg', '#ffffff');
         root.style.setProperty('--text-main', '#0f172a');
         root.style.setProperty('--text-muted', '#64748b');
-        root.style.setProperty('--border', '#e2e8f0');
+        root.style.setProperty('--border', 'var(--border)');
     }
 }
 
@@ -1308,14 +1334,14 @@ function toggleTheme() {
 
     // Apply theme locally
     applyTheme(currentColor, newMode);
-    
+
     // Save locally in hospitalSettings
     if (!window.hospitalSettings) window.hospitalSettings = {};
     window.hospitalSettings['theme-mode'] = newMode;
-    
+
     // Save to localStorage
     localStorage.setItem('theme-mode', newMode);
-    
+
     // Update button icons
     updateThemeToggleButtons();
 
@@ -1433,7 +1459,7 @@ async function checkIntegrationStatus() {
         });
         if (!response.ok) return;
         const result = await response.json();
-        
+
         if (result.success) {
             updateStatusUI('cloudinary', result.status.cloudinary.configured, result.status.cloudinary.details);
             updateStatusUI('smtp', result.status.smtp.configured, result.status.smtp.details);
@@ -1462,7 +1488,7 @@ function updateStatusUI(id, isConfigured, details) {
 async function runEmailTest() {
     const recipientInput = document.getElementById('test-email-recipient');
     if (!recipientInput) return;
-    
+
     const email = recipientInput.value.trim();
     if (!email) {
         showNotification('Please enter a recipient email address', 'warning');
@@ -1479,7 +1505,7 @@ async function runEmailTest() {
             },
             body: JSON.stringify({ email })
         });
-        
+
         const result = await response.json();
         hideLoading();
         if (result.success) {
@@ -1511,7 +1537,7 @@ async function runFcmTest() {
             },
             body: JSON.stringify({ token })
         });
-        
+
         const result = await response.json();
         hideLoading();
         if (result.success) {
@@ -1555,7 +1581,7 @@ async function triggerDirectEmailTest() {
             },
             body: JSON.stringify({ email })
         });
-        
+
         const result = await response.json();
         hideLoading();
         if (result.success) {
@@ -1578,7 +1604,7 @@ window.triggerDirectEmailTest = triggerDirectEmailTest;
 // ==================== DOCTOR MANAGEMENT HELPERS ====================
 window.settingsDoctorsArray = [];
 
-window.addDoctorToSettingsList = function() {
+window.addDoctorToSettingsList = function () {
     const nameEl = document.getElementById('doc-add-name');
     const deptEl = document.getElementById('doc-add-dept');
     const feeEl = document.getElementById('doc-add-fee');
@@ -1605,7 +1631,7 @@ window.addDoctorToSettingsList = function() {
     }
 
     window.settingsDoctorsArray.push({ name, dept, fee });
-    
+
     // Clear inputs
     nameEl.value = '';
     deptEl.value = '';
@@ -1616,7 +1642,7 @@ window.addDoctorToSettingsList = function() {
     showNotification(`Doctor ${name} added. Save changes to persist.`, 'success');
 };
 
-window.removeDoctorFromSettingsList = function(index) {
+window.removeDoctorFromSettingsList = function (index) {
     if (index < 0 || index >= window.settingsDoctorsArray.length) return;
     const removed = window.settingsDoctorsArray.splice(index, 1);
     updateDoctorsHiddenInput();
@@ -1631,7 +1657,7 @@ function updateDoctorsHiddenInput() {
     }
 }
 
-window.renderSettingsDoctorsTable = function() {
+window.renderSettingsDoctorsTable = function () {
     const tbody = document.getElementById('settings-doctors-tbody');
     if (!tbody) return;
 
@@ -1647,7 +1673,7 @@ window.renderSettingsDoctorsTable = function() {
     }
 
     tbody.innerHTML = window.settingsDoctorsArray.map((doc, idx) => `
-        <tr style="border-bottom: 1px solid var(--border, #e2e8f0); color: var(--text-main);">
+        <tr style="border-bottom: 1px solid var(--border, var(--border)); color: var(--text-main);">
             <td style="padding: 10px 12px; font-weight:600;">${doc.name}</td>
             <td style="padding: 10px 12px;"><span style="display:inline-block; padding: 2px 8px; background:var(--primary-light, #eef2ff); color:var(--primary, #4f46e5); border-radius:6px; font-weight:700; font-size:11px;">${doc.dept}</span></td>
             <td style="padding: 10px 12px; font-weight:600;">${window.currencySymbol || '₹'}${doc.fee}</td>
@@ -1660,7 +1686,7 @@ window.renderSettingsDoctorsTable = function() {
     `).join('');
 };
 
-window.loadDoctorsFromSettings = function() {
+window.loadDoctorsFromSettings = function () {
     const saved = (window.hospitalSettings || {})['hospital-doctors-list'] || '';
     let parsedList = [];
 
@@ -1673,7 +1699,7 @@ window.loadDoctorsFromSettings = function() {
                 console.warn("JSON parse failed, falling back to legacy format", e);
             }
         }
-        
+
         // Fallback to legacy comma-separated string format
         if (parsedList.length === 0) {
             saved.split('\n').forEach(line => {
@@ -1681,7 +1707,7 @@ window.loadDoctorsFromSettings = function() {
                 if (parts.length >= 2) {
                     const name = parts[0].trim();
                     const dept = parts[1].trim();
-                    const fee  = parts[2] ? parseFloat(parts[2].trim()) || 0 : 0;
+                    const fee = parts[2] ? parseFloat(parts[2].trim()) || 0 : 0;
                     if (name && dept) {
                         parsedList.push({ name, dept, fee });
                     }
@@ -1701,7 +1727,7 @@ window.loadDoctorsFromSettings = function() {
 
 // ==================== DATABASE BACKUP FRONTEND FUNCTIONS ====================
 
-window.loadBackupList = async function() {
+window.loadBackupList = async function () {
     const token = sessionStorage.getItem('token');
     if (!token) return;
 
@@ -1709,8 +1735,8 @@ window.loadBackupList = async function() {
         const lastBackupSetting = (window.hospitalSettings || {})['last-backup-time'];
         const lastTimeLbl = document.getElementById('backup-last-time-lbl');
         if (lastTimeLbl) {
-            lastTimeLbl.textContent = lastBackupSetting 
-                ? `Last backup taken: ${new Date(lastBackupSetting).toLocaleString()}` 
+            lastTimeLbl.textContent = lastBackupSetting
+                ? `Last backup taken: ${new Date(lastBackupSetting).toLocaleString()}`
                 : 'Last backup taken: Never';
         }
 
@@ -1737,11 +1763,11 @@ window.loadBackupList = async function() {
             }
 
             tbody.innerHTML = data.backups.map(file => {
-                const sizeStr = file.size > 1024 * 1024 
-                    ? (file.size / (1024 * 1024)).toFixed(2) + ' MB' 
+                const sizeStr = file.size > 1024 * 1024
+                    ? (file.size / (1024 * 1024)).toFixed(2) + ' MB'
                     : (file.size / 1024).toFixed(2) + ' KB';
                 const createdStr = new Date(file.createdAt).toLocaleString();
-                
+
                 // Clean display name: remove "backup_", ".json", timestamps → readable format
                 let cleanName = (file.displayName || file.name)
                     .replace(/^backup_/, '')
@@ -1752,13 +1778,13 @@ window.loadBackupList = async function() {
                     const tsMatch = cleanName.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2})-(\d{2})/);
                     if (tsMatch) {
                         const dt = new Date(`${tsMatch[1]}-${tsMatch[2]}-${tsMatch[3]}T${tsMatch[4]}:${tsMatch[5]}:00Z`);
-                        cleanName = 'Backup — ' + dt.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) 
-                                  + ', ' + dt.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', hour12:true });
+                        cleanName = 'Backup — ' + dt.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+                            + ', ' + dt.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
                     }
-                } catch(e) {}
+                } catch (e) { }
 
                 return `
-                    <tr style="border-bottom: 1px solid var(--border, #e2e8f0); color: var(--text-main);">
+                    <tr style="border-bottom: 1px solid var(--border, var(--border)); color: var(--text-main);">
                         <td style="padding: 12px 16px; font-weight:600;">${cleanName}</td>
                         <td style="padding: 12px 16px;">${sizeStr}</td>
                         <td style="padding: 12px 16px;">${createdStr}</td>
@@ -1786,7 +1812,7 @@ window.loadBackupList = async function() {
     }
 };
 
-window.triggerBackupNow = async function() {
+window.triggerBackupNow = async function () {
     const token = sessionStorage.getItem('token');
     if (!token) return;
 
@@ -1834,7 +1860,7 @@ function showRestoreConfirmModal(filename, onConfirmed) {
         animation:fadeIn 0.2s ease;
     `;
     modal.innerHTML = `
-        <div style="background:#fff; border-radius:20px; width:100%; max-width:460px; margin:16px;
+        <div style="background: var(--card-bg); border-radius:20px; width:100%; max-width:460px; margin:16px;
                     box-shadow:0 25px 60px rgba(0,0,0,0.35); overflow:hidden;
                     animation:slideUp 0.25s cubic-bezier(.34,1.56,.64,1);">
 
@@ -1864,7 +1890,7 @@ function showRestoreConfirmModal(filename, onConfirmed) {
                 </div>
 
                 <!-- Warning list -->
-                <div style="background:#fffbeb; border:1px solid #fde68a; border-radius:10px; padding:14px 16px; margin-bottom:20px;">
+                <div style="background: var(--card-bg); border:1px solid #fde68a; border-radius:10px; padding:14px 16px; margin-bottom:20px;">
                     <div style="font-size:12px;font-weight:700;color:#92400e;margin-bottom:10px; display:flex; align-items:center; gap:6px;">
                         <i class="bi bi-shield-exclamation"></i> Restore करने से निम्न सब DELETE होगा:
                     </div>
@@ -1900,7 +1926,7 @@ function showRestoreConfirmModal(filename, onConfirmed) {
                 <!-- Buttons -->
                 <div style="display:flex;gap:10px;">
                     <button onclick="document.getElementById('restore-confirm-modal').remove()"
-                        style="flex:1;padding:11px;border:2px solid #e5e7eb;background:white;border-radius:10px;
+                        style="flex:1;padding:11px;border:2px solid #e5e7eb;background: var(--card-bg);border-radius:10px;
                                font-size:14px;font-weight:700;color:#6b7280;cursor:pointer;transition:all 0.15s;"
                         onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
                         <i class="bi bi-x-lg"></i> Cancel
@@ -1942,7 +1968,7 @@ function showDeleteConfirmModal(filename, onConfirmed) {
         animation:fadeIn 0.2s ease;
     `;
     modal.innerHTML = `
-        <div style="background:#fff; border-radius:18px; width:100%; max-width:400px; margin:16px;
+        <div style="background: var(--card-bg); border-radius:18px; width:100%; max-width:400px; margin:16px;
                     box-shadow:0 20px 50px rgba(0,0,0,0.3); overflow:hidden;
                     animation:slideUp 0.25s cubic-bezier(.34,1.56,.64,1);">
             <div style="background:linear-gradient(135deg,#ea580c,#c2410c); padding:20px 24px;">
@@ -1958,7 +1984,7 @@ function showDeleteConfirmModal(filename, onConfirmed) {
                 </div>
             </div>
             <div style="padding:22px 24px;">
-                <div style="background:#fff7ed; border:1px solid #fed7aa; border-radius:10px; padding:12px 16px; margin-bottom:20px; display:flex; align-items:flex-start; gap:10px;">
+                <div style="background: var(--card-bg); border:1px solid #fed7aa; border-radius:10px; padding:12px 16px; margin-bottom:20px; display:flex; align-items:flex-start; gap:10px;">
                     <i class="bi bi-file-earmark-zip" style="font-size:20px;color:#ea580c;margin-top:2px;flex-shrink:0;"></i>
                     <div>
                         <div style="font-size:11px;color:#9ca3af;font-weight:600;text-transform:uppercase;">Delete होगी file:</div>
@@ -1970,7 +1996,7 @@ function showDeleteConfirmModal(filename, onConfirmed) {
                 </p>
                 <div style="display:flex;gap:10px;">
                     <button onclick="document.getElementById('delete-confirm-modal').remove()"
-                        style="flex:1;padding:11px;border:2px solid #e5e7eb;background:white;border-radius:10px;
+                        style="flex:1;padding:11px;border:2px solid #e5e7eb;background: var(--card-bg);border-radius:10px;
                                font-size:14px;font-weight:700;color:#6b7280;cursor:pointer;"
                         onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
                         Cancel
@@ -1990,8 +2016,8 @@ function showDeleteConfirmModal(filename, onConfirmed) {
     document.body.appendChild(modal);
 }
 
-window.restoreBackupByName = async function(filename) {
-    showRestoreConfirmModal(filename, async function() {
+window.restoreBackupByName = async function (filename) {
+    showRestoreConfirmModal(filename, async function () {
         const token = sessionStorage.getItem('token');
         if (!token) return;
 
@@ -2018,8 +2044,8 @@ window.restoreBackupByName = async function(filename) {
     });
 };
 
-window.deleteBackupByName = async function(filename) {
-    showDeleteConfirmModal(filename, async function() {
+window.deleteBackupByName = async function (filename) {
+    showDeleteConfirmModal(filename, async function () {
         const token = sessionStorage.getItem('token');
         if (!token) return;
 
@@ -2042,7 +2068,7 @@ window.deleteBackupByName = async function(filename) {
     });
 };
 
-window.downloadBackupFile = async function(filename) {
+window.downloadBackupFile = async function (filename) {
     const token = sessionStorage.getItem('token');
     if (!token) return;
     try {
@@ -2063,7 +2089,7 @@ window.downloadBackupFile = async function(filename) {
     }
 };
 
-window.handleBackupUpload = async function(event) {
+window.handleBackupUpload = async function (event) {
     const file = event.target.files[0];
     if (!file) return;
 

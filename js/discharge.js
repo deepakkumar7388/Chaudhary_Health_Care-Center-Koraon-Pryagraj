@@ -10,8 +10,8 @@ function renderDischarge() {
         <div class="discharge-container">
             <div class="module-header" id="discharge-header-nav">
                 <h2 id="discharge-title-h2">Patient Discharge</h2>
-                <button class="btn" onclick="showModule('patients')">
-                    <i class="bi bi-arrow-left"></i> Back to Patients
+                <button class="btn" onclick="goBack('patients')">
+                    <i class="bi bi-arrow-left"></i> <span>Back to Patients</span>
                 </button>
             </div>
             
@@ -44,7 +44,7 @@ function renderDischarge() {
                 
                 <div class="form-group">
                     <label>Doctor Name (Fixed) *</label>
-                    <input type="text" id="discharge-doctor" value="Dr. Bhoopendra Chaudhary" readonly style="background:#f8fafc; font-weight:700; color:#2d3748;">
+                    <input type="text" id="discharge-doctor" value="Dr. Bhoopendra Chaudhary" readonly style="background:var(--background); font-weight:700; color:#2d3748;">
                 </div>
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
@@ -148,9 +148,9 @@ function renderDischarge() {
                         <table class="info-table" id="rpt-surgery-table" style="width:100%; border-collapse:collapse; margin-bottom:15px;">
                             <thead>
                                 <tr>
-                                    <th style="background:#f7fafc; padding:10px; border:1px solid #e2e8f0; text-align:left; font-weight:600;">Procedure</th>
-                                    <th style="background:#f7fafc; padding:10px; border:1px solid #e2e8f0; text-align:left; font-weight:600;">Surgeon</th>
-                                    <th style="background:#f7fafc; padding:10px; border:1px solid #e2e8f0; text-align:left; font-weight:600;">Date</th>
+                                    <th style="background:#f7fafc; padding:10px; border:1px solid var(--border); text-align:left; font-weight:600;">Procedure</th>
+                                    <th style="background:#f7fafc; padding:10px; border:1px solid var(--border); text-align:left; font-weight:600;">Surgeon</th>
+                                    <th style="background:#f7fafc; padding:10px; border:1px solid var(--border); text-align:left; font-weight:600;">Date</th>
                                 </tr>
                             </thead>
                             <tbody id="rpt-surgery-list"></tbody>
@@ -161,10 +161,10 @@ function renderDischarge() {
                     <table class="info-table" id="rpt-med-table" style="display:none; margin-bottom:30px; width:100%; border-collapse:collapse;">
                         <thead>
                             <tr>
-                                <th style="background:#f7fafc; padding:10px; border:1px solid #e2e8f0; text-align:left; font-weight:600;">Medicine Name</th>
-                                <th style="background:#f7fafc; padding:10px; border:1px solid #e2e8f0; text-align:left; font-weight:600;">Dose</th>
-                                <th style="background:#f7fafc; padding:10px; border:1px solid #e2e8f0; text-align:left; font-weight:600;">Frequency</th>
-                                <th style="background:#f7fafc; padding:10px; border:1px solid #e2e8f0; text-align:left; font-weight:600;">Duration</th>
+                                <th style="background:#f7fafc; padding:10px; border:1px solid var(--border); text-align:left; font-weight:600;">Medicine Name</th>
+                                <th style="background:#f7fafc; padding:10px; border:1px solid var(--border); text-align:left; font-weight:600;">Dose</th>
+                                <th style="background:#f7fafc; padding:10px; border:1px solid var(--border); text-align:left; font-weight:600;">Frequency</th>
+                                <th style="background:#f7fafc; padding:10px; border:1px solid var(--border); text-align:left; font-weight:600;">Duration</th>
                             </tr>
                         </thead>
                         <tbody id="rpt-med-list"></tbody>
@@ -493,10 +493,10 @@ function displayDischargeReport(data) {
     if (data.advisedMedicines && data.advisedMedicines.length > 0) {
         medList.innerHTML = data.advisedMedicines.map(m => `
             <tr>
-                <td style="padding:10px; border:1px solid #e2e8f0; color:#2d3748;">${m.name}</td>
-                <td style="padding:10px; border:1px solid #e2e8f0; color:#2d3748;">${m.dose}</td>
-                <td style="padding:10px; border:1px solid #e2e8f0; color:#2d3748;">${m.freq}</td>
-                <td style="padding:10px; border:1px solid #e2e8f0; color:#2d3748;">${m.duration}</td>
+                <td style="padding:10px; border:1px solid var(--border); color:#2d3748;">${m.name}</td>
+                <td style="padding:10px; border:1px solid var(--border); color:#2d3748;">${m.dose}</td>
+                <td style="padding:10px; border:1px solid var(--border); color:#2d3748;">${m.freq}</td>
+                <td style="padding:10px; border:1px solid var(--border); color:#2d3748;">${m.duration}</td>
             </tr>
         `).join('');
         medTable.style.display = 'table';
@@ -516,9 +516,9 @@ function displayDischargeReport(data) {
     if (patientSurgeries && patientSurgeries.length > 0) {
         surgeryList.innerHTML = patientSurgeries.map(s => `
             <tr>
-                <td style="padding:10px; border:1px solid #e2e8f0; color:#2d3748;">${s.surgeryName}</td>
-                <td style="padding:10px; border:1px solid #e2e8f0; color:#2d3748;">${s.surgeonName}</td>
-                <td style="padding:10px; border:1px solid #e2e8f0; color:#2d3748;">${new Date(s.surgeryDate).toLocaleDateString('en-IN')}</td>
+                <td style="padding:10px; border:1px solid var(--border); color:#2d3748;">${s.surgeryName}</td>
+                <td style="padding:10px; border:1px solid var(--border); color:#2d3748;">${s.surgeonName}</td>
+                <td style="padding:10px; border:1px solid var(--border); color:#2d3748;">${new Date(s.surgeryDate).toLocaleDateString('en-IN')}</td>
             </tr>
         `).join('');
         surgerySection.style.display = 'block';

@@ -40,9 +40,12 @@
     <link rel="icon" type="image/png" sizes="16x16" href="hlogo.png?v=2">
     <link rel="shortcut icon" href="hlogo.png?v=2">
     <link rel="apple-touch-icon" sizes="180x180" href="hlogo.png?v=2">
-    <link rel="manifest" href="manifest.json?v=2">
+
 
     <!-- Font Awesome -->
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
@@ -53,15 +56,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
 
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/dashboard.css">
-    <link rel="stylesheet" href="css/patient.css">
-    <link rel="stylesheet" href="css/add-patient.css">
-    <link rel="stylesheet" href="css/daily-notes.css">
-    <link rel="stylesheet" href="css/billing.css">
-    <link rel="stylesheet" href="css/discharge.css">
-    <link rel="stylesheet" href="css/users.css">
-    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/style.css?v=1782374854245">
+    <link rel="stylesheet" href="css/dashboard.css?v=1782374854245">
+    <link rel="stylesheet" href="css/patient.css?v=1782374854245">
+    <link rel="stylesheet" href="css/add-patient.css?v=1782374854245">
+    <link rel="stylesheet" href="css/daily-notes.css?v=1782374854245">
+    <link rel="stylesheet" href="css/billing.css?v=1782374854245">
+    <link rel="stylesheet" href="css/discharge.css?v=1782374854245">
+    <link rel="stylesheet" href="css/users.css?v=1782374854245">
+    <link rel="stylesheet" href="css/responsive.css?v=1782374854245">
     <!-- JSON-LD Structured Data for Google Rich Results -->
     <script type="application/ld+json">
     {
@@ -204,11 +207,7 @@
                 <img src="hlogo.png" alt="Logo">
                 <span>CHC Center</span>
             </div>
-            <div class="mobile-actions" style="display: flex; align-items: center; gap: 10px;">
-                <button class="theme-toggle-btn" onclick="toggleTheme()" style="border: none; background: transparent; padding: 6px 10px; cursor: pointer; border-radius: 50%; font-size: 18px; display: flex; align-items: center; justify-content: center; transition: background 0.2s;">
-                    <i class="bi bi-moon-fill" style="color: #64748b;"></i>
-                </button>
-            </div>
+            <div class="mobile-actions" style="display: none;"></div>
         </div>
 
         <!-- Sidebar -->
@@ -535,8 +534,208 @@
                 <div id="module-reports" class="module-content"></div>
                 <div id="module-patient-record" class="module-content"></div>
                 <div id="module-settings" class="module-content"></div>
+
+                <!-- Hub Screens for Mobile Navigation -->
+                <div id="module-patient-hub" class="module-content">
+                    <div class="container-fluid mt-4">
+                        <h2 class="mb-4 fw-bold text-dark">Patient Management</h2>
+                        <div class="row g-3">
+                            <div class="col-12" data-role-access="add-patient" onclick="showModule('add-patient')">
+                                <div class="card shadow-sm border-0" style="border-radius: 12px; cursor: pointer;">
+                                    <div class="card-body p-2 px-3 d-flex align-items-center">
+                                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-1 me-3 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                            <i class="bi bi-person-plus fs-5"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="card-title fw-bold mb-0" style="font-size: 15px;">Add Patient</h5>
+                                            <p class="card-text text-muted mb-0" style="font-size: 11px; margin-top: 2px;">Register a new patient to the system</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12" data-role-access="daily-notes" onclick="showModule('daily-notes')">
+                                <div class="card shadow-sm border-0" style="border-radius: 12px; cursor: pointer;">
+                                    <div class="card-body p-2 px-3 d-flex align-items-center">
+                                        <div class="bg-success bg-opacity-10 text-success rounded-circle p-1 me-3 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                            <i class="bi bi-file-earmark-text fs-5"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="card-title fw-bold mb-0" style="font-size: 15px;">Daily Notes</h5>
+                                            <p class="card-text text-muted mb-0" style="font-size: 11px; margin-top: 2px;">Record and view daily observations</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12" data-role-access="patients" onclick="showModule('patients')">
+                                <div class="card shadow-sm border-0" style="border-radius: 12px; cursor: pointer;">
+                                    <div class="card-body p-2 px-3 d-flex align-items-center">
+                                        <div class="bg-purple bg-opacity-10 text-purple rounded-circle p-1 me-3 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                            <i class="bi bi-people fs-5" style="color: #8b5cf6;"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="card-title fw-bold mb-0" style="font-size: 15px;">Patient List</h5>
+                                            <p class="card-text text-muted mb-0" style="font-size: 11px; margin-top: 2px;">View and manage all registered patients</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="module-billing-hub" class="module-content">
+                    <div class="container-fluid mt-4">
+                        <h2 class="mb-4 fw-bold text-dark">Billing & Discharge</h2>
+                        <div class="row g-3">
+                            <div class="col-12" data-role-access="billing" onclick="showModule('billing')">
+                                <div class="card shadow-sm border-0" style="border-radius: 12px; cursor: pointer;">
+                                    <div class="card-body p-2 px-3 d-flex align-items-center">
+                                        <div class="bg-warning bg-opacity-10 text-warning rounded-circle p-1 me-3 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                            <i class="bi bi-cash-stack fs-5"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="card-title fw-bold mb-0" style="font-size: 15px;">Billing</h5>
+                                            <p class="card-text text-muted mb-0" style="font-size: 11px; margin-top: 2px;">Manage payments and invoices</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12" data-role-access="discharge" onclick="showModule('discharge')">
+                                <div class="card shadow-sm border-0" style="border-radius: 12px; cursor: pointer;">
+                                    <div class="card-body p-2 px-3 d-flex align-items-center">
+                                        <div class="bg-danger bg-opacity-10 text-danger rounded-circle p-1 me-3 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                            <i class="bi bi-box-arrow-right fs-5"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="card-title fw-bold mb-0" style="font-size: 15px;">Discharge</h5>
+                                            <p class="card-text text-muted mb-0" style="font-size: 11px; margin-top: 2px;">Process patient discharge</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="module-profile-hub" class="module-content">
+                    <div class="container-fluid mt-4">
+                        <h2 class="mb-4 fw-bold text-dark">Profile & Settings</h2>
+                        <div class="row g-3">
+                            <div class="col-12" data-role-access="users" onclick="showModule('users')">
+                                <div class="card shadow-sm border-0" style="border-radius: 12px; cursor: pointer;">
+                                    <div class="card-body p-2 px-3 d-flex align-items-center">
+                                        <div class="bg-info bg-opacity-10 text-info rounded-circle p-1 me-3 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                            <i class="bi bi-person-gear fs-5"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="card-title fw-bold mb-0" style="font-size: 15px;">Manage Users</h5>
+                                            <p class="card-text text-muted mb-0" style="font-size: 11px; margin-top: 2px;">Add or edit system users</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12" data-role-access="reports" onclick="showModule('reports')">
+                                <div class="card shadow-sm border-0" style="border-radius: 12px; cursor: pointer;">
+                                    <div class="card-body p-2 px-3 d-flex align-items-center">
+                                        <div class="bg-pink bg-opacity-10 text-pink rounded-circle p-1 me-3 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                            <i class="bi bi-bar-chart-line fs-5" style="color: #ec4899;"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="card-title fw-bold mb-0" style="font-size: 15px;">Reports</h5>
+                                            <p class="card-text text-muted mb-0" style="font-size: 11px; margin-top: 2px;">View analytics and data reports</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12" data-role-access="patient-record" onclick="showModule('patient-record')">
+                                <div class="card shadow-sm border-0" style="border-radius: 12px; cursor: pointer;">
+                                    <div class="card-body p-2 px-3 d-flex align-items-center">
+                                        <div class="bg-teal bg-opacity-10 text-teal rounded-circle p-1 me-3 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                            <i class="bi bi-file-earmark-medical fs-5" style="color: #14b8a6;"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="card-title fw-bold mb-0" style="font-size: 15px;">Patient Record</h5>
+                                            <p class="card-text text-muted mb-0" style="font-size: 11px; margin-top: 2px;">View detailed medical histories</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12" data-role-access="settings" onclick="showModule('settings')">
+                                <div class="card shadow-sm border-0" style="border-radius: 12px; cursor: pointer;">
+                                    <div class="card-body p-2 px-3 d-flex align-items-center">
+                                        <div class="bg-secondary bg-opacity-10 text-secondary rounded-circle p-1 me-3 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                            <i class="bi bi-gear fs-5"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="card-title fw-bold mb-0" style="font-size: 15px;">Settings</h5>
+                                            <p class="card-text text-muted mb-0" style="font-size: 11px; margin-top: 2px;">Configure system preferences</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12" onclick="openProfileModal()">
+                                <div class="card shadow-sm border-0" style="border-radius: 12px; cursor: pointer;">
+                                    <div class="card-body p-2 px-3 d-flex align-items-center">
+                                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-1 me-3 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                            <i class="bi bi-person-circle fs-5"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="card-title fw-bold mb-0" style="font-size: 15px;">My Profile</h5>
+                                            <p class="card-text text-muted mb-0" style="font-size: 11px; margin-top: 2px;">View your personal details</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 d-block d-md-none" onclick="toggleTheme()">
+                                <div class="card shadow-sm border-0" style="border-radius: 12px; cursor: pointer;">
+                                    <div class="card-body p-2 px-3 d-flex align-items-center">
+                                        <div class="bg-warning bg-opacity-10 text-warning rounded-circle p-1 me-3 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                            <i class="bi bi-moon-stars-fill fs-5 theme-icon" style="color: #f59e0b;"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="card-title fw-bold mb-0" style="font-size: 15px;">Switch Theme</h5>
+                                            <p class="card-text text-muted mb-0" style="font-size: 11px; margin-top: 2px;">Toggle Dark / Light mode</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12" onclick="logout()">
+                                <div class="card shadow-sm border-0 h-100 py-1 logout-card" style="border-radius: 16px; cursor: pointer; transition: all 0.25s ease;">
+                                    <div class="card-body p-2 px-3 d-flex align-items-center">
+                                        <div class="bg-danger bg-opacity-10 text-danger rounded-circle p-1 me-3 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                            <i class="bi bi-box-arrow-left fs-5"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="card-title fw-bold mb-1 text-danger">Logout</h5>
+                                            <p class="card-text text-danger opacity-75 small mb-0">Sign out securely</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
+        <!-- Mobile Bottom Navigation Bar -->
+        <nav class="bottom-nav">
+            <div class="bottom-nav-item active" onclick="showModule('dashboard')">
+                <i class="bi bi-house"></i>
+                <span>Home</span>
+            </div>
+            <div class="bottom-nav-item" onclick="showModule('patient-hub')">
+                <i class="bi bi-people"></i>
+                <span>Patient</span>
+            </div>
+            <div class="bottom-nav-item" onclick="showModule('billing-hub')" data-role-access="billing">
+                <i class="bi bi-credit-card"></i>
+                <span>Billing</span>
+            </div>
+            <div class="bottom-nav-item" onclick="showModule('profile-hub')">
+                <i class="bi bi-person-circle"></i>
+                <span>Profile</span>
+            </div>
+        </nav>
     </div>
 
     <!-- ==================== LOADING & NOTIFICATION ==================== -->
@@ -725,7 +924,7 @@
                             JD
                         </div>
                         <label for="avatar-upload"
-                            style="position: absolute; bottom: 0; right: 0; background: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.15); border: 1px solid #e2e8f0; z-index: 10;">
+                            style="position: absolute; bottom: 0; right: 0; background: var(--card-bg); width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.15); border: 1px solid var(--border); z-index: 10;">
                             <i class="bi bi-camera" style="font-size: 12px; color: #64748b;"></i>
                         </label>
                         <input type="file" id="avatar-upload" style="display: none;" accept="image/*"
@@ -923,22 +1122,22 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js"></script>
 
-    <script src="js/main.js"></script>
-    <script src="js/dashboard.js"></script>
-    <script src="js/patients.js"></script>
-    <script src="js/add-patient.js"></script>
-    <script src="js/daily-notes.js"></script>
-    <script src="js/billing.js"></script>
-    <script src="js/discharge.js"></script>
-    <script src="js/reports.js"></script>
-    <script src="js/patient-record.js"></script>
-    <script src="js/settings.js"></script>
-    <script src="js/users.js"></script>
-    <script src="js/sync.js"></script>
+    <script src="js/main.js?v=1782374854245"></script>
+    <script src="js/dashboard.js?v=1782374854245"></script>
+    <script src="js/patients.js?v=1782374854245"></script>
+    <script src="js/add-patient.js?v=1782374854245"></script>
+    <script src="js/daily-notes.js?v=1782374854245"></script>
+    <script src="js/billing.js?v=1782374854245"></script>
+    <script src="js/discharge.js?v=1782374854245"></script>
+    <script src="js/reports.js?v=1782374854245"></script>
+    <script src="js/patient-record.js?v=1782374854245"></script>
+    <script src="js/settings.js?v=1782374854245"></script>
+    <script src="js/users.js?v=1782374854245"></script>
+    <script src="js/sync.js?v=1782374854245"></script>
 
     <!-- Real-Time & Notifications — Load last so all page functions are ready -->
-    <script src="js/realtime.js"></script>
-    <script src="js/fcm-client.js"></script>
+    <script src="js/realtime.js?v=1782374854245"></script>
+    <script src="js/fcm-client.js?v=1782374854245"></script>
 </body>
 
 </html>

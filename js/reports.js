@@ -15,10 +15,10 @@ function renderReports() {
                 
                 /* Premium Card Styling */
                 .report-card {
-                    background: #ffffff;
+                    background: var(--card-bg);
                     border-radius: 16px;
                     padding: 24px;
-                    border: 1px solid #e2e8f0;
+                    border: 1px solid var(--border);
                     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
                     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                 }
@@ -39,10 +39,10 @@ function renderReports() {
                 
                 /* SaaS-style Metric Cards */
                 .stat-card {
-                    background: #ffffff !important;
+                    background: var(--card-bg)!important;
                     border-radius: 12px;
                     padding: 16px;
-                    border: 1px solid #e2e8f0;
+                    border: 1px solid var(--border);
                     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
                     display: flex;
                     flex-direction: row;
@@ -114,10 +114,10 @@ function renderReports() {
 
                 /* Filter Control Bar */
                 .filter-bar {
-                    background: white; 
+                    background: var(--card-bg); 
                     padding: 16px 24px; 
                     border-radius: 16px; 
-                    border: 1px solid #e2e8f0;
+                    border: 1px solid var(--border);
                     box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
                     display: flex; 
                     gap: 20px; 
@@ -145,13 +145,13 @@ function renderReports() {
                     font-weight: 600;
                     color: #334155;
                     outline: none;
-                    background: #f8fafc;
+                    background: var(--background);
                     cursor: pointer;
                     transition: all 0.2s;
                 }
                 .filter-bar-select:focus {
                     border-color: var(--primary, #4f46e5);
-                    background: white;
+                    background: var(--card-bg);
                     box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
                 }
                 .filter-bar-input {
@@ -162,20 +162,20 @@ function renderReports() {
                     font-weight: 600;
                     color: #334155;
                     outline: none;
-                    background: #f8fafc;
+                    background: var(--background);
                     cursor: pointer;
                     transition: all 0.2s;
                     min-width: 130px;
                 }
                 .filter-bar-input:focus {
                     border-color: var(--primary, #4f46e5);
-                    background: white;
+                    background: var(--card-bg);
                     box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
                 }
                 .filter-bar-divider {
                     width: 1px;
                     height: 28px;
-                    background: #e2e8f0;
+                    background: var(--border);
                     margin: 0 4px;
                 }
 
@@ -536,7 +536,7 @@ async function updateReportsDashboard() {
 
     const currency = window.currencySymbol || '₹';
     const role = currentUser?.role || 'admin';
-    const showFinancials = (role === 'admin');
+    const showFinancials = (role === 'admin' || role === 'developer');
 
     // Dynamically show or hide financial cards depending on user role
     const revCard = document.getElementById('revenue-card-container');
@@ -612,7 +612,7 @@ function renderCharts(filteredPatients, metrics, showFinancials) {
 
     const isDark = document.body.classList.contains('dark-theme');
     const labelColor = isDark ? '#cbd5e1' : '#475569';
-    const gridColor = isDark ? '#1f2937' : '#f1f5f9';
+    const gridColor = isDark ? '#1f2937' : 'var(--background)';
     const tickColor = isDark ? '#94a3b8' : '#64748b';
     const pieBorderColor = isDark ? '#111827' : '#ffffff';
 

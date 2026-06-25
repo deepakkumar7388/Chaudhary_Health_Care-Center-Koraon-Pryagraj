@@ -443,7 +443,7 @@
     width: 18px;
     left: 3px;
     bottom: 3px;
-    background: white;
+    background: var(--card-bg);
     border-radius: 50%;
     transition: transform 0.25s ease;
     box-shadow: 0 1px 4px rgba(0,0,0,0.2);
@@ -544,11 +544,8 @@
     border-bottom-right-radius: 16px;
 }
 
-.form-grid-2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-}
+
+ > * { min-width: 0; }
 
 .form-group {
     margin-bottom: 16px;
@@ -609,8 +606,6 @@
     .btn-add-user {
         justify-content: center;
     }
-    .form-grid-2 {
-        grid-template-columns: 1fr;
-        gap: 0;
-    }
+    
+ > * { min-width: 0; }
 }

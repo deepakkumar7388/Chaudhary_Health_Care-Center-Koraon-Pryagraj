@@ -9,9 +9,28 @@
    ============================================================ */
 
 @media (max-width: 992px) {
+
+    /* Hide descriptions in mobile hubs to save vertical space */
+    #module-patient-hub .card-text,
+    #module-billing-hub .card-text,
+    #module-profile-hub .card-text {
+        display: none !important;
+    }
+
     /* Stack settings layout vertically */
     .settings-layout {
         flex-direction: column !important;
+    }
+
+    /* Settings form grids to single column on tablets too */
+    .settings-container .form-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Fix span-2 items that overflow on single column */
+    .settings-container .form-grid>div[style*="grid-column: span 2"],
+    .settings-container .form-grid>div[style*="grid-column:span 2"] {
+        grid-column: span 1 !important;
     }
 
     /* Convert sidebar to horizontal scrollable tab bar */
@@ -22,7 +41,7 @@
         padding: 12px !important;
         gap: 8px !important;
         border-right: none !important;
-        border-bottom: 1px solid #e2e8f0 !important;
+        border-bottom: 1px solid var(--border) !important;
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
     }
@@ -51,14 +70,15 @@
 }
 
 @media (max-width: 768px) {
+
     /* Settings form grids to single column */
     .settings-container .form-grid {
         grid-template-columns: 1fr !important;
     }
 
     /* Fix span-2 items that overflow on single column */
-    .settings-container .form-grid > div[style*="grid-column: span 2"],
-    .settings-container .form-grid > div[style*="grid-column:span 2"] {
+    .settings-container .form-grid>div[style*="grid-column: span 2"],
+    .settings-container .form-grid>div[style*="grid-column:span 2"] {
         grid-column: span 1 !important;
     }
 
@@ -73,7 +93,7 @@
         font-size: 22px !important;
     }
 
-    .settings-container .module-header > div {
+    .settings-container .module-header>div {
         display: flex !important;
         gap: 8px !important;
         width: 100% !important;
@@ -166,6 +186,7 @@
    ============================================================ */
 
 @media (max-width: 992px) {
+
     /* Charts grid — reduce min-width */
     .reports-grid {
         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
@@ -174,6 +195,7 @@
 }
 
 @media (max-width: 768px) {
+
     /* Reports header — stack */
     .reports-container .module-header {
         flex-direction: column !important;
@@ -315,7 +337,7 @@
     }
 
     .stat-card-details,
-    .stat-card > div {
+    .stat-card>div {
         width: 100% !important;
     }
 
@@ -343,6 +365,7 @@
 }
 
 @media (max-width: 480px) {
+
     /* Stats — keep 2 columns even on very small screens */
     .reports-container .stats-grid,
     #reports-key-metrics {
@@ -365,6 +388,7 @@
    ============================================================ */
 
 @media (max-width: 992px) {
+
     /* Module header — stack title and dashboard cards */
     .billing-container .module-header {
         flex-direction: column !important;
@@ -481,7 +505,7 @@
         border-radius: 14px !important;
         padding: 14px !important;
         margin-bottom: 10px !important;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.06) !important;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06) !important;
         gap: 8px !important;
         transition: box-shadow 0.2s ease !important;
     }
@@ -491,7 +515,7 @@
     }
 
     .bills-table tbody tr:hover {
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
     }
 
     /* Each td becomes a label-value row */
@@ -681,7 +705,7 @@
     }
 
     /* Add payment panel — make inputs touch-friendly */
-    #add-payment-panel > div {
+    #add-payment-panel>div {
         flex-direction: column !important;
         gap: 8px !important;
     }
@@ -732,7 +756,7 @@
         padding: 10px 12px !important;
     }
 
-    #opd-paid-banner > div:last-child {
+    #opd-paid-banner>div:last-child {
         white-space: nowrap !important;
         font-size: 12px !important;
         padding: 5px 10px !important;
@@ -816,6 +840,7 @@
    ============================================================ */
 
 @media (max-width: 768px) {
+
     /* Surgery modal — take full width */
     .surgery-modal .modal-content {
         max-width: 100% !important;
@@ -835,7 +860,7 @@
     }
 
     /* Modal body padding */
-    .surgery-modal .modal-content > div:last-child {
+    .surgery-modal .modal-content>div:last-child {
         padding: 16px !important;
     }
 
@@ -845,7 +870,7 @@
     }
 
     /* Span-2 items in surgery form → single column */
-    .surgery-form-grid > div[style*="grid-column: span 2"] {
+    .surgery-form-grid>div[style*="grid-column: span 2"] {
         grid-column: span 1 !important;
     }
 
@@ -909,7 +934,7 @@
         font-size: 14px !important;
     }
 
-    .surgery-modal .modal-content > div:last-child {
+    .surgery-modal .modal-content>div:last-child {
         padding: 12px !important;
     }
 
@@ -934,6 +959,7 @@
    ============================================================ */
 
 @media (max-width: 768px) {
+
     /* Module headers — consistent stacking */
     .module-header,
     .users-header,
@@ -956,7 +982,8 @@
     /* Prevent horizontal overflow globally & increase top padding */
     .main-content {
         overflow-x: hidden !important;
-        padding-top: 76px !important; /* Tighter padding-top below 64px mobile header */
+        padding-top: 76px !important;
+        /* Tighter padding-top below 64px mobile header */
         padding-left: 10px !important;
         padding-right: 10px !important;
     }
@@ -969,13 +996,13 @@
         border-radius: 8px !important;
     }
 
-    table th, 
+    table th,
     table td,
-    .patients-table th, 
+    .patients-table th,
     .patients-table td,
-    .bills-table th, 
+    .bills-table th,
     .bills-table td,
-    .users-table th, 
+    .users-table th,
     .users-table td {
         padding: 10px 12px !important;
         font-size: 13px !important;
@@ -998,8 +1025,8 @@
     }
 
     /* Compress default padding of forms and input components */
-    input, 
-    select, 
+    input,
+    select,
     textarea,
     .form-group input,
     .form-group select,
@@ -1053,20 +1080,20 @@
         margin-bottom: 12px !important;
         border-radius: 10px !important;
     }
-    
+
     .patients-container .search-filter input {
         grid-column: span 2 !important;
         padding: 8px 12px !important;
         font-size: 13px !important;
     }
-    
+
     .patients-container .search-filter select {
         padding: 8px 12px !important;
         font-size: 12px !important;
         border-radius: 8px !important;
         height: 36px !important;
     }
-    
+
     #patient-sort {
         grid-column: span 2 !important;
     }
@@ -1077,7 +1104,7 @@
         margin-bottom: 10px !important;
         border-radius: 8px !important;
     }
-    
+
     .patient-record-layout .search-section h3 {
         font-size: 13px !important;
         margin-bottom: 6px !important;
@@ -1144,7 +1171,17 @@ body.dark-theme textarea {
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-/* --- Cards & panels --- */
+/* --- Global Bootstrap Overrides --- */
+body.dark-theme .card,
+body.dark-theme .card-body,
+body.dark-theme .bg-white,
+body.dark-theme .list-group-item {
+    background-color: var(--card-bg) !important;
+    border-color: var(--border) !important;
+    color: var(--text-main) !important;
+}
+
+/* --- Card Headers --- */
 body.dark-theme .report-card,
 body.dark-theme .info-panel-card,
 body.dark-theme .dash-card,
@@ -1209,6 +1246,29 @@ body.dark-theme .activity-item {
 body.dark-theme .activity-item p,
 body.dark-theme .activity-text {
     color: #e5e7eb !important;
+}
+
+/* --- Mobile Components Dark Theme Overrides --- */
+body.dark-theme .mobile-header,
+body.dark-theme .bottom-nav,
+body.dark-theme .bottom-sheet {
+    background: #090d16 !important;
+    border-color: #1f2937 !important;
+}
+
+body.dark-theme .mobile-logo span {
+    color: var(--text-main) !important;
+}
+
+body.dark-theme .sidebar-toggle {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: var(--text-main) !important;
+}
+
+body.dark-theme .bottom-sheet-content,
+body.dark-theme .filter-bar span,
+body.dark-theme .patients-container .search-filter label {
+    color: #9ca3af !important;
 }
 
 /* --- Filter bar & Search Panels --- */
@@ -1292,7 +1352,8 @@ body.dark-theme .bed-chip {
 }
 
 body.dark-theme .bed-chip.occupied {
-    background: #4c1d95 !important; /* Premium purple tint instead of pure dark red */
+    background: #4c1d95 !important;
+    /* Premium purple tint instead of pure dark red */
     color: #f5f3ff !important;
     border-color: #6d28d9 !important;
 }
@@ -1359,6 +1420,39 @@ body.dark-theme .register-table tbody tr:hover td {
     background: rgba(31, 41, 55, 0.6) !important;
 }
 
+/* --- Patient Badges --- */
+.badge-opd {
+    background: #ecfdf5 !important;
+    color: #059669 !important;
+    border: 1px solid #a7f3d0 !important;
+}
+
+.badge-ipd {
+    background: #eff6ff !important;
+    color: #2563eb !important;
+    border: 1px solid #bfdbfe !important;
+}
+
+body.dark-theme .badge-opd {
+    background: rgba(16, 185, 129, 0.15) !important;
+    color: #34d399 !important;
+    border: 1px solid rgba(16, 185, 129, 0.3) !important;
+}
+
+body.dark-theme .badge-ipd {
+    background: rgba(59, 130, 246, 0.15) !important;
+    color: #60a5fa !important;
+    border: 1px solid rgba(59, 130, 246, 0.3) !important;
+}
+
+body.dark-theme .badge-pending {
+    color: #fbbf24 !important;
+}
+
+body.dark-theme .badge-given {
+    color: #34d399 !important;
+}
+
 /* --- Action Buttons in Tables (Glow tints instead of stark white overlays) --- */
 body.dark-theme .action-btn-pro {
     background: transparent !important;
@@ -1421,10 +1515,25 @@ body.dark-theme .action-btn:hover {
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4) !important;
 }
 
-body.dark-theme .action-btn:nth-child(1):hover { border-color: #6366f1 !important; color: #818cf8 !important; }
-body.dark-theme .action-btn:nth-child(2):hover { border-color: #3b82f6 !important; color: #60a5fa !important; }
-body.dark-theme .action-btn:nth-child(3):hover { border-color: #ef4444 !important; color: #f87171 !important; }
-body.dark-theme .action-btn:nth-child(4):hover { border-color: #10b981 !important; color: #34d399 !important; }
+body.dark-theme .action-btn:nth-child(1):hover {
+    border-color: #6366f1 !important;
+    color: #818cf8 !important;
+}
+
+body.dark-theme .action-btn:nth-child(2):hover {
+    border-color: #3b82f6 !important;
+    color: #60a5fa !important;
+}
+
+body.dark-theme .action-btn:nth-child(3):hover {
+    border-color: #ef4444 !important;
+    color: #f87171 !important;
+}
+
+body.dark-theme .action-btn:nth-child(4):hover {
+    border-color: #10b981 !important;
+    color: #34d399 !important;
+}
 
 /* --- Sidebar Menu Styling & Hover --- */
 body.dark-theme .sidebar {
@@ -1539,12 +1648,12 @@ body.dark-theme textarea:hover {
 }
 
 /* --- Surgery modal specific --- */
-body.dark-theme .surgery-modal .modal-content > div {
+body.dark-theme .surgery-modal .modal-content>div {
     background: #111827 !important;
 }
 
-body.dark-theme .surgery-consent-grid > div,
-body.dark-theme .surgery-signature-grid > div {
+body.dark-theme .surgery-consent-grid>div,
+body.dark-theme .surgery-signature-grid>div {
     background: #090d16 !important;
     border-color: #1f2937 !important;
 }
@@ -1767,9 +1876,9 @@ body.dark-theme .modal-content div {
     border-color: #1f2937 !important;
 }
 
-body.dark-theme .modal-content > div[style*="background: #f8fafc"],
-body.dark-theme .modal-content > div[style*="background:#f8fafc"],
-body.dark-theme .modal-content > div[style*="background-color: #f8fafc"] {
+body.dark-theme .modal-content>div[style*="background: var(--background)"],
+body.dark-theme .modal-content>div[style*="background:var(--background)"],
+body.dark-theme .modal-content>div[style*="background-color: var(--background)"] {
     background: #111827 !important;
 }
 
@@ -1816,10 +1925,10 @@ body.dark-theme [style*="background: #fff"],
 body.dark-theme [style*="background:#fff"],
 body.dark-theme [style*="background: #ffffff"],
 body.dark-theme [style*="background:#ffffff"],
-body.dark-theme [style*="background: #f8fafc"],
-body.dark-theme [style*="background:#f8fafc"],
-body.dark-theme [style*="background: #f1f5f9"],
-body.dark-theme [style*="background:#f1f5f9"],
+body.dark-theme [style*="background: var(--background)"],
+body.dark-theme [style*="background:var(--background)"],
+body.dark-theme [style*="background: var(--background)"],
+body.dark-theme [style*="background:var(--background)"],
 body.dark-theme [style*="background: rgb(255, 255, 255)"],
 body.dark-theme [style*="background-color: white"],
 body.dark-theme [style*="background-color: #fff"],
@@ -1863,8 +1972,8 @@ body.dark-theme .settings-section h4 {
 }
 
 /* ── Reports page — report cards ── */
-body.dark-theme .reports-container > div,
-body.dark-theme .reports-grid > div,
+body.dark-theme .reports-container>div,
+body.dark-theme .reports-grid>div,
 body.dark-theme .report-section {
     background: #111827 !important;
     border-color: #1f2937 !important;
@@ -1872,7 +1981,7 @@ body.dark-theme .report-section {
 }
 
 /* ── Patients page — detail cards & patient info sections ── */
-body.dark-theme .patient-detail-grid > div,
+body.dark-theme .patient-detail-grid>div,
 body.dark-theme .patient-info-card,
 body.dark-theme .patient-stat-card {
     background: #111827 !important;
@@ -1909,7 +2018,7 @@ body.dark-theme .autocomplete-dropdown,
 body.dark-theme #record-search-results {
     background: #1f2937 !important;
     border-color: #374151 !important;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.4) !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4) !important;
 }
 
 body.dark-theme .autocomplete-dropdown div,
@@ -1936,15 +2045,15 @@ body.dark-theme .form-section {
 }
 
 body.dark-theme .form-section h3 {
-    color: #f1f5f9 !important;
+    color: var(--background) !important;
     border-bottom-color: #1f2937 !important;
 }
 
 /* ── IPD/OPD Toggle buttons inactive state ── */
-body.dark-theme #type-btn-opd[style*="background:#f8fafc"],
-body.dark-theme #type-btn-opd[style*="background: #f8fafc"],
-body.dark-theme #type-btn-ipd[style*="background:#f8fafc"],
-body.dark-theme #type-btn-ipd[style*="background: #f8fafc"] {
+body.dark-theme #type-btn-opd[style*="background:var(--background)"],
+body.dark-theme #type-btn-opd[style*="background: var(--background)"],
+body.dark-theme #type-btn-ipd[style*="background:var(--background)"],
+body.dark-theme #type-btn-ipd[style*="background: var(--background)"] {
     background: #1f2937 !important;
     color: #94a3b8 !important;
     border-color: #374151 !important;
@@ -1996,7 +2105,7 @@ body.dark-theme .info-label {
 }
 
 body.dark-theme .info-value {
-    color: #f1f5f9 !important;
+    color: var(--background) !important;
 }
 
 /* ── Quick actions & recent activity cards (dashboard) ── */
@@ -2020,8 +2129,8 @@ body.dark-theme .notification-toast {
 }
 
 /* ── Generic: any div with hardcoded light backgrounds inside main-content ── */
-body.dark-theme .main-content [style*="background: #f8fafc"],
-body.dark-theme .main-content [style*="background:#f8fafc"],
+body.dark-theme .main-content [style*="background: var(--background)"],
+body.dark-theme .main-content [style*="background:var(--background)"],
 body.dark-theme .main-content [style*="background: #f0f4f8"],
 body.dark-theme .main-content [style*="background: #edf2f7"] {
     background: #0f172a !important;
@@ -2043,10 +2152,10 @@ body.dark-theme .main-content [style*="color:#64748b"] {
 
 /* ── Border color fixes ── */
 body.dark-theme [style*="border: 1px solid #edf2f7"],
-body.dark-theme [style*="border: 1px solid #e2e8f0"],
+body.dark-theme [style*="border: 1px solid var(--border)"],
 body.dark-theme [style*="border: 1px solid #cbd5e1"],
 body.dark-theme [style*="border-bottom: 1px solid #eee"],
-body.dark-theme [style*="border-bottom: 1px solid #e2e8f0"] {
+body.dark-theme [style*="border-bottom: 1px solid var(--border)"] {
     border-color: #1f2937 !important;
 }
 
@@ -2055,7 +2164,7 @@ body.dark-theme .delete-modal-box {
     background: #111827 !important;
     border: 1px solid #1f2937 !important;
     color: #cbd5e1 !important;
-    box-shadow: 0 25px 60px rgba(0,0,0,0.5) !important;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5) !important;
 }
 
 body.dark-theme .delete-modal-header {
@@ -2109,7 +2218,7 @@ body.dark-theme .ipd-modal-box {
     background: #111827 !important;
     border: 1px solid #1f2937 !important;
     color: #cbd5e1 !important;
-    box-shadow: 0 30px 70px rgba(0,0,0,0.5) !important;
+    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.5) !important;
 }
 
 body.dark-theme .ipd-patient-card {
@@ -2207,16 +2316,18 @@ body.dark-theme .report-container .report-date {
    9. GLOBAL PRINT CONFIGURATION — DUST-PROOF LIGHT MODE RESETS FOR PRINT
    ========================================================================== */
 @media print {
+
     /* Global Print Theme Reset — force light mode for all printouts */
-    body, body.dark-theme {
+    body,
+    body.dark-theme {
         background: #ffffff !important;
         color: #000000 !important;
     }
-    
-    .sidebar, 
-    .mobile-header, 
-    .theme-toggle-btn, 
-    .no-print, 
+
+    .sidebar,
+    .mobile-header,
+    .theme-toggle-btn,
+    .no-print,
     .main-theme-toggle,
     .header-actions,
     .filter-bar,
@@ -2227,7 +2338,7 @@ body.dark-theme .report-container .report-date {
     .modal-close {
         display: none !important;
     }
-    
+
     .app-container,
     .main-content,
     .reports-container,
@@ -2256,7 +2367,7 @@ body.dark-theme .report-container .report-date {
         color: #000000 !important;
         background: #ffffff !important;
     }
-    
+
     body.dark-theme table th {
         background: #f1f5f9 !important;
         color: #0f172a !important;

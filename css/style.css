@@ -15,14 +15,14 @@
     /* Amber - Alert */
     --danger: #ef4444;
     /* Rose - Urgent */
-    --background: #f8fafc;
+    --background: var(--background);
     /* Modern Gray/Blue Background */
     --sidebar-bg: #ffffff;
     --card-bg: #ffffff;
     --text-main: #0f172a;
     /* High Contrast Text */
     --text-muted: #64748b;
-    --border: #e2e8f0;
+    --border: var(--border);
     --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 }
@@ -89,7 +89,7 @@ body {
     width: 900px;
     max-width: 100%;
     min-height: 550px;
-    background: #fff;
+    background: var(--card-bg);
     border-radius: 24px;
     box-shadow: var(--shadow-lg);
     display: flex;
@@ -140,14 +140,14 @@ body {
 }
 
 .overlay-switch-btn:hover {
-    background: white;
+    background: var(--card-bg);
     color: var(--primary);
 }
 
 
 .auth-form-panel {
     flex: 1;
-    background: white;
+    background: var(--card-bg);
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -172,7 +172,7 @@ body {
 .google-auth-btn {
     width: 100%;
     padding: 12px;
-    background: #ffffff;
+    background: var(--card-bg);
     border: 1px solid #d1d5db;
     border-radius: 8px;
     font-size: 15px;
@@ -216,7 +216,7 @@ body {
 
 .auth-divider span {
     position: relative;
-    background: #ffffff;
+    background: var(--card-bg);
     padding: 0 10px;
     color: #9ca3af;
     font-size: 13px;
@@ -359,7 +359,7 @@ body {
 }
 
 .sidebar::-webkit-scrollbar-thumb {
-    background: #e2e8f0;
+    background: var(--border);
     border-radius: 10px;
 }
 
@@ -464,7 +464,7 @@ body {
 .admin-menu {
     display: none;
     margin-top: 15px;
-    border-top: 1px solid #f1f5f9;
+    border-top: 1px solid var(--background);
     padding-top: 15px;
 }
 
@@ -472,14 +472,14 @@ body {
     flex: 0 0 auto;
     position: relative;
     padding: 15px;
-    border-top: 1px solid #e2e8f0;
+    border-top: 1px solid var(--border);
     cursor: pointer;
     transition: background 0.2s;
     user-select: none;
 }
 
 .user-profile-section:hover {
-    background: #f8fafc;
+    background: var(--background);
 }
 
 .menu-title {
@@ -737,13 +737,13 @@ body {
 }
 
 .btn-secondary {
-    background: #f1f5f9;
+    background: var(--background);
     color: #475569;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
 }
 
 .btn-secondary:hover {
-    background: #e2e8f0;
+    background: var(--border);
     color: #1e293b;
     transform: translateY(-1px);
     box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
@@ -998,35 +998,10 @@ body {
     letter-spacing: 0.5px;
 }
 
+
+
 .logout-btn-no {
     background: var(--background);
-    color: var(--text-muted);
-    border: 1px solid var(--border);
-}
-
-.logout-btn-yes {
-    background: var(--danger);
-    color: white;
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
-}
-
-.logout-btn-no:hover {
-    background: var(--border);
-    color: var(--text-main);
-    transform: translateY(-1px);
-}
-
-.logout-btn-yes:hover {
-    filter: brightness(0.9);
-    transform: translateY(-1px);
-    box-shadow: 0 6px 14px rgba(239, 68, 68, 0.3);
-}
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.logout-btn-no {
-    background: #f1f5f9;
     color: #64748b;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
 }
@@ -1038,7 +1013,7 @@ body {
 }
 
 .logout-btn-no:hover {
-    background: #e2e8f0;
+    background: var(--border);
     color: #475569;
     transform: translateY(-2px);
 }
@@ -1084,7 +1059,7 @@ body {
 
 /* ==================== REPORTS STYLES ==================== */
 .reports-container {
-    background: white;
+    background: var(--card-bg);
     border-radius: 15px;
     padding: 30px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
@@ -1098,7 +1073,7 @@ body {
 }
 
 .report-card {
-    background: white;
+    background: var(--card-bg);
     border-radius: 12px;
     padding: 20px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
@@ -1126,7 +1101,7 @@ body {
 
 /* ==================== SETTINGS STYLES ==================== */
 .settings-container {
-    background: white;
+    background: var(--card-bg);
     border-radius: 15px;
     padding: 30px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
@@ -1295,7 +1270,7 @@ body {
     left: 0;
     right: 0;
     height: 64px;
-    background: rgba(255, 255, 255, 0.8);
+    background: var(--card-bg);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     box-shadow: 0 1px 0 var(--border);
@@ -1437,9 +1412,170 @@ body {
     }
 }
 
+/* ==================== MOBILE APP UI (PWA) ==================== */
 
+.bottom-nav {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: var(--card-bg);
+    box-shadow: 0 -2px 15px rgba(0, 0, 0, 0.05);
+    z-index: 9999;
+    padding-bottom: env(safe-area-inset-bottom);
+    border-top: 1px solid var(--border);
+}
+
+.bottom-nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 0;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.bottom-nav-item i {
+    font-size: 20px;
+    margin-bottom: 2px;
+}
+
+.bottom-nav-item span {
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.bottom-nav-item.active {
+    color: var(--primary);
+}
+
+.bottom-sheet-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 10000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.bottom-sheet-overlay.active {
+    display: block;
+    opacity: 1;
+}
+
+.bottom-sheet {
+    position: fixed;
+    bottom: -100%;
+    left: 0;
+    width: 100%;
+    background: var(--card-bg);
+    border-radius: 20px 20px 0 0;
+    padding: 20px 20px 40px 20px;
+    z-index: 10001;
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.15);
+    transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bottom-sheet.active {
+    bottom: 0;
+}
+
+.sheet-handle {
+    width: 40px;
+    height: 4px;
+    background: #cbd5e1;
+    border-radius: 4px;
+    margin: 0 auto 15px auto;
+}
+
+.sheet-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.sheet-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.sheet-option {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    background: var(--background);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.sheet-option:active {
+    background: var(--border);
+}
+
+.sheet-option i {
+    font-size: 22px;
+    margin-right: 15px;
+    width: 24px;
+    text-align: center;
+}
+
+.sheet-option-text {
+    font-size: 15px;
+    font-weight: 600;
+    color: #334155;
+}
+
+.mobile-fab {
+    display: none;
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
+    border: none;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+    font-size: 24px;
+    z-index: 9998;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;
+}
+.mobile-fab:active {
+    transform: scale(0.9);
+}
 
 @media (max-width: 768px) {
+
+    .main-content {
+        margin-left: 0;
+        padding-top: 70px;
+        padding-bottom: 80px; /* Space for bottom nav */
+    }
+
+    .sidebar-toggle {
+        display: none !important; /* Hide hamburger menu */
+    }
+
+    .bottom-nav {
+        display: flex;
+    }
+
+    .mobile-fab {
+        display: flex;
+    }
     .auth-box {
         flex-direction: column-reverse;
         max-width: 100%;
@@ -1558,7 +1694,7 @@ body {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     margin-bottom: 1rem;
-    background: white;
+    background: var(--card-bg);
     border-radius: 12px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
@@ -1576,7 +1712,7 @@ body.dark-theme {
     --background: #090d16;
     --card-bg: #111827;
     --sidebar-bg: #0a0f1d;
-    --text-main: #f1f5f9;
+    --text-main: var(--background);
     --text-muted: #94a3b8;
     --border: #1f2937;
     --shadow: 0 1px 3px 0 rgba(0,0,0,0.4), 0 1px 2px -1px rgba(0,0,0,0.3);
@@ -1861,7 +1997,7 @@ textarea:focus {
     outline: none !important;
     border-color: var(--primary) !important;
     box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12), 0 1px 3px rgba(0,0,0,0.06) !important;
-    background: #fafbff !important;
+    background: var(--card-bg) !important;
 }
 
 /* ── Input hover effect ── */
@@ -1892,4 +2028,4 @@ textarea:not(:focus):hover {
 }
 .btn-delete-doc:active {
     transform: scale(0.95);
-}
+}

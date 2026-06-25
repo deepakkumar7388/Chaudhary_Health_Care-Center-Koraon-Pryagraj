@@ -505,28 +505,60 @@ function updateUserInfo() {
 
         const hasBillingAccess = (role === 'developer' || role === 'admin') || (currentUser.billingAccess === true);
 
-        document.querySelectorAll('.menu-item').forEach(item => {
-            const moduleAttr = item.getAttribute('onclick');
+        // Apply access to Sidebar menu items, Bottom Nav items, Bottom Sheet options, and Hub/Action cards
+        const uiElements = document.querySelectorAll('.menu-item, .bottom-nav-item, .sheet-option, .action-card, [data-role-access]');
+        uiElements.forEach(item => {
+            const moduleAttr = item.getAttribute('onclick') || item.getAttribute('data-role-access');
             if (!moduleAttr) return;
-            const module = moduleAttr.match(/'([^']+)'/)?.[1];
+            
+            // Extract module name from onclick="showModule('name')" or data-role-access="name"
+            let module = item.getAttribute('data-role-access');
+            if (!module) {
+                module = moduleAttr.match(/showModule\('([^']+)'\)/)?.[1];
+            }
+            if (!module && moduleAttr.includes('logout()')) module = 'profile-hub';
+            if (!module && moduleAttr.includes('openProfileModal()')) module = 'profile-hub';
             if (!module) return;
+            
+            // Map hub modules to base permissions
+            let checkModule = module;
+            if (module === 'patient-hub') checkModule = 'patients';
+            if (module === 'billing-hub') checkModule = 'billing';
+            if (module === 'profile-hub') checkModule = 'users';
 
             let isVisible = false;
             switch (role) {
                 case 'developer': isVisible = true; break; // Developer sees EVERYTHING
-                case 'admin': isVisible = ['dashboard', 'patients', 'add-patient', 'daily-notes', 'billing', 'discharge', 'users', 'reports', 'settings', 'patient-record'].includes(module); break; // Admin: Has restricted Settings
-                case 'doctor': isVisible = ['dashboard', 'patients', 'add-patient', 'daily-notes', 'discharge', 'patient-record'].includes(module); break;
-                case 'staff': isVisible = ['dashboard', 'patients', 'add-patient', 'daily-notes'].includes(module); break;
-                case 'receptionist': isVisible = ['dashboard', 'patients', 'add-patient'].includes(module); break;
-                default: isVisible = ['dashboard'].includes(module);
+                case 'admin': isVisible = ['dashboard', 'patients', 'add-patient', 'daily-notes', 'billing', 'discharge', 'users', 'reports', 'settings', 'patient-record'].includes(checkModule); break;
+                case 'doctor': isVisible = ['dashboard', 'patients', 'add-patient', 'daily-notes', 'discharge', 'patient-record'].includes(checkModule); break;
+                case 'staff': isVisible = ['dashboard', 'patients', 'add-patient', 'daily-notes'].includes(checkModule); break;
+                case 'receptionist': isVisible = ['dashboard', 'patients', 'add-patient'].includes(checkModule); break;
+                default: isVisible = ['dashboard'].includes(checkModule);
             }
 
             // Billing module: only show if user has billing access
-            if (module === 'billing') {
+            if (checkModule === 'billing') {
                 isVisible = hasBillingAccess;
             }
 
-            item.style.display = isVisible ? 'flex' : 'none';
+            // Special case: Profile Sheet should always be visible so they can Logout
+            if (module === 'profile-hub') {
+                isVisible = true;
+            }
+
+            // Set display based on element type to prevent layout breakage
+            if (!isVisible) {
+                item.style.display = 'none';
+            } else {
+                // Restore original display type
+                if (item.classList.contains('col-12')) {
+                    item.style.display = 'block';
+                } else if (item.classList.contains('action-card')) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'flex'; // menu-items, bottom-nav-items use flex
+                }
+            }
         });
 
         updateSidebarStats();
@@ -592,7 +624,7 @@ function updateSidebarStats() {
         if (elDoc) elDoc.textContent = doctors.toLocaleString();
 
         const role = currentUser?.role || 'admin';
-        if (role === 'admin') {
+        if (role === 'admin' || role === 'developer') {
             if (elRev) elRev.textContent = `${curr}${totalRevenue.toLocaleString()}`;
         } else {
             if (elRev) elRev.textContent = 'RESTRICTED';
@@ -622,9 +654,13 @@ function showModule(moduleName, preventHashUpdate = false) {
         permissions[role] = [...(permissions[role] || []), 'billing'];
     }
 
-    const allowedModules = permissions[role] || ['dashboard'];
+    let checkModule = moduleName;
+    if (moduleName === 'patient-hub') checkModule = 'patients';
+    if (moduleName === 'billing-hub') checkModule = 'billing';
+    if (moduleName === 'profile-hub') checkModule = 'dashboard'; // Anyone can view profile hub
 
-    if (!allowedModules.includes(moduleName)) {
+    const allowedModules = permissions[role] || ['dashboard'];
+    if (moduleName !== 'profile-hub' && !allowedModules.includes(checkModule)) {
         showNotification('Access Denied: You do not have permission for this module.', 'error', 'Security');
         // Revert hash if it differs from currentModule to keep URL in sync
         if (window.location.hash.substring(1) !== currentModule) {
@@ -677,6 +713,8 @@ function showModule(moduleName, preventHashUpdate = false) {
     });
 
     document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+    document.querySelectorAll('.bottom-nav-item').forEach(item => item.classList.remove('active'));
+
     const activeItem = document.querySelector(`.menu-item[onclick*="${moduleName}"]`);
     if (activeItem) {
         activeItem.classList.add('active');
@@ -684,6 +722,38 @@ function showModule(moduleName, preventHashUpdate = false) {
         if (activeIconEl && iconMap[moduleName]) {
             activeIconEl.className = `bi ${iconMap[moduleName].fill}`;
         }
+    }
+
+    // Determine which bottom nav item should be active based on the module
+    let bottomNavTarget = moduleName;
+    if (['patients', 'add-patient', 'daily-notes'].includes(moduleName)) {
+        bottomNavTarget = 'patient-hub';
+    } else if (['billing', 'discharge'].includes(moduleName)) {
+        bottomNavTarget = 'billing-hub';
+    } else if (['settings', 'users', 'reports', 'patient-record'].includes(moduleName)) {
+        bottomNavTarget = 'profile-hub';
+    }
+
+    const activeBottomItem = document.querySelector(`.bottom-nav-item[onclick*="${bottomNavTarget}"]`);
+    if (activeBottomItem) {
+        activeBottomItem.classList.add('active');
+        const iconEl = activeBottomItem.querySelector('i');
+        // If it's a hub, we might not have a direct iconMap fill for 'patient-hub', but let's try
+        const hubIconMap = {
+            'dashboard': { fill: 'bi-house-fill' },
+            'patient-hub': { fill: 'bi-people-fill' },
+            'billing-hub': { fill: 'bi-credit-card-fill' },
+            'profile-hub': { fill: 'bi-person-circle' } // Assume person-circle is filled enough
+        };
+        if (iconEl && hubIconMap[bottomNavTarget]) {
+            iconEl.className = `bi ${hubIconMap[bottomNavTarget].fill}`;
+        }
+    }
+
+    document.querySelectorAll('.module-content').forEach(m => m.classList.remove('active'));
+    const targetModule = document.getElementById(`module-${moduleName}`);
+    if (targetModule) {
+        targetModule.classList.add('active');
     }
 
     // Close sidebar on mobile after selecting a module
@@ -799,11 +869,13 @@ function loadModule(moduleName) {
 
 // ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', function () {
-    // Register Service Worker for PWA compatibility on first load (unconditional)
+    // Unregister any existing Service Workers to remove PWA completely
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js')
-            .then(reg => console.log('PWA Service Worker registered with scope:', reg.scope))
-            .catch(err => console.error('PWA Service Worker registration failed:', err));
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            for(let registration of registrations) {
+                registration.unregister();
+            }
+        });
     }
 
     if (localStorage.getItem('sidebarCollapsed') === 'true' && window.innerWidth > 992) {
@@ -914,7 +986,32 @@ function migratePatientIds() {
 // ==================== MOBILE UI FUNCTIONS ====================
 function toggleSidebar() {
     const sidebar = document.querySelector('.sidebar');
-    sidebar.classList.toggle('active');
+    if(sidebar) sidebar.classList.toggle('active');
+}
+
+function openBottomSheet(sheetId) {
+    document.getElementById('bottom-sheet-overlay').classList.add('active');
+    
+    // Close all other sheets first
+    document.querySelectorAll('.bottom-sheet').forEach(sheet => sheet.classList.remove('active'));
+    
+    // Open target sheet
+    document.getElementById(sheetId).classList.add('active');
+    
+    // Highlight the corresponding bottom nav item
+    document.querySelectorAll('.bottom-nav-item').forEach(item => item.classList.remove('active'));
+    const navItem = document.querySelector(`.bottom-nav-item[onclick="openBottomSheet('${sheetId}')"]`);
+    if (navItem) navItem.classList.add('active');
+}
+
+function closeBottomSheet() {
+    document.getElementById('bottom-sheet-overlay').classList.remove('active');
+    document.querySelectorAll('.bottom-sheet').forEach(sheet => sheet.classList.remove('active'));
+    
+    // Re-highlight the active module's nav item
+    document.querySelectorAll('.bottom-nav-item').forEach(item => item.classList.remove('active'));
+    const activeBottomItem = document.querySelector(`.bottom-nav-item[onclick*="${currentModule}"]`);
+    if (activeBottomItem) activeBottomItem.classList.add('active');
 }
 
 function toggleSidebarCollapse() {
@@ -1808,7 +1905,8 @@ async function initPushNotifications() {
         const messaging = firebase.messaging();
 
         // Register service worker if not already registered
-        const registration = await navigator.serviceWorker.register('sw.js');
+        const swUrl = `firebase-messaging-sw.js?projectId=${projectId}&messagingSenderId=${messagingSenderId}&appId=${appId}&apiKey=${apiKey}`;
+        const registration = await navigator.serviceWorker.register(swUrl);
         console.log('FCM Service Worker registered successfully:', registration);
 
         // Request permission
@@ -1818,10 +1916,13 @@ async function initPushNotifications() {
             return;
         }
 
+        // Wait for service worker to become active
+        const readyRegistration = await navigator.serviceWorker.ready;
+
         // Get token
         const token = await messaging.getToken({
             vapidKey: vapidKey,
-            serviceWorkerRegistration: registration
+            serviceWorkerRegistration: readyRegistration
         });
 
         if (token) {
@@ -1877,6 +1978,16 @@ window.addEventListener('hashchange', function () {
         showModule(hash, true);
     }
 });
+
+// Helper for UI Back buttons to maintain native history stack
+window.goBack = function(fallbackModule = 'dashboard') {
+    // If the history has enough states (more than just the initial load)
+    if (window.history.state !== null && window.history.length > 2) {
+        window.history.back();
+    } else {
+        showModule(fallbackModule);
+    }
+};
 
 // ==================== GLOBAL NETWORK INTERCEPTOR & STATUS LISTENERS ====================
 // 1. Live online/offline browser connection status listeners

@@ -253,7 +253,7 @@ function applyRoleBasedUI() {
     const medFormContainer = document.getElementById('medication-form-container');
     if (!medFormContainer) return;
 
-    if (currentUser && currentUser.role !== 'doctor' && currentUser.role !== 'admin') {
+    if (currentUser && currentUser.role !== 'doctor' && currentUser.role !== 'admin' && currentUser.role !== 'developer') {
         medFormContainer.style.display = 'none'; // Only doctors (and admin for demo) can prescribe
     } else {
         medFormContainer.style.display = 'block';

@@ -100,8 +100,8 @@ function renderDashboard() {
     moduleEl.innerHTML = `
         <style>
             .role-info-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-            .info-panel-card { background: var(--card-bg, #fff); border: 1px solid var(--border, #e2e8f0); border-radius: 12px; overflow: hidden; }
-            .info-panel-header { padding: 12px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #f1f5f9; }
+            .info-panel-card { background: var(--card-bg, #fff); border: 1px solid var(--border, var(--border)); border-radius: 12px; overflow: hidden; }
+            .info-panel-header { padding: 12px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--background); }
             .info-panel-header i { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; }
             .info-panel-header h4 { margin: 0; font-size: 13px; font-weight: 700; color: #1e293b; }
             .doctor-panel .info-panel-header i { background: #eef2ff; color: #6366f1; }
@@ -109,112 +109,147 @@ function renderDashboard() {
             .reception-panel .info-panel-header i { background: #fef3c7; color: #f59e0b; }
             .bed-panel .info-panel-header i { background: #fef2f2; color: #ef4444; }
             .info-panel-body { padding: 12px 16px; }
-            .info-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px dashed #f1f5f9; font-size: 12px; }
+            .info-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px dashed var(--background); font-size: 12px; }
             .info-row:last-child { border-bottom: none; }
             .info-label { color: #64748b; font-weight: 500; }
             .info-value { color: #1e293b; font-weight: 700; }
             .bed-occ-row { display: flex; align-items: center; padding: 4px 0; font-size: 11px; gap: 8px; }
             .bed-occ-label { color: #475569; font-weight: 600; min-width: 90px; }
-            .bed-occ-bar { flex: 1; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; }
+            .bed-occ-bar { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
             .bed-occ-fill { height: 100%; border-radius: 3px; }
             .bed-occ-count { color: #1e293b; font-weight: 700; font-size: 11px; min-width: 36px; text-align: right; }
             @media (max-width: 768px) { .role-info-panel { grid-template-columns: 1fr; } }
         </style>
 
-        <div class="dashboard-container">
-        <div class="welcome-card hero-section" style="
-                padding: 20px 24px;
-                background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark, #3730a3) 100%);
-                color: white;
-                border-radius: 14px;
-                margin-bottom: 20px;
-                box-shadow: 0 8px 24px rgba(79,70,229,0.25);
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 16px;
-                flex-wrap: wrap;
-            ">
-            <!-- Left: Hospital Info -->
-            <div style="display:flex; align-items:center; gap:14px; flex:1; min-width:0;">
-                <div style="
-                    width:48px; height:48px; flex-shrink:0;
-                    background: rgba(255,255,255,0.18);
-                    border-radius:12px;
-                    display:flex; align-items:center; justify-content:center;
-                    font-size:22px;
-                    backdrop-filter: blur(8px);
-                    border: 1px solid rgba(255,255,255,0.25);
-                ">🏥</div>
-                <div style="min-width:0;">
-                    <h1 style="margin:0; font-size:18px; font-weight:800; color:white; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                        Chaudhary Health Care Center
-                    </h1>
-                    <p style="margin:2px 0 0; font-size:11px; opacity:0.75; font-weight:500; letter-spacing:0.5px; text-transform:uppercase;">
-                        Koraon, Prayagraj &nbsp;·&nbsp; Hospital Management System
+        <!-- Unified Responsive Dashboard -->
+        <div class="dashboard-wrapper" style="padding-top: 10px;">
+            
+            <!-- Desktop Welcome Card (Hidden on Mobile) -->
+            <div class="welcome-card hero-section d-none d-md-flex" style="
+                    padding: 20px 24px;
+                    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark, #3730a3) 100%);
+                    color: white;
+                    border-radius: 14px;
+                    margin-bottom: 20px;
+                    box-shadow: 0 8px 24px rgba(79,70,229,0.25);
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 16px;
+                    flex-wrap: wrap;
+                ">
+                <!-- Left: Hospital Info -->
+                <div style="display:flex; align-items:center; gap:14px; flex:1; min-width:0;">
+                    <div style="
+                        width:48px; height:48px; flex-shrink:0;
+                        background: rgba(255,255,255,0.18);
+                        border-radius:12px;
+                        display:flex; align-items:center; justify-content:center;
+                        font-size:22px;
+                        backdrop-filter: blur(8px);
+                        border: 1px solid rgba(255,255,255,0.25);
+                    ">🏥</div>
+                    <div style="min-width:0;">
+                        <h1 style="margin:0; font-size:18px; font-weight:800; color:white; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                            Chaudhary Health Care Center
+                        </h1>
+                        <p style="margin:2px 0 0; font-size:11px; opacity:0.75; font-weight:500; letter-spacing:0.5px; text-transform:uppercase;">
+                            Koraon, Prayagraj &nbsp;·&nbsp; Hospital Management System
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Right: User greeting + date -->
+                <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px; flex-shrink:0;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <div style="
+                            background: rgba(255,255,255,0.15);
+                            border: 1px solid rgba(255,255,255,0.25);
+                            border-radius:20px;
+                            padding: 3px 10px;
+                            font-size:11px;
+                            font-weight:600;
+                            letter-spacing:0.3px;
+                            backdrop-filter:blur(6px);
+                        ">${roleSubtitle[role] || 'Home'}</div>
+                    </div>
+                    <p style="margin:0; font-size:13px; font-weight:700; color:white; opacity:0.95;">
+                        👋 ${currentUser?.name || 'User'}
+                    </p>
+                    <p style="margin:0; font-size:11px; opacity:0.65;">
+                        ${new Date().toLocaleDateString('en-IN', {weekday:'long', day:'numeric', month:'long', year:'numeric'})}
                     </p>
                 </div>
             </div>
 
-            <!-- Right: User greeting + date -->
-            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px; flex-shrink:0;">
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <div style="
-                        background: rgba(255,255,255,0.15);
-                        border: 1px solid rgba(255,255,255,0.25);
-                        border-radius:20px;
-                        padding: 3px 10px;
-                        font-size:11px;
-                        font-weight:600;
-                        letter-spacing:0.3px;
-                        backdrop-filter:blur(6px);
-                    ">${roleSubtitle[role] || 'Home'}</div>
-                </div>
-                <p style="margin:0; font-size:13px; font-weight:700; color:white; opacity:0.95;">
-                    👋 ${currentUser?.name || 'User'}
-                </p>
-                <p style="margin:0; font-size:11px; opacity:0.65;" id="dash-live-date">
-                    ${new Date().toLocaleDateString('en-IN', {weekday:'long', day:'numeric', month:'long', year:'numeric'})}
-                </p>
+            <!-- Mobile Greeting (Hidden on Desktop) -->
+            <div class="d-block d-md-none" style="padding: 10px 16px 0 16px;">
+                <h2 style="font-size: 20px; font-weight: 700; color: var(--text-main); margin: 0; padding-bottom: 8px;">Hi, ${currentUser?.name?.split(' ')[0] || 'User'} 👋</h2>
             </div>
-        </div>
-            
-            <div class="stats-grid" id="dashboard-metrics"></div>
 
+            <!-- Mobile Quick Actions Removed -->
+            
+            <div class="d-block d-md-none app-section-header mt-3">
+                <h3>Overview</h3>
+            </div>
+
+            <!-- Summary Stats Grid -->
+            <div class="stats-grid app-stats-grid" id="dashboard-metrics"></div>
+
+            <!-- Role Specific Info Panel -->
             ${roleInfoPanel[role] || ''}
             
+            <!-- Charts Section -->
             ${showCharts ? `
-            <div id="admin-charts-section" class="charts-grid">
-                <div class="report-card card" style="background:var(--card-bg,white); padding:15px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.04);">
-                    <h3 style="margin-bottom:10px; font-size:14px;"><i class="bi bi-graph-up-arrow" style="color:#3498db;"></i> Patient Registrations</h3>
-                    <div style="height:200px; position:relative;"><canvas id="dashPatientChart"></canvas></div>
+            <div class="d-block d-md-none app-section-header mt-4">
+                <h3>Analytics</h3>
+            </div>
+            <div id="admin-charts-section" class="charts-container-responsive">
+                <div class="report-card card app-chart-card">
+                    <h3 class="d-none d-md-block" style="margin-bottom:10px; font-size:14px;"><i class="bi bi-graph-up-arrow" style="color:#3498db;"></i> Patient Registrations</h3>
+                    <div class="app-chart-header d-flex d-md-none">
+                        <div class="icon-box" style="background:#e0f2fe; color:#0ea5e9;"><i class="bi bi-graph-up"></i></div>
+                        <h4>Registrations</h4>
+                    </div>
+                    <div style="height:200px; width:100%; position:relative;"><canvas id="dashPatientChart"></canvas></div>
                 </div>
-                <div class="report-card card" style="background:var(--card-bg,white); padding:15px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.04);">
-                    <h3 style="margin-bottom:10px; font-size:14px;"><i class="bi bi-bar-chart" style="color:#2ecc71;"></i> Revenue Streams</h3>
-                    <div style="height:200px; position:relative;"><canvas id="dashRevenueChart"></canvas></div>
+                <div class="report-card card app-chart-card">
+                    <h3 class="d-none d-md-block" style="margin-bottom:10px; font-size:14px;"><i class="bi bi-bar-chart" style="color:#2ecc71;"></i> Revenue Streams</h3>
+                    <div class="app-chart-header d-flex d-md-none">
+                        <div class="icon-box" style="background:#ecfdf5; color:#10b981;"><i class="bi bi-cash-stack"></i></div>
+                        <h4>Revenue</h4>
+                    </div>
+                    <div style="height:200px; width:100%; position:relative;"><canvas id="dashRevenueChart"></canvas></div>
                 </div>
-                <div class="report-card card" style="background:var(--card-bg,white); padding:15px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.04);">
-                    <h3 style="margin-bottom:10px; font-size:14px;"><i class="bi bi-pie-chart" style="color:#f1c40f;"></i> Payment Status</h3>
-                    <div style="height:200px; position:relative;"><canvas id="dashPaymentChart"></canvas></div>
+                <div class="report-card card app-chart-card">
+                    <h3 class="d-none d-md-block" style="margin-bottom:10px; font-size:14px;"><i class="bi bi-pie-chart" style="color:#f1c40f;"></i> Payment Status</h3>
+                    <div class="app-chart-header d-flex d-md-none">
+                        <div class="icon-box" style="background:#fef3c7; color:#f59e0b;"><i class="bi bi-pie-chart"></i></div>
+                        <h4>Payments</h4>
+                    </div>
+                    <div style="height:200px; width:100%; position:relative;"><canvas id="dashPaymentChart"></canvas></div>
                 </div>
             </div>` : ''}
             
-            <div class="dashboard-lower">
-                <div class="recent-activity">
-                    <h3 style="margin-bottom:12px; font-size:14px; border-bottom:1px solid #eee; padding-bottom:8px;">
-                        <i class="bi bi-clock-history" style="color:#8b5cf6;"></i> ${role === 'doctor' ? "Today's Activity" : "Recent Activity"}
-                    </h3>
-                    <div class="activity-list" id="recent-activity-list" style="max-height: 220px; overflow-y: auto;">
+            <!-- Lower Section (Desktop layout) / Activity List (Mobile) -->
+            <div class="dashboard-lower mt-4">
+                <div class="recent-activity app-activity-list-container">
+                    <div class="app-section-header px-0 px-md-3">
+                        <h3 style="font-size:14px; font-weight:700;">
+                            <i class="bi bi-clock-history" style="color:#8b5cf6;"></i> ${role === 'doctor' ? "Today's Activity" : "Recent Activity"}
+                        </h3>
+                        <span class="d-block d-md-none" style="font-size:12px; color:var(--primary); cursor:pointer;" onclick="showModule('patients')">View All</span>
+                    </div>
+                    <div class="activity-list app-activity-list" id="recent-activity-list" style="max-height: 220px; overflow-y: auto;">
                         <div style="text-align:center; padding:15px; color:#94a3b8; font-size:12px;">Loading...</div>
                     </div>
                 </div>
                 
-                <div class="quick-actions">
+                <div class="quick-actions d-none d-md-block">
                     <h3 style="margin-bottom:12px; font-size:14px; border-bottom:1px solid #eee; padding-bottom:8px;">
                         <i class="bi bi-lightning-charge" style="color:#f59e0b;"></i> Quick Actions
                     </h3>
-                    <div class="action-buttons">
-                        ${role === 'admin' ? `
+                    <div class="action-buttons" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                        ${role === 'admin' || role === 'developer' ? `
                         <button class="action-btn" onclick="showModule('add-patient')"><i class="bi bi-person-plus"></i><br>Add Patient</button>
                         <button class="action-btn" onclick="showModule('billing')"><i class="bi bi-receipt"></i><br>Billing</button>
                         <button class="action-btn" onclick="showModule('discharge')"><i class="bi bi-box-arrow-right"></i><br>Discharge</button>
@@ -369,7 +404,7 @@ async function updateDashboardStats() {
     let totalPendingAmt = 0;
 
     const role = currentUser?.role || 'admin';
-    const showFinancials = (role === 'admin' || role === 'doctor');
+    const showFinancials = (role === 'admin' || role === 'developer' || role === 'doctor');
 
     let allActivities = [];
 
@@ -441,7 +476,7 @@ async function updateDashboardStats() {
 
 
     // 1. Populate Metrics Cards
-    document.getElementById('dashboard-metrics').innerHTML = `
+    const metricsHtml = `
         <div class="stat-card">
             <i class="bi bi-people"></i>
             <div>
@@ -486,6 +521,8 @@ async function updateDashboardStats() {
             </div>
         </div>` : ''}
     `;
+    const mNode = document.getElementById('dashboard-metrics');
+    if(mNode) mNode.innerHTML = metricsHtml;
 
     // Global Stats Update for Sidebar if exists
     let stPat = document.getElementById('stat-patients');
@@ -500,20 +537,22 @@ async function updateDashboardStats() {
     // 2. Render Activities
     allActivities.sort((a, b) => b.time - a.time); // Descending
     const actList = document.getElementById('recent-activity-list');
-    if (allActivities.length === 0) {
-        actList.innerHTML = '<div style="text-align:center; padding:20px; color:#94a3b8; font-size:12px;">No recent activity</div>';
-    } else {
-        actList.innerHTML = allActivities.slice(0, 6).map(act => `
-            <div class="activity-item">
-                <div class="activity-icon" style="background:${act.color}15; color:${act.color};">
-                    <i class="bi ${act.icon}"></i>
+    if (actList) {
+        if (allActivities.length === 0) {
+            actList.innerHTML = '<div style="text-align:center; padding:20px; color:#94a3b8; font-size:12px;">No recent activity</div>';
+        } else {
+            actList.innerHTML = allActivities.slice(0, 6).map(act => `
+                <div class="activity-item">
+                    <div class="activity-icon" style="background:${act.color}15; color:${act.color};">
+                        <i class="bi ${act.icon}"></i>
+                    </div>
+                    <div class="activity-info">
+                        <div class="activity-text">${act.text}</div>
+                        <div class="activity-time">${new Date(act.time).toLocaleString()}</div>
+                    </div>
                 </div>
-                <div class="activity-info">
-                    <div class="activity-text">${act.text}</div>
-                    <div class="activity-time">${new Date(act.time).toLocaleString()}</div>
-                </div>
-            </div>
-        `).join('');
+            `).join('');
+        }
     }
 
     // 3. Render Charts — wrapped in rAF+timeout to ensure canvas is painted in DOM
@@ -525,7 +564,7 @@ function renderDashboardCharts(totalPatients, totalRevenue, totalPendingAmt, pai
     const curr = window.currencySymbol || '₹';
     const isDark = document.body.classList.contains('dark-theme');
     const labelColor = isDark ? '#cbd5e1' : '#475569';
-    const gridColor = isDark ? '#1f2937' : '#f1f5f9';
+    const gridColor = isDark ? '#1f2937' : 'var(--background)';
     const tickColor = isDark ? '#94a3b8' : '#64748b';
     const pieBorderColor = isDark ? '#111827' : '#ffffff';
 
@@ -554,24 +593,23 @@ function renderDashboardCharts(totalPatients, totalRevenue, totalPendingAmt, pai
     let ipdGrps = {};
     let allDatesSet = new Set();
     
-    patients.forEach(p => {
-        let d = p.admission_date || p.createdAt || p.date || new Date().toISOString();
-        let short = d.split('T')[0];
-        allDatesSet.add(short);
-        
-        const type = p.patient_type || 'IPD';
-        if (type === 'OPD') {
-            opdGrps[short] = (opdGrps[short] || 0) + 1;
-        } else {
-            ipdGrps[short] = (ipdGrps[short] || 0) + 1;
-        }
-    });
+    if(patients && Array.isArray(patients)){
+        patients.forEach(p => {
+            let d = p.admission_date || p.createdAt || p.date || new Date().toISOString();
+            let short = d.split('T')[0];
+            allDatesSet.add(short);
+            
+            const type = p.patient_type || 'IPD';
+            if (type === 'OPD') {
+                opdGrps[short] = (opdGrps[short] || 0) + 1;
+            } else {
+                ipdGrps[short] = (ipdGrps[short] || 0) + 1;
+            }
+        });
+    }
     
     let sDates = Array.from(allDatesSet).sort();
-    // Filter to last 10 days to keep the chart clean if there are too many dates
-    if (sDates.length > 10) {
-        sDates = sDates.slice(-10);
-    }
+    if (sDates.length > 10) sDates = sDates.slice(-10);
     
     let opdData = sDates.map(d => opdGrps[d] || 0);
     let ipdData = sDates.map(d => ipdGrps[d] || 0);
@@ -595,40 +633,20 @@ function renderDashboardCharts(totalPatients, totalRevenue, totalPendingAmt, pai
                 labels: formattedDates,
                 datasets: [
                     {
-                        label: 'OPD Patients',
-                        data: opdData,
-                        borderColor: '#10b981', // emerald green for OPD
-                        backgroundColor: 'rgba(16, 185, 129, 0.05)',
-                        fill: true, tension: 0.4,
-                        pointBackgroundColor: '#10b981',
-                        pointRadius: 4,
-                        borderWidth: 2
+                        label: 'OPD Patients', data: opdData,
+                        borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.05)',
+                        fill: true, tension: 0.4, pointBackgroundColor: '#10b981', pointRadius: 4, borderWidth: 2
                     },
                     {
-                        label: 'IPD Patients',
-                        data: ipdData,
-                        borderColor: '#6366f1', // indigo for IPD
-                        backgroundColor: 'rgba(99, 102, 241, 0.05)',
-                        fill: true, tension: 0.4,
-                        pointBackgroundColor: '#6366f1',
-                        pointRadius: 4,
-                        borderWidth: 2
+                        label: 'IPD Patients', data: ipdData,
+                        borderColor: '#6366f1', backgroundColor: 'rgba(99, 102, 241, 0.05)',
+                        fill: true, tension: 0.4, pointBackgroundColor: '#6366f1', pointRadius: 4, borderWidth: 2
                     }
                 ]
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
-                plugins: { 
-                    legend: { 
-                        display: true,
-                        position: 'top',
-                        labels: {
-                            boxWidth: 12,
-                            color: labelColor,
-                            font: { size: 10, weight: '600' }
-                        }
-                    } 
-                },
+                plugins: { legend: { display: true, position: 'top', labels: { boxWidth: 12, color: labelColor, font: { size: 10, weight: '600' } } } },
                 scales: {
                     y: { beginAtZero: true, ticks: { color: tickColor, stepSize: 1, font: { size: 11 } }, grid: { color: gridColor } },
                     x: { ticks: { color: tickColor, font: { size: 10 } }, grid: { display: false } }
@@ -637,7 +655,6 @@ function renderDashboardCharts(totalPatients, totalRevenue, totalPendingAmt, pai
         });
     }
 
-    // Revenue Bar Chart
     let ctx2 = document.getElementById('dashRevenueChart')?.getContext('2d');
     if (ctx2) {
         dashCharts['rev'] = new Chart(ctx2, {
@@ -645,24 +662,13 @@ function renderDashboardCharts(totalPatients, totalRevenue, totalPendingAmt, pai
             data: {
                 labels: ['Collected', 'Pending'],
                 datasets: [{
-                    label: `Amount (${curr})`,
-                    data: [totalRevenue, totalPendingAmt],
-                    backgroundColor: ['#10b981', '#ef4444'],
-                    borderRadius: 6,
-                    borderSkipped: false,
-                    barThickness: 40
+                    label: `Amount (${curr})`, data: [totalRevenue, totalPendingAmt],
+                    backgroundColor: ['#10b981', '#ef4444'], borderRadius: 6, borderSkipped: false, barThickness: 40
                 }]
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        callbacks: {
-                            label: (ctx) => ` ${curr}${ctx.raw.toLocaleString()}`
-                        }
-                    }
-                },
+                plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => ` ${curr}${ctx.raw.toLocaleString()}` } } },
                 scales: {
                     y: { beginAtZero: true, ticks: { color: tickColor, callback: v => `${curr}${v.toLocaleString()}`, font: { size: 10 } }, grid: { color: gridColor } },
                     x: { ticks: { color: tickColor, font: { size: 11, weight: '600' } }, grid: { display: false } }
@@ -671,7 +677,6 @@ function renderDashboardCharts(totalPatients, totalRevenue, totalPendingAmt, pai
         });
     }
 
-    // Payment Doughnut Chart
     let ctx3 = document.getElementById('dashPaymentChart')?.getContext('2d');
     if (ctx3) {
         dashCharts['pay'] = new Chart(ctx3, {
@@ -679,18 +684,13 @@ function renderDashboardCharts(totalPatients, totalRevenue, totalPendingAmt, pai
             data: {
                 labels: [`Paid (${paidBills})`, `Pending (${pendingBills})`],
                 datasets: [{
-                    data: [paidBills, pendingBills],
-                    backgroundColor: ['#10b981', '#ef4444'],
-                    borderWidth: 3, borderColor: pieBorderColor,
-                    hoverOffset: 6
+                    data: [paidBills, pendingBills], backgroundColor: ['#10b981', '#ef4444'],
+                    borderWidth: 3, borderColor: pieBorderColor, hoverOffset: 6
                 }]
             },
             options: {
-                responsive: true, maintainAspectRatio: false,
-                cutout: '55%',
-                plugins: {
-                    legend: { position: 'bottom', labels: { color: labelColor, padding: 12, font: { size: 11, weight: '600' } } }
-                }
+                responsive: true, maintainAspectRatio: false, cutout: '55%',
+                plugins: { legend: { position: 'bottom', labels: { color: labelColor, padding: 12, font: { size: 11, weight: '600' } } } }
             }
         });
     }
@@ -698,7 +698,7 @@ function renderDashboardCharts(totalPatients, totalRevenue, totalPendingAmt, pai
 
 // ==================== DEVELOPER TECH CONSOLE ====================
 async function renderDevTechConsole() {
-    const dashContainer = document.querySelector('.dashboard-container');
+    const dashContainer = document.querySelector('.dashboard-wrapper');
     if (!dashContainer) return;
 
     // Remove existing console if any

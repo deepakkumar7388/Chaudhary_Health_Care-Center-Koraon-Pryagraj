@@ -48,14 +48,7 @@
             console.warn('[FCM] Service workers not supported');
             return null;
         }
-        try {
-            const reg = await navigator.serviceWorker.register('sw.js');
-            console.log('[FCM] Service Worker registered:', reg.scope);
-            return reg;
-        } catch (err) {
-            console.error('[FCM] Service Worker registration failed:', err.message);
-            return null;
-        }
+        return null; // PWA completely removed
     }
 
     // ==================== REQUEST PERMISSION + GET TOKEN ====================
