@@ -14,125 +14,124 @@ const CACHE_TTL = 5 * 60 * 1000; // Refresh cache every 5 minutes
  * Settings are fetched from DB only once every 5 minutes.
  */
 async function getTransporter() {
-    const now = Date.now();
+  const now = Date.now();
 
-    // Return cached transporter if still valid
-    if (cachedTransporter && (now - cacheTimestamp) < CACHE_TTL) {
-        return { transporter: cachedTransporter, fromLine: cachedFromLine, emailApiUrl: cachedEmailApiUrl };
-    }
-
-    let host = process.env.EMAIL_HOST || 'smtp.gmail.com';
-    let port = parseInt(process.env.EMAIL_PORT) || 587;
-    let user = process.env.EMAIL_USER;
-    let pass = process.env.EMAIL_PASS;
-    let systemName = 'Chaudhary Health Care Center Koraon';
-    let emailApiUrl = process.env.EMAIL_API_URL || null;
-
-    try {
-        // Single bulk query instead of 5 separate queries
-        const settings = await Setting.find({
-            key: { $in: ['email-host', 'email-port', 'email-user', 'email-pass', 'hospital-name', 'email-api-url'] }
-        }).lean();
-
-        const settingsMap = {};
-        settings.forEach(s => { settingsMap[s.key] = s.value; });
-
-        if (settingsMap['email-host']) host = settingsMap['email-host'];
-        if (settingsMap['email-port']) port = parseInt(settingsMap['email-port']) || 587;
-        // Forced to use .env credentials for EMAIL_USER and EMAIL_PASS
-        // if (settingsMap['email-user']) user = settingsMap['email-user'];
-        // if (settingsMap['email-pass']) pass = settingsMap['email-pass'];
-        if (settingsMap['hospital-name']) systemName = settingsMap['hospital-name'];
-        // Disable Google Apps Script API so it strictly uses Nodemailer
-        // if (settingsMap['email-api-url']) emailApiUrl = settingsMap['email-api-url'];
-    } catch (err) {
-        console.error('Error fetching email settings from DB:', err.message);
-    }
-
-    if (!pass) {
-        console.warn('SMTP password is not configured. Email sending might fail.');
-    }
-
-    const secure = port === 465; // SSL for 465, STARTTLS for 587
-
-    cachedTransporter = nodemailer.createTransport({
-        host,
-        port,
-        secure,
-        auth: { user, pass },
-        tls: {
-            rejectUnauthorized: false, // Allow self-signed certs on cloud environments
-            minVersion: 'TLSv1.2'
-        },
-        // Force IPv4 because Render has issues with IPv6 SMTP to Gmail
-        family: 4,
-        // Connection pooling for faster subsequent sends
-        pool: true,
-        maxConnections: 3,
-        maxMessages: 50,
-        // Longer timeouts for Render cold-start environments
-        connectionTimeout: 15000,
-        greetingTimeout: 15000,
-        socketTimeout: 30000
-    });
-
-    cachedFromLine = `"${systemName}" <${user}>`;
-    cachedEmailApiUrl = emailApiUrl;
-    cacheTimestamp = now;
-
-    // Verify connection on first creation (non-blocking)
-    if (!cachedEmailApiUrl) {
-        cachedTransporter.verify().then(() => {
-            console.log('✅ SMTP Connection verified successfully');
-        }).catch(err => {
-            console.warn('⚠️ SMTP Connection verification failed:', err.message);
-        });
-    }
-
+  // Return cached transporter if still valid
+  if (cachedTransporter && (now - cacheTimestamp) < CACHE_TTL) {
     return { transporter: cachedTransporter, fromLine: cachedFromLine, emailApiUrl: cachedEmailApiUrl };
+  }
+
+  let host = process.env.EMAIL_HOST || 'smtp.gmail.com';
+  let port = parseInt(process.env.EMAIL_PORT) || 587;
+  let user = process.env.EMAIL_USER;
+  let pass = process.env.EMAIL_PASS;
+  let systemName = 'Chaudhary Health Care Center Koraon';
+  let emailApiUrl = process.env.EMAIL_API_URL || null;
+
+  try {
+    // Single bulk query instead of 5 separate queries
+    const settings = await Setting.find({
+      key: { $in: ['email-host', 'email-port', 'email-user', 'email-pass', 'hospital-name', 'email-api-url'] }
+    }).lean();
+
+    const settingsMap = {};
+    settings.forEach(s => { settingsMap[s.key] = s.value; });
+
+    if (settingsMap['email-host']) host = settingsMap['email-host'];
+    if (settingsMap['email-port']) port = parseInt(settingsMap['email-port']) || 587;
+    // Forced to use .env credentials for EMAIL_USER and EMAIL_PASS
+    // if (settingsMap['email-user']) user = settingsMap['email-user'];
+    // if (settingsMap['email-pass']) pass = settingsMap['email-pass'];
+    if (settingsMap['hospital-name']) systemName = settingsMap['hospital-name'];
+    if (settingsMap['email-api-url']) emailApiUrl = settingsMap['email-api-url'];
+  } catch (err) {
+    console.error('Error fetching email settings from DB:', err.message);
+  }
+
+  if (!pass) {
+    console.warn('SMTP password is not configured. Email sending might fail.');
+  }
+
+  const secure = port === 465; // SSL for 465, STARTTLS for 587
+
+  cachedTransporter = nodemailer.createTransport({
+    host,
+    port,
+    secure,
+    auth: { user, pass },
+    tls: {
+      rejectUnauthorized: false, // Allow self-signed certs on cloud environments
+      minVersion: 'TLSv1.2'
+    },
+    // Force IPv4 because Render has issues with IPv6 SMTP to Gmail
+    family: 4,
+    // Connection pooling for faster subsequent sends
+    pool: true,
+    maxConnections: 3,
+    maxMessages: 50,
+    // Longer timeouts for Render cold-start environments
+    connectionTimeout: 15000,
+    greetingTimeout: 15000,
+    socketTimeout: 30000
+  });
+
+  cachedFromLine = `"${systemName}" <${user}>`;
+  cachedEmailApiUrl = emailApiUrl;
+  cacheTimestamp = now;
+
+  // Verify connection on first creation (non-blocking)
+  if (!cachedEmailApiUrl) {
+    cachedTransporter.verify().then(() => {
+      console.log('✅ SMTP Connection verified successfully');
+    }).catch(err => {
+      console.warn('⚠️ SMTP Connection verification failed:', err.message);
+    });
+  }
+
+  return { transporter: cachedTransporter, fromLine: cachedFromLine, emailApiUrl: cachedEmailApiUrl };
 }
 
 /**
  * Send an email — now uses cached transporter (no DB hit on every call)
  */
 async function sendEmail({ to, subject, html }) {
-    const { transporter, fromLine, emailApiUrl } = await getTransporter();
+  const { transporter, fromLine, emailApiUrl } = await getTransporter();
 
-    if (emailApiUrl) {
-        console.log(`Sending email via HTTP API to ${to}`);
-        try {
-            const response = await fetch(emailApiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ to, subject, html })
-            });
-            const data = await response.json();
-            if (!data.success) {
-                throw new Error(data.error || 'HTTP API Email Failed');
-            }
-            return data;
-        } catch (err) {
-            console.error('HTTP API Email send error:', err);
-            throw err;
-        }
+  if (emailApiUrl) {
+    console.log(`Sending email via HTTP API to ${to}`);
+    try {
+      const response = await fetch(emailApiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to, subject, html })
+      });
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(data.error || 'HTTP API Email Failed');
+      }
+      return data;
+    } catch (err) {
+      console.error('HTTP API Email send error:', err);
+      throw err;
     }
+  }
 
-    console.log(`Sending email via SMTP to ${to}`);
-    const mailOptions = {
-        from: fromLine,
-        to,
-        subject,
-        html
-    };
+  console.log(`Sending email via SMTP to ${to}`);
+  const mailOptions = {
+    from: fromLine,
+    to,
+    subject,
+    html
+  };
 
-    return transporter.sendMail(mailOptions);
+  return transporter.sendMail(mailOptions);
 }
 
 // ==================== SHARED EMAIL WRAPPER ====================
 // Clean, professional hospital-branded wrapper — no emojis, no gradients
 function wrapInBrandedTemplate(bodyContent, accentColor = '#1a56db') {
-    const year = new Date().getFullYear();
-    return `<!DOCTYPE html>
+  const year = new Date().getFullYear();
+  return `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Chaudhary Health Care Center</title></head>
 <body style="margin:0;padding:0;background-color:#f4f6f8;font-family:Arial,Helvetica,sans-serif;">
@@ -193,7 +192,7 @@ function wrapInBrandedTemplate(bodyContent, accentColor = '#1a56db') {
  * Send OTP Verification Email
  */
 async function sendOtpEmail(to, otp, userName) {
-    const body = `
+  const body = `
         <p style="margin:0 0 20px;font-size:15px;color:#111827;font-weight:bold;">Password Reset Request</p>
 
         <p style="margin:0 0 8px;font-size:14px;color:#374151;">Dear <strong>${userName}</strong>,</p>
@@ -228,21 +227,21 @@ async function sendOtpEmail(to, otp, userName) {
             If you did not request a password reset, you can safely ignore this email. Your account remains secure.
         </p>
     `;
-    return sendEmail({ to, subject: 'Password Reset Verification Code - Chaudhary Health Care Center', html: wrapInBrandedTemplate(body, '#059669') });
+  return sendEmail({ to, subject: 'Password Reset Verification Code - Chaudhary Health Care Center', html: wrapInBrandedTemplate(body, '#059669') });
 }
 
 /**
  * Send Welcome Email on Account Creation
  */
 async function sendWelcomeEmail(to, userName, role) {
-    const roleLabel = {
-        admin: 'Administrator',
-        doctor: 'Doctor',
-        staff: 'Staff / Nurse',
-        receptionist: 'Receptionist'
-    }[role] || role;
+  const roleLabel = {
+    admin: 'Administrator',
+    doctor: 'Doctor',
+    staff: 'Staff / Nurse',
+    receptionist: 'Receptionist'
+  }[role] || role;
 
-    const body = `
+  const body = `
         <p style="margin:0 0 20px;font-size:15px;color:#111827;font-weight:bold;">Account Successfully Created</p>
 
         <p style="margin:0 0 8px;font-size:14px;color:#374151;">Dear <strong>${userName}</strong>,</p>
@@ -310,7 +309,7 @@ async function sendWelcomeEmail(to, userName, role) {
           </tr>
         </table>
     `;
-    return sendEmail({ to, subject: 'Account Created - Chaudhary Health Care Center HMS', html: wrapInBrandedTemplate(body, '#1a56db') });
+  return sendEmail({ to, subject: 'Account Created - Chaudhary Health Care Center HMS', html: wrapInBrandedTemplate(body, '#1a56db') });
 }
 
 
@@ -318,7 +317,7 @@ async function sendWelcomeEmail(to, userName, role) {
  * Send Admission Email to Patient/Guardian
  */
 async function sendAdmissionEmail(to, patientData) {
-    const body = `
+  const body = `
         <p style="margin:0 0 20px;font-size:15px;color:#111827;font-weight:bold;">Patient Admission Confirmation</p>
 
         <p style="margin:0 0 8px;font-size:14px;color:#374151;">Dear <strong>${patientData.guardian_name || 'Guardian'}</strong>,</p>
@@ -357,14 +356,14 @@ async function sendAdmissionEmail(to, patientData) {
             please contact the reception desk at the hospital.
         </p>
     `;
-    return sendEmail({ to, subject: `Admission Confirmation - ${patientData.name} | Chaudhary Health Care Center`, html: wrapInBrandedTemplate(body, '#1a56db') });
+  return sendEmail({ to, subject: `Admission Confirmation - ${patientData.name} | Chaudhary Health Care Center`, html: wrapInBrandedTemplate(body, '#1a56db') });
 }
 
 /**
  * Send Discharge Email
  */
 async function sendDischargeEmail(to, patientData, summary) {
-    const body = `
+  const body = `
         <p style="margin:0 0 20px;font-size:15px;color:#111827;font-weight:bold;">Patient Discharge Summary</p>
 
         <p style="margin:0 0 8px;font-size:14px;color:#374151;">Dear <strong>${patientData.guardian_name || 'Guardian'}</strong>,</p>
@@ -410,16 +409,16 @@ async function sendDischargeEmail(to, patientData, summary) {
           </td></tr>
         </table>
     `;
-    return sendEmail({ to, subject: `Discharge Summary - ${patientData.name} | Chaudhary Health Care Center`, html: wrapInBrandedTemplate(body, '#dc2626') });
+  return sendEmail({ to, subject: `Discharge Summary - ${patientData.name} | Chaudhary Health Care Center`, html: wrapInBrandedTemplate(body, '#dc2626') });
 }
 
 /**
  * Send security alert email for new logins
  */
 async function sendSecurityAlertEmail(to, name, ipAddress, userAgent) {
-    const time = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', hour12: true });
-    
-    const body = `
+  const time = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', hour12: true });
+
+  const body = `
         <div style="background-color:#fee2e2; padding:15px; border-left:4px solid #ef4444; border-radius:4px; margin-bottom:20px;">
             <h2 style="color:#b91c1c; margin:0 0 10px 0; font-size:18px;">⚠️ Security Alert: New Login</h2>
             <p style="margin:0; color:#7f1d1d; font-size:14px;">We noticed a new login to your account from a new device or browser.</p>
@@ -448,32 +447,32 @@ async function sendSecurityAlertEmail(to, name, ipAddress, userAgent) {
             <strong>If this wasn't you:</strong> Please log in immediately and change your password, or contact your system administrator.
         </p>
     `;
-    
-    return sendEmail({ 
-        to, 
-        subject: `Security Alert: New Login - Chaudhary Health Care Center`, 
-        html: wrapInBrandedTemplate(body, '#ef4444') 
-    });
+
+  return sendEmail({
+    to,
+    subject: `Security Alert: New Login - Chaudhary Health Care Center`,
+    html: wrapInBrandedTemplate(body, '#ef4444')
+  });
 }
 
 /**
  * Force refresh the cached transporter (useful when settings change from admin panel)
  */
 function clearTransporterCache() {
-    cachedTransporter = null;
-    cachedFromLine = null;
-    cachedEmailApiUrl = null;
-    cacheTimestamp = 0;
-    console.log('SMTP transporter cache cleared.');
+  cachedTransporter = null;
+  cachedFromLine = null;
+  cachedEmailApiUrl = null;
+  cacheTimestamp = 0;
+  console.log('SMTP transporter cache cleared.');
 }
 
 module.exports = {
-    sendEmail,
-    sendOtpEmail,
-    sendWelcomeEmail,
-    sendAdmissionEmail,
-    sendDischargeEmail,
-    sendSecurityAlertEmail,
-    getTransporter,
-    clearTransporterCache
+  sendEmail,
+  sendOtpEmail,
+  sendWelcomeEmail,
+  sendAdmissionEmail,
+  sendDischargeEmail,
+  sendSecurityAlertEmail,
+  getTransporter,
+  clearTransporterCache
 };
