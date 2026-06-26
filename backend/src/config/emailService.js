@@ -43,7 +43,8 @@ async function getTransporter() {
         // if (settingsMap['email-user']) user = settingsMap['email-user'];
         // if (settingsMap['email-pass']) pass = settingsMap['email-pass'];
         if (settingsMap['hospital-name']) systemName = settingsMap['hospital-name'];
-        if (settingsMap['email-api-url']) emailApiUrl = settingsMap['email-api-url'];
+        // Disable Google Apps Script API so it strictly uses Nodemailer
+        // if (settingsMap['email-api-url']) emailApiUrl = settingsMap['email-api-url'];
     } catch (err) {
         console.error('Error fetching email settings from DB:', err.message);
     }
