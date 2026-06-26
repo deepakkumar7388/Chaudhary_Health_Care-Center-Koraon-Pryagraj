@@ -35,11 +35,74 @@ async function initFirebaseAuth() {
 }
 
 // Call init when script loads
-document.addEventListener('DOMContentLoaded', () => {
-    initFirebaseAuth();
-    if (sessionStorage.getItem('token')) {
-        switchToApp();
+// ==================== SPLASH SCREEN & SESSION INIT ====================
+function hideSplashScreen() {
+    const splash = document.getElementById('splash-screen');
+    if (splash) {
+        splash.style.opacity = '0';
+        splash.style.visibility = 'hidden';
+        setTimeout(() => { splash.style.display = 'none'; }, 500);
     }
+}
+
+function showAuthScreen() {
+    const authContainer = document.getElementById('auth-container');
+    if (authContainer) {
+        authContainer.style.display = 'flex';
+        authContainer.style.opacity = '0';
+        authContainer.style.transition = 'opacity 0.4s ease';
+        setTimeout(() => { authContainer.style.opacity = '1'; }, 50);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    initFirebaseAuth();
+
+    const splashStartTime = Date.now();
+    const MIN_SPLASH_MS = 1800; // Minimum 1.8 seconds for native feel
+
+    let isLoggedIn = false;
+    try {
+        // Check if there's an active session via the HTTP-only cookie
+        const res = await fetch(`${API_BASE}auth/profile`, {
+            method: 'GET',
+            credentials: 'include'
+        });
+        if (res.ok) {
+            const data = await res.json();
+            if (data.success && data.user) {
+                // Valid session found — restore user state
+                currentUser = data.user;
+                // Also store in sessionStorage for compatibility
+                sessionStorage.setItem('user', JSON.stringify({
+                    id: data.user._id,
+                    username: data.user.username || data.user.email.split('@')[0],
+                    name: data.user.name,
+                    role: data.user.role,
+                    email: data.user.email,
+                    avatar: data.user.avatar,
+                    billingAccess: data.user.billingAccess
+                }));
+                isLoggedIn = true;
+            }
+        }
+    } catch (e) {
+        // Network error or server down — show login screen
+        console.warn('Session check failed:', e.message);
+    }
+
+    // Ensure splash screen shows for at least MIN_SPLASH_MS for native feel
+    const elapsed = Date.now() - splashStartTime;
+    const remaining = Math.max(0, MIN_SPLASH_MS - elapsed);
+
+    setTimeout(() => {
+        hideSplashScreen();
+        if (isLoggedIn) {
+            switchToApp(); // Go directly to dashboard — no login flash!
+        } else {
+            showAuthScreen(); // Show login form with Google SmartLock support
+        }
+    }, remaining);
 });
 
 async function signInWithGoogle() {

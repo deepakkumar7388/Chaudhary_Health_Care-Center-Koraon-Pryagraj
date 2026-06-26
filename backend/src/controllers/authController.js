@@ -165,7 +165,7 @@ exports.login = async (req, res) => {
         const token = jwt.sign(
             { userId: user._id, role: user.role },
             process.env.JWT_SECRET,
-            { expiresIn: '24h' }
+            { expiresIn: '30d' }
         );
 
         // Save current session token for Single Active Session
@@ -186,7 +186,7 @@ exports.login = async (req, res) => {
             httpOnly: true,                  // XSS se bachao
             secure: isProduction,            // HTTPS par hi chalega (production mein)
             sameSite: isProduction ? 'strict' : 'lax', // CSRF se bachao
-            maxAge: 24 * 60 * 60 * 1000     // 24 ghante
+            maxAge: 30 * 24 * 60 * 60 * 1000     // 30 din
         });
 
         res.status(200).json({
@@ -254,7 +254,7 @@ exports.googleLogin = async (req, res) => {
         const token = jwt.sign(
             { userId: user._id, role: user.role },
             process.env.JWT_SECRET,
-            { expiresIn: '24h' }
+            { expiresIn: '30d' }
         );
 
         // Save session
@@ -275,7 +275,7 @@ exports.googleLogin = async (req, res) => {
             httpOnly: true,
             secure: isProduction,
             sameSite: isProduction ? 'strict' : 'lax',
-            maxAge: 24 * 60 * 60 * 1000
+            maxAge: 30 * 24 * 60 * 60 * 1000
         });
 
         res.status(200).json({
@@ -443,7 +443,7 @@ exports.forgotPassword = async (req, res) => {
 
         // 🔒 SECURITY: Block developer account from public password reset
         if (user.role === 'developer') {
-            return res.status(403).json({ success: false, message: 'Password reset is disabled for Developer accounts for security reasons.' });
+            return res.status(403).json({ success: false, message: 'Can\'t reset the password this email.' });
         }
 
         // Generate 6-digit OTP
@@ -531,6 +531,19 @@ exports.updateFcmToken = async (req, res) => {
         }
 
         res.status(200).json({ success: true, message: 'FCM Token updated successfully' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// GET /profile — For Splash Screen session validation
+exports.getProfile = async (req, res) => {
+    try {
+        const user = await User.findById(req.userData.userId).select('-password -resetPasswordToken -resetPasswordExpires');
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+        res.status(200).json({ success: true, user });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

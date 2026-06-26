@@ -20,5 +20,6 @@ router.put('/users/:id', authenticate, upload.single('avatar'), authController.u
 router.delete('/users/:id', authenticate, checkRole(['admin']), authController.deleteUser);
 router.put('/users/:id/billing-access', authenticate, checkRole(['admin']), authController.toggleBillingAccess);
 router.post('/fcm-token', authenticate, authController.updateFcmToken);
+router.get('/profile', authenticate, authController.getProfile); // Session check for splash screen
 
 module.exports = router;
