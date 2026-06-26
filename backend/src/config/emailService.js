@@ -39,8 +39,9 @@ async function getTransporter() {
 
         if (settingsMap['email-host']) host = settingsMap['email-host'];
         if (settingsMap['email-port']) port = parseInt(settingsMap['email-port']) || 587;
-        if (settingsMap['email-user']) user = settingsMap['email-user'];
-        if (settingsMap['email-pass']) pass = settingsMap['email-pass'];
+        // Forced to use .env credentials for EMAIL_USER and EMAIL_PASS
+        // if (settingsMap['email-user']) user = settingsMap['email-user'];
+        // if (settingsMap['email-pass']) pass = settingsMap['email-pass'];
         if (settingsMap['hospital-name']) systemName = settingsMap['hospital-name'];
         if (settingsMap['email-api-url']) emailApiUrl = settingsMap['email-api-url'];
     } catch (err) {
