@@ -146,7 +146,7 @@ function wrapInBrandedTemplate(bodyContent, accentColor = '#1a56db') {
             <tr>
               <td>
                 <p style="margin:0;color:#ffffff;font-size:18px;font-weight:bold;line-height:1.3;">Chaudhary Health Care Center</p>
-                <p style="margin:4px 0 0;color:rgba(255,255,255,0.8);font-size:12px;">Gandhi Chauraha, Meja Road, Koraon, Prayagraj (U.P.)</p>
+                <p style="margin:4px 0 0;color:rgba(255,255,255,0.8);font-size:12px;">Gandhi Chauraha, Meja Wali Road, Koraon, Prayagraj (U.P.)</p>
               </td>
             </tr>
           </table>
