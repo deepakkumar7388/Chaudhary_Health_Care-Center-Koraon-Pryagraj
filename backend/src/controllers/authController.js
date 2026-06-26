@@ -441,6 +441,11 @@ exports.forgotPassword = async (req, res) => {
             return res.status(404).json({ success: false, message: 'No account found with this email address.' });
         }
 
+        // 🔒 SECURITY: Block developer account from public password reset
+        if (user.role === 'developer') {
+            return res.status(403).json({ success: false, message: 'Password reset is disabled for Developer accounts for security reasons.' });
+        }
+
         // Generate 6-digit OTP
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         user.resetPasswordToken = otp;
