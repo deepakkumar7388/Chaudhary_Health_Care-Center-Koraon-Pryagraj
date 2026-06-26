@@ -754,7 +754,7 @@ async function renderDevTechConsole() {
                         <span id="smtp-dot" style="width:8px; height:8px; border-radius:50%; background:#64748b; flex-shrink:0;"></span>
                         <span id="smtp-text" style="font-size:12px; color:#94a3b8; font-weight:600;">Checking...</span>
                     </div>
-                    <div style="margin-top:8px; font-size:10px; color:#475569;">dk21230621@gmail.com</div>
+                    <div style="margin-top:8px; font-size:10px; color:#475569;">chaudharyhealthcare198@gmail.com</div>
                 </div>
             </div>
 

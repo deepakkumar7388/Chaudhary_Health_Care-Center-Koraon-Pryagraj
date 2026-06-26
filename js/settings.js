@@ -21,7 +21,7 @@ async function renderSettings() {
                             Please contact <strong>Deepak Kumar</strong> for any configuration changes.
                         </p>
                     </div>
-                    <a href="mailto:dk21230621@gmail.com" style="background:var(--primary); color:white; padding:10px 20px; border-radius:10px; text-decoration:none; font-size:13px; font-weight:700; display:flex; align-items:center; gap:8px;">
+                    <a href="mailto:chaudharyhealthcare198@gmail.com" style="background:var(--primary); color:white; padding:10px 20px; border-radius:10px; text-decoration:none; font-size:13px; font-weight:700; display:flex; align-items:center; gap:8px;">
                         <i class="bi bi-envelope-fill"></i> Contact Developer
                     </a>
                 </div>

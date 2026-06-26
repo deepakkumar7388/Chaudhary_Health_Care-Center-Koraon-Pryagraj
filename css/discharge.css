@@ -105,8 +105,6 @@
 }
 
 
- > * { min-width: 0; }
-
 .discharge-form .form-actions {
     margin-top: 20px;
     display: flex;

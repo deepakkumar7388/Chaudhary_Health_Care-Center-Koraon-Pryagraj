@@ -153,9 +153,9 @@ exports.login = async (req, res) => {
             return res.status(401).json({ success: false, message: 'Invalid credentials' });
         }
 
-        // 🔒 SECURITY: Developer role is exclusively reserved for dk21230621@gmail.com
+        // 🔒 SECURITY: Developer role is exclusively reserved for chaudharyhealthcare198@gmail.com
         // If anyone else somehow has developer role in DB, they cannot login as developer
-        if (user.role === 'developer' && user.email !== 'dk21230621@gmail.com') {
+        if (user.role === 'developer' && user.email !== 'chaudharyhealthcare198@gmail.com') {
             return res.status(403).json({ success: false, message: 'Access denied. Contact system administrator.' });
         }
 

@@ -100,8 +100,6 @@
 
 /* Form Grid */
 
- > * { min-width: 0; }
-
 .form-group {
     display: flex;
     flex-direction: column;
@@ -165,8 +163,6 @@
         border-radius: 12px;
     }
 
-    
- > * { min-width: 0; }
 
     .form-section {
         padding: 12px 14px;
@@ -280,8 +276,6 @@
     }
 
     /* Single column grid for mobile */
-    
- > * { min-width: 0; }
 
     /* Native App Style Inputs */
     .form-group label {

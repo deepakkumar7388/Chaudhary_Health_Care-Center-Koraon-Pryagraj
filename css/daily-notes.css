@@ -326,8 +326,6 @@
 }
 
 
- > * { min-width: 0; }
-
 .form-grid-2.mt-2 {
     margin-top: 16px;
     grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
@@ -507,9 +505,7 @@
 }
 
 @media (max-width: 768px) {
-    
- > * { min-width: 0; }
-    
+
     .compact-row {
         flex-direction: column;
         align-items: stretch;
