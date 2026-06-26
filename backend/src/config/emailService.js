@@ -456,6 +456,65 @@ async function sendSecurityAlertEmail(to, name, ipAddress, userAgent) {
 }
 
 /**
+ * Send Concurrent Login Email — Developer ko batao ki naye device se login hua
+ * aur purana device force logout ho gaya
+ */
+async function sendConcurrentLoginEmail(to, name, ipAddress, userAgent) {
+  const time = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', hour12: true });
+
+  const body = `
+        <div style="background-color:#fef2f2; padding:15px; border-left:4px solid #dc2626; border-radius:4px; margin-bottom:20px;">
+            <p style="margin:0; color:#991b1b; font-size:15px; font-weight:bold;">⚠️ Security Alert: Forced Logout — New Device Login Detected</p>
+        </div>
+
+        <p style="margin:0 0 8px; font-size:14px; color:#374151;">Dear <strong>${name}</strong>,</p>
+        <p style="margin:0 0 20px; font-size:13px; color:#6b7280; line-height:1.6;">
+            Your Developer account was just logged into from a <strong>new device or browser</strong>.
+            As a security measure, your <strong>previous device has been automatically logged out</strong>.
+        </p>
+
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:6px; margin-bottom:24px;">
+          <tr><td style="padding:14px 18px;">
+            <p style="margin:0 0 10px; font-size:11px; color:#dc2626; font-weight:bold; text-transform:uppercase; letter-spacing:0.5px;">New Login Details</p>
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td style="padding:6px 0; font-size:13px; color:#6b7280; width:40%; border-bottom:1px solid #e5e7eb;">Time of Login</td>
+                <td style="padding:6px 0; font-size:13px; color:#111827; font-weight:bold; border-bottom:1px solid #e5e7eb;">${time} (IST)</td>
+              </tr>
+              <tr>
+                <td style="padding:6px 0; font-size:13px; color:#6b7280; border-bottom:1px solid #e5e7eb;">IP Address</td>
+                <td style="padding:6px 0; font-size:13px; color:#111827; font-weight:bold; font-family:monospace; border-bottom:1px solid #e5e7eb;">${ipAddress || 'Unknown'}</td>
+              </tr>
+              <tr>
+                <td style="padding:6px 0; font-size:13px; color:#6b7280;">Device / Browser</td>
+                <td style="padding:6px 0; font-size:13px; color:#111827; font-weight:bold;">${userAgent ? userAgent.substring(0, 80) + '...' : 'Unknown Device'}</td>
+              </tr>
+            </table>
+          </td></tr>
+        </table>
+
+        <table width="100%" cellpadding="12" cellspacing="0" border="0" style="background:#fef2f2; border:1px solid #fecaca; border-radius:6px; margin-bottom:20px;">
+          <tr><td style="font-size:12px; color:#991b1b; line-height:1.7;">
+            <strong>Was this you?</strong><br>
+            If <strong>YES</strong> — This is normal. You simply logged in from a new device and your old session was cleared.<br>
+            If <strong>NO</strong> — Someone else has your password! Log in immediately and change your password.
+          </td></tr>
+        </table>
+
+        <p style="margin:0; font-size:12px; color:#9ca3af; line-height:1.5;">
+            This is an automated security notification from the Developer Account Protection System.
+            Only one active session is allowed at a time for the Developer account.
+        </p>
+    `;
+
+  return sendEmail({
+    to,
+    subject: `⚠️ Security Alert: Forced Logout — New Device Logged In | CHC HMS`,
+    html: wrapInBrandedTemplate(body, '#dc2626')
+  });
+}
+
+/**
  * Force refresh the cached transporter (useful when settings change from admin panel)
  */
 function clearTransporterCache() {
@@ -473,6 +532,7 @@ module.exports = {
   sendAdmissionEmail,
   sendDischargeEmail,
   sendSecurityAlertEmail,
+  sendConcurrentLoginEmail,
   getTransporter,
   clearTransporterCache
 };

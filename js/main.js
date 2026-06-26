@@ -523,6 +523,70 @@ function confirmLogout() {
     window.location.hash = '';
 }
 
+// ==================== FORCE LOGOUT (Another Device Login) ====================
+// Jab Developer ka session kisi naye device se login ke karan expire ho jata hai
+let _forceLogoutCalled = false; // Baar-baar call se bachao
+function forceLogoutDueToOtherDevice(message) {
+    if (_forceLogoutCalled) return;
+    _forceLogoutCalled = true;
+
+    // Stop camera if running
+    if (typeof window.stopSurgeryCameraStream === 'function') {
+        try { window.stopSurgeryCameraStream(); } catch (e) {}
+    }
+
+    // Clear all local data
+    sessionStorage.clear();
+    localStorage.removeItem('hospitalSettings');
+    localStorage.removeItem('patients');
+    localStorage.removeItem('billings');
+    localStorage.removeItem('users');
+    currentUser = null;
+
+    // UI: App hide, Login show
+    document.getElementById('logout-modal')?.classList.remove('active');
+    document.getElementById('app-container').style.display = 'none';
+    document.getElementById('auth-container').style.display = 'flex';
+    document.getElementById('login-form')?.reset();
+    toggleAuthPanel('login');
+    window.location.hash = '';
+
+    // Warning message dono jagah
+    const msg = message || 'Your session was terminated because you logged in from another device.';
+    showNotification(msg, 'warning', '⚠️ Session Terminated');
+
+    // Login error box mein bhi dikhao
+    const loginError = document.getElementById('login-error');
+    if (loginError) {
+        loginError.style.color = '#b45309';
+        loginError.textContent = msg;
+    }
+
+    // Reset flag after a delay so user can login again
+    setTimeout(() => { _forceLogoutCalled = false; }, 3000);
+}
+
+// Global API response interceptor — har fetch response 401 check karo
+const _originalFetch = window.fetch;
+window.fetch = async function(...args) {
+    const response = await _originalFetch.apply(this, args);
+
+    // Check for session-terminated 401 only when user is logged in (app is visible)
+    if (response.status === 401 && currentUser) {
+        const clone = response.clone(); // clone before reading body (stream can only be read once)
+        try {
+            const data = await clone.json();
+            if (data.message && data.message.toLowerCase().includes('another device')) {
+                forceLogoutDueToOtherDevice(data.message);
+            }
+        } catch (e) {
+            // JSON parse fail — ignore
+        }
+    }
+
+    return response;
+};
+
 function updateUserInfo() {
     if (currentUser) {
         document.getElementById('current-user').textContent = currentUser.name;

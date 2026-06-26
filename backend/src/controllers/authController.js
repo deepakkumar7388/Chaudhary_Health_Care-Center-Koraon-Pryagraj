@@ -168,7 +168,21 @@ exports.login = async (req, res) => {
             { expiresIn: '30d' }
         );
 
-        // Save current session token for Single Active Session
+        // 🔒 CONCURRENT LOGIN CHECK — Only for Developer
+        // Agar developer pehle se kisi device par login tha, toh use force logout email bhejo
+        if (user.role === 'developer' && user.currentSessionToken && user.currentSessionToken !== token) {
+            const { sendConcurrentLoginEmail } = require('../config/emailService');
+            sendConcurrentLoginEmail(
+                user.email,
+                user.name,
+                req.ip,
+                req.headers['user-agent']
+            ).catch(err => {
+                console.error('Failed to send concurrent login email:', err.message);
+            });
+        }
+
+        // Save current session token for Single Active Session (overwrites previous)
         user.currentSessionToken = token;
         await user.save();
 
