@@ -154,7 +154,7 @@ exports.login = async (req, res) => {
         }
 
         // 🔒 SECURITY: Developer role is exclusively reserved for authorized emails
-        if (user.role === 'developer' && user.email !== 'chaudharyhealthcare198@gmail.com' && user.email !== 'dk21230621@gmail.com') {
+        if (user.role === 'developer' && user.email !== 'dk21230621@gmail.com') {
             return res.status(403).json({ success: false, message: 'Access denied. Contact system administrator.' });
         }
 
