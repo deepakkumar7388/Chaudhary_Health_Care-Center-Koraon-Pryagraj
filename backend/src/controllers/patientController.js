@@ -135,53 +135,27 @@ exports.createPatient = async (req, res) => {
         // Emit real-time Socket.IO event
         emitPatientAdmitted(newPatient);
 
-        // Send email/push notifications asynchronously in the background
+        // Send push notifications asynchronously in the background
         setTimeout(async () => {
             try {
-                const emailNewPatientSetting = await Setting.findOne({ key: 'email-new-patient' });
-                const isEmailEnabled = emailNewPatientSetting ? (emailNewPatientSetting.value === true || emailNewPatientSetting.value === 'true') : false;
-                
-                if (isEmailEnabled) {
-                    const User = require('../models/User');
-                    const emailService = require('../config/emailService');
-                    const staffUsers = await User.find({ role: { $in: ['admin', 'doctor'] }, status: 'active' });
-                    let recipientEmails = staffUsers.map(u => u.email).filter(e => e);
-                    
-                    if (recipientEmails.length === 0) {
-                        const emailUserSetting = await Setting.findOne({ key: 'email-user' });
-                        const systemSender = emailUserSetting?.value || process.env.EMAIL_USER;
-                        if (systemSender) recipientEmails.push(systemSender);
-                    }
+                // Check if admission notification is enabled in settings
+                const notifyAdmissionSetting = await Setting.findOne({ key: 'email-new-patient' });
+                const isNotifyEnabled = notifyAdmissionSetting
+                    ? (notifyAdmissionSetting.value === true || notifyAdmissionSetting.value === 'true')
+                    : true; // Default: ON
 
-                    // If patient/guardian email is available, include it
-                    if (newPatient.email) {
-                        recipientEmails.push(newPatient.email);
-                    }
-
-                    // De-duplicate emails
-                    recipientEmails = [...new Set(recipientEmails)];
-
-                    for (const toEmail of recipientEmails) {
-                        try {
-                            await emailService.sendAdmissionEmail(toEmail, newPatient);
-                        } catch (mailErr) {
-                            console.error(`[Notification] Failed to send admission email to ${toEmail}:`, mailErr.message);
-                        }
-                    }
+                if (isNotifyEnabled) {
+                    const fcmService = require('../config/fcmService');
+                    const isOpd = newPatient.patient_type === 'OPD';
+                    await fcmService.broadcastNotification(
+                        isOpd ? 'New OPD Patient 🩺' : 'New Patient Admitted 🏥',
+                        isOpd
+                            ? `OPD Patient ${newPatient.name} has been registered for ${newPatient.doctor_assigned || 'consultation'}.`
+                            : `Patient ${newPatient.name} has been admitted to bed ${newPatient.bed_no || 'N/A'}.`
+                    );
                 }
             } catch (err) {
-                console.error('[Notification] Error in admission email background process:', err.message);
-            }
-
-            try {
-                const fcmService = require('../config/fcmService');
-                const isOpd = newPatient.patient_type === 'OPD';
-                await fcmService.broadcastNotification(
-                    isOpd ? 'New OPD Patient 🩺' : 'New Patient Admitted 🏥',
-                    isOpd ? `OPD Patient ${newPatient.name} has been registered for ${newPatient.doctor_assigned || 'consultation'}.` : `Patient ${newPatient.name} has been admitted to bed ${newPatient.bed_no || 'N/A'}.`
-                );
-            } catch (err) {
-                console.error('[Notification] Error in FCM admission/registration broadcast:', err.message);
+                console.error('[Notification] Error in admission notification broadcast:', err.message);
             }
         }, 0);
 

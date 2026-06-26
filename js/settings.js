@@ -791,7 +791,7 @@ async function renderSettings() {
                     <!-- 3. NOTIFICATIONS TAB -->
                     <div id="settings-notifications" class="settings-tab-content" style="display:none;">
                         <div class="form-section">
-                            <h3><i class="bi bi-envelope" style="color:var(--primary, #4f46e5);"></i> Email Notification Triggers</h3>
+                            <h3><i class="bi bi-bell" style="color:var(--primary, #4f46e5);"></i> Notification Triggers</h3>
                             <div style="display:grid; grid-template-columns:1fr; gap:12px; margin-bottom:20px;">
                                 <div class="form-group-checkbox">
                                     <input type="checkbox" id="email-new-patient">
@@ -799,7 +799,7 @@ async function renderSettings() {
                                 </div>
                                 <div class="form-group-checkbox">
                                     <input type="checkbox" id="email-discharge">
-                                    <label for="email-discharge">Send confirmation mail to patient on successful discharge</label>
+                                    <label for="email-discharge">Notify staff when a patient is discharged</label>
                                 </div>
                                 <div class="form-group-checkbox">
                                     <input type="checkbox" id="email-payment">

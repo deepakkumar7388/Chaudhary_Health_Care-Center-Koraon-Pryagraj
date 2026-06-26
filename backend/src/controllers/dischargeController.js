@@ -29,28 +29,25 @@ exports.createDischarge = async (req, res) => {
             // Emit real-time Socket.IO discharge event
             emitPatientDischarged(patient);
 
-            // Send FCM discharge notification
-            fcmService.broadcastNotification(
-                '✅ Patient Discharged',
-                `${patient.name} has been discharged from the hospital.`,
-                { url: '/#patients' },
-                'admin'
-            ).catch(err => console.error('[FCM] Discharge notification error:', err.message));
-
-            // Send discharge email asynchronously in the background
+            // Send FCM discharge notification (controlled by setting)
             setTimeout(async () => {
                 try {
                     const Setting = require('../models/Setting');
-                    const emailDischargeSetting = await Setting.findOne({ key: 'email-discharge' });
-                    const isEmailEnabled = emailDischargeSetting ? (emailDischargeSetting.value === true || emailDischargeSetting.value === 'true') : false;
+                    const notifyDischargeSetting = await Setting.findOne({ key: 'email-discharge' });
+                    const isNotifyEnabled = notifyDischargeSetting
+                        ? (notifyDischargeSetting.value === true || notifyDischargeSetting.value === 'true')
+                        : true; // Default: ON
 
-                    if (isEmailEnabled && patient.email) {
-                        const emailService = require('../config/emailService');
-                        await emailService.sendDischargeEmail(patient.email, patient, newDischarge);
-                        console.log(`[Notification] Discharge email sent successfully to ${patient.email}`);
+                    if (isNotifyEnabled) {
+                        await fcmService.broadcastNotification(
+                            '✅ Patient Discharged',
+                            `${patient.name} has been discharged from the hospital.`,
+                            { url: '/#patients' },
+                            'admin'
+                        );
                     }
                 } catch (err) {
-                    console.error('[Notification] Error in discharge email background process:', err.message);
+                    console.error('[Notification] Error in discharge notification broadcast:', err.message);
                 }
             }, 0);
         }
