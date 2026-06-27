@@ -288,14 +288,15 @@
         padding: 12px !important;
     }
 
-    /* Clean, sleek, rounded input fields and buttons on mobile view */
-    .form-group input,
-    .form-group select,
-    .input-group input,
-    .input-group select,
-    .password-wrapper input,
-    .surgery-form-grid input,
-    .surgery-consent-grid input {
+    /* Clean, sleek, rounded input fields globally on mobile view */
+    input[type="text"],
+    input[type="password"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="number"],
+    input[type="date"],
+    input[type="time"],
+    select {
         height: 52px !important;
         font-size: 14px !important;
         padding: 0 16px !important;
@@ -303,10 +304,7 @@
         box-sizing: border-box !important;
     }
 
-    .form-group textarea,
-    .input-group textarea,
-    .surgery-form-grid textarea,
-    .surgery-consent-grid textarea {
+    textarea {
         font-size: 14px !important;
         padding: 14px 16px !important;
         border-radius: 14px !important;
