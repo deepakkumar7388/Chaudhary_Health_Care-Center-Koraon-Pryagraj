@@ -70,6 +70,112 @@
 }
 
 @media (max-width: 768px) {
+    /* Global Outlined Floating Labels for Mobile View (Excluding Select, Checkbox, Radio, and File elements) */
+    .form-group:has(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="hidden"])):has(label),
+    .form-group:has(textarea):has(label),
+    .input-group:has(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="hidden"])):has(label),
+    .input-group:has(textarea):has(label),
+    .surgery-form-grid > div:has(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="hidden"])):has(label),
+    .surgery-form-grid > div:has(textarea):has(label),
+    .surgery-consent-grid div > div:has(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="hidden"])):has(label),
+    .surgery-consent-grid div > div:has(textarea):has(label) {
+        position: relative !important;
+        margin-top: 6px !important;
+        margin-bottom: 6px !important;
+    }
+
+    .form-group:has(input):has(label) > label,
+    .form-group:has(textarea):has(label) > label,
+    .input-group:has(input):has(label) > label,
+    .input-group:has(textarea):has(label) > label,
+    .surgery-form-grid > div:has(input):has(label) > label,
+    .surgery-form-grid > div:has(textarea):has(label) > label,
+    .surgery-consent-grid div > div:has(input):has(label) > label,
+    .surgery-consent-grid div > div:has(textarea):has(label) > label,
+    .password-wrapper label {
+        position: absolute !important;
+        left: 16px !important;
+        top: 21px !important;
+        transform: translateY(-50%) !important;
+        background: transparent !important;
+        padding: 0 4px !important;
+        color: var(--text-muted, #64748b) !important;
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        pointer-events: none !important;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        z-index: 5 !important;
+        text-transform: none !important;
+        letter-spacing: normal !important;
+        margin-bottom: 0 !important;
+        display: block !important;
+    }
+
+    /* Adjust default top position for textarea labels specifically (since textareas are tall) */
+    .form-group:has(textarea) label,
+    .input-group:has(textarea) label,
+    .surgery-form-grid > div:has(textarea) label,
+    .surgery-consent-grid div > div:has(textarea) label {
+        top: 24px !important;
+    }
+
+    /* Hide standard placeholders globally on mobile for floating fields */
+    .form-group input::placeholder,
+    .form-group textarea::placeholder,
+    .input-group input::placeholder,
+    .input-group textarea::placeholder,
+    .surgery-form-grid > div:has(label) input::placeholder,
+    .surgery-form-grid > div:has(label) textarea::placeholder,
+    .surgery-consent-grid div > div:has(label) input::placeholder,
+    .surgery-consent-grid div > div:has(label) textarea::placeholder {
+        color: transparent !important;
+    }
+
+    /* Floating state: When focused or has a value */
+    .form-group.focused label,
+    .form-group.has-value label,
+    .input-group.focused label,
+    .input-group.has-value label,
+    .surgery-form-grid > div.focused label,
+    .surgery-form-grid > div.has-value label,
+    .surgery-consent-grid div > div.focused label,
+    .surgery-consent-grid div > div.has-value label {
+        top: 0px !important;
+        transform: translateY(-50%) scale(0.85) !important;
+        background: var(--card-bg, #ffffff) !important;
+        color: var(--primary, #4f46e5) !important;
+        font-weight: 700 !important;
+        z-index: 6 !important;
+    }
+
+    /* Date and Time inputs: Label floats permanently on mobile view to prevent overlapping with default browser placeholders (mm/dd/yyyy, --:-- --) */
+    .form-group:has(input[type="date"]) > label,
+    .form-group:has(input[type="time"]) > label,
+    .input-group:has(input[type="date"]) > label,
+    .input-group:has(input[type="time"]) > label,
+    .surgery-form-grid > div:has(input[type="date"]) > label,
+    .surgery-form-grid > div:has(input[type="time"]) > label,
+    .surgery-consent-grid div > div:has(input[type="date"]) > label,
+    .surgery-consent-grid div > div:has(input[type="time"]) > label {
+        top: 0px !important;
+        transform: translateY(-50%) scale(0.85) !important;
+        background: var(--card-bg, #ffffff) !important;
+        color: var(--text-muted, #64748b) !important;
+        font-weight: 700 !important;
+        z-index: 6 !important;
+    }
+
+    /* Highlight border color on active focus */
+    .form-group.focused input,
+    .form-group.focused textarea,
+    .input-group.focused input,
+    .input-group.focused textarea,
+    .surgery-form-grid > div.focused input,
+    .surgery-form-grid > div.focused textarea,
+    .surgery-consent-grid div > div.focused input,
+    .surgery-consent-grid div > div.focused textarea {
+        border-color: var(--primary, #4f46e5) !important;
+    }
 
     /* Settings form grids to single column */
     .settings-container .form-grid {

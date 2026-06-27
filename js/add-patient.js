@@ -4,6 +4,9 @@ function renderAddPatient() {
     const moduleEl = document.getElementById('module-add-patient');
     if (!moduleEl) return;
 
+    const role = currentUser?.role;
+    const isFeeReadOnly = (role === 'admin' || role === 'developer') ? '' : 'readonly style="background-color: var(--background); cursor: not-allowed;"';
+
     moduleEl.innerHTML = `
         <div class="add-patient-container">
             <div class="module-header">
@@ -85,7 +88,7 @@ function renderAddPatient() {
                             </div>
                             <div class="form-group" style="grid-column: span 2;">
                                 <label>Consultation Fee (₹)</label>
-                                <input type="number" id="opd-consult-fee" min="0" placeholder="Auto-fills on doctor select">
+                                <input type="number" id="opd-consult-fee" min="0" placeholder="Auto-fills on doctor select" ${isFeeReadOnly}>
                             </div>
                         </div>
                         <!-- Optional mobile number -->
@@ -722,6 +725,8 @@ window.updateOpdConsultationFee = function() {
     if (!docSelect || !feeInput) return;
     const sel = docSelect.options[docSelect.selectedIndex];
     feeInput.value = sel?.dataset?.fee || '';
+    // Trigger input event to update floating label state
+    feeInput.dispatchEvent(new Event('input', { bubbles: true }));
 };
 
 // IPD doctor change

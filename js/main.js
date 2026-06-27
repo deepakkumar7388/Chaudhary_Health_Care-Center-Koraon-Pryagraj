@@ -2193,4 +2193,84 @@ function togglePasswordVisibility(inputId, iconElement) {
         iconElement.classList.remove('bi-eye-slash');
         iconElement.classList.add('bi-eye');
     }
-}
+}
+
+// Global floating label behavior for mobile view (Pure Event Delegation)
+function getInputContainer(input) {
+    const group = input.closest('.form-group, .input-group');
+    if (group) return group;
+    
+    // Only resolve plain parent div if it's inside surgery grids
+    const surgeryGroup = input.closest('.surgery-form-grid > div, .surgery-consent-grid div > div');
+    if (surgeryGroup) return surgeryGroup;
+    
+    return null;
+}
+
+function updateGroupFloatingState(group) {
+    const input = group.querySelector('input, textarea');
+    if (input) {
+        if (input.value && input.value.trim() !== '') {
+            group.classList.add('has-value');
+        } else {
+            group.classList.remove('has-value');
+        }
+    }
+}
+
+document.addEventListener('focusin', (e) => {
+    if (window.innerWidth <= 768) {
+        if (e.target.tagName === 'SELECT') return;
+        const container = getInputContainer(e.target);
+        if (container) {
+            container.classList.add('focused');
+        }
+    }
+});
+
+document.addEventListener('focusout', (e) => {
+    if (window.innerWidth <= 768) {
+        if (e.target.tagName === 'SELECT') return;
+        const container = getInputContainer(e.target);
+        if (container) {
+            container.classList.remove('focused');
+            updateGroupFloatingState(container);
+        }
+    }
+});
+
+document.addEventListener('input', (e) => {
+    if (window.innerWidth <= 768) {
+        if (e.target.tagName === 'SELECT') return;
+        const container = getInputContainer(e.target);
+        if (container) {
+            updateGroupFloatingState(container);
+        }
+    }
+});
+
+// MutationObserver to automatically detect dynamically rendered forms
+const floatingLabelObserver = new MutationObserver((mutations) => {
+    if (window.innerWidth <= 768) {
+        mutations.forEach(mutation => {
+            mutation.addedNodes.forEach(node => {
+                if (node.nodeType === Node.ELEMENT_NODE) {
+                    const groups = node.querySelectorAll ? node.querySelectorAll('.form-group, .input-group, .surgery-form-grid > div, .surgery-consent-grid div > div') : [];
+                    groups.forEach(updateGroupFloatingState);
+                    if (node.matches && (node.matches('.form-group') || node.matches('.input-group') || node.matches('.surgery-form-grid > div') || node.matches('.surgery-consent-grid div > div'))) {
+                        updateGroupFloatingState(node);
+                    }
+                }
+            });
+        });
+    }
+});
+floatingLabelObserver.observe(document.body, { childList: true, subtree: true });
+
+// Initial run for static content
+document.addEventListener('DOMContentLoaded', () => {
+    if (window.innerWidth <= 768) {
+        document.querySelectorAll('.form-group, .input-group, .surgery-form-grid > div, .surgery-consent-grid div > div').forEach(updateGroupFloatingState);
+    }
+});
+
