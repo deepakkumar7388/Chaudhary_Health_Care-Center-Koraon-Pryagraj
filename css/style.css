@@ -2048,3 +2048,17 @@ textarea:focus {
 body:not(.dark-theme) label {
     color: #3a3939 !important;
 }
+
+/* ── Google Circular Logo Button Styling ── */
+.google-logo-only-btn {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.google-logo-only-btn:hover {
+    background-color: #f8fafc !important;
+    transform: scale(1.08);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1) !important;
+    border-color: #a3a3a3 !important;
+}
+.google-logo-only-btn:active {
+    transform: scale(0.92);
+}

@@ -173,11 +173,6 @@
                     <!-- Login Form -->
                     <div id="login-panel" class="auth-panel active">
                         <h2>Sign In</h2>
-                        <button type="button" class="google-auth-btn" onclick="signInWithGoogle()">
-                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo">
-                            Continue with Google
-                        </button>
-                        <div class="auth-divider"><span>OR</span></div>
 
                         <form id="login-form" onsubmit="event.preventDefault(); login();">
                             <div class="input-group">
@@ -192,6 +187,13 @@
                                 <a href="javascript:void(0)" onclick="openForgotModal()">Forgot Password?</a>
                             </div>
                             <div id="login-error" class="error-message"></div>
+                            
+                            <div class="auth-divider" style="margin: 15px 0;"><span>OR</span></div>
+                            <div class="social-login-container" style="display: flex; justify-content: center; margin-top: 10px;">
+                                <button type="button" class="google-logo-only-btn" onclick="signInWithGoogle()" style="border: 1px solid #c8c8c8 !important; background: #ffffff; width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo" style="width: 22px; height: 22px;">
+                                </button>
+                            </div>
                         </form>
 
                     </div>
@@ -199,11 +201,6 @@
                     <!-- Signup Form -->
                     <div id="signup-panel" class="auth-panel">
                         <h2>Create Account</h2>
-                        <button type="button" class="google-auth-btn" onclick="signUpWithGoogleAutoFill()">
-                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo">
-                            Continue with Google
-                        </button>
-                        <div class="auth-divider"><span>OR</span></div>
 
                         <form id="signup-form" onsubmit="event.preventDefault(); signup();">
                             <div class="input-group">
@@ -232,6 +229,13 @@
                             </div>
                             <button type="submit" class="login-btn signup-btn">Sign Up</button>
                             <div id="signup-error" class="error-message"></div>
+                            
+                            <div class="auth-divider" style="margin: 15px 0;"><span>OR</span></div>
+                            <div class="social-login-container" style="display: flex; justify-content: center; margin-top: 10px;">
+                                <button type="button" class="google-logo-only-btn" onclick="signUpWithGoogleAutoFill()" style="border: 1px solid #c8c8c8 !important; background: #ffffff; width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo" style="width: 22px; height: 22px;">
+                                </button>
+                            </div>
                         </form>
                     </div>
                 </div>
