@@ -80,8 +80,18 @@
     .surgery-consent-grid div > div:has(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="hidden"])):has(label),
     .surgery-consent-grid div > div:has(textarea):has(label) {
         position: relative !important;
-        margin-top: 6px !important;
-        margin-bottom: 6px !important;
+        margin-top: 12px !important;
+        margin-bottom: 12px !important;
+    }
+
+    /* Margin for Select wrappers (with static labels) to prevent clumping */
+    .form-group:has(select),
+    .input-group:has(select),
+    .surgery-form-grid > div:has(select),
+    .surgery-consent-grid div > div:has(select) {
+        margin-top: 14px !important;
+        margin-bottom: 14px !important;
+        position: relative !important;
     }
 
     .form-group:has(input):has(label) > label,
@@ -95,7 +105,7 @@
     .password-wrapper label {
         position: absolute !important;
         left: 16px !important;
-        top: 21px !important;
+        top: 26px !important; /* Centered in 52px height inputs */
         transform: translateY(-50%) !important;
         background: transparent !important;
         padding: 0 4px !important;
@@ -281,16 +291,26 @@
     /* Clean, sleek, rounded input fields and buttons on mobile view */
     .form-group input,
     .form-group select,
-    .form-group textarea,
     .input-group input,
     .input-group select,
-    .input-group textarea,
     .password-wrapper input,
     .surgery-form-grid input,
     .surgery-consent-grid input {
-        font-size: 13px !important;
-        padding: 10px 14px !important;
-        border-radius: 12px !important; /* Beautiful rounded corners like modern apps */
+        height: 52px !important;
+        font-size: 14px !important;
+        padding: 0 16px !important;
+        border-radius: 14px !important; /* Beautiful rounded corners like modern apps */
+        box-sizing: border-box !important;
+    }
+
+    .form-group textarea,
+    .input-group textarea,
+    .surgery-form-grid textarea,
+    .surgery-consent-grid textarea {
+        font-size: 14px !important;
+        padding: 14px 16px !important;
+        border-radius: 14px !important;
+        box-sizing: border-box !important;
     }
 
     /* Buttons scaling - sleek, rounded and balanced */
@@ -298,13 +318,18 @@
     .login-btn,
     .btn-primary,
     .btn-secondary {
-        border-radius: 12px !important;
-        font-size: 13px !important;
+        height: 52px !important;
+        border-radius: 14px !important;
+        font-size: 14px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        box-sizing: border-box !important;
     }
 
     .login-btn {
-        padding: 11px 16px !important;
-        margin-top: 8px !important;
+        width: 100% !important;
+        margin-top: 12px !important;
     }
 }
 
