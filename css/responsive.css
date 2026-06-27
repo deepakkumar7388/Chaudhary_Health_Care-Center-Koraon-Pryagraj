@@ -278,11 +278,33 @@
         padding: 12px !important;
     }
 
+    /* Clean, sleek, rounded input fields and buttons on mobile view */
     .form-group input,
     .form-group select,
-    .form-group textarea {
+    .form-group textarea,
+    .input-group input,
+    .input-group select,
+    .input-group textarea,
+    .password-wrapper input,
+    .surgery-form-grid input,
+    .surgery-consent-grid input {
         font-size: 13px !important;
-        padding: 10px 12px !important;
+        padding: 10px 14px !important;
+        border-radius: 12px !important; /* Beautiful rounded corners like modern apps */
+    }
+
+    /* Buttons scaling - sleek, rounded and balanced */
+    .btn,
+    .login-btn,
+    .btn-primary,
+    .btn-secondary {
+        border-radius: 12px !important;
+        font-size: 13px !important;
+    }
+
+    .login-btn {
+        padding: 11px 16px !important;
+        margin-top: 8px !important;
     }
 }
 
