@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     initFirebaseAuth();
 
     const splashStartTime = Date.now();
-    const MIN_SPLASH_MS = 3000; // Force 3 seconds for a clean app launching feel
+    const MIN_SPLASH_MS = 2000; // Force 3 seconds for a clean app launching feel
 
     let isLoggedIn = false;
     try {
