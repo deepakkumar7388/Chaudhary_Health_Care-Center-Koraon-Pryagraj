@@ -6,6 +6,7 @@ const Setting = require('../models/Setting');
 let cachedTransporter = null;
 let cachedFromLine = null;
 let cachedEmailApiUrl = null;
+let cachedSystemName = 'Chaudhary Health Care Center Koraon';
 let cacheTimestamp = 0;
 const CACHE_TTL = 5 * 60 * 1000; // Refresh cache every 5 minutes
 
@@ -18,7 +19,7 @@ async function getTransporter() {
 
   // Return cached transporter if still valid
   if (cachedTransporter && (now - cacheTimestamp) < CACHE_TTL) {
-    return { transporter: cachedTransporter, fromLine: cachedFromLine, emailApiUrl: cachedEmailApiUrl };
+    return { transporter: cachedTransporter, fromLine: cachedFromLine, emailApiUrl: cachedEmailApiUrl, systemName: cachedSystemName };
   }
 
   let host = process.env.EMAIL_HOST || 'smtp.gmail.com';
@@ -76,6 +77,7 @@ async function getTransporter() {
   });
 
   cachedFromLine = `"${systemName}" <${user}>`;
+  cachedSystemName = systemName;
   cachedEmailApiUrl = emailApiUrl;
   cacheTimestamp = now;
 
@@ -88,14 +90,14 @@ async function getTransporter() {
     });
   }
 
-  return { transporter: cachedTransporter, fromLine: cachedFromLine, emailApiUrl: cachedEmailApiUrl };
+  return { transporter: cachedTransporter, fromLine: cachedFromLine, emailApiUrl: cachedEmailApiUrl, systemName: cachedSystemName };
 }
 
 /**
  * Send an email — now uses cached transporter (no DB hit on every call)
  */
 async function sendEmail({ to, subject, html }) {
-  const { transporter, fromLine, emailApiUrl } = await getTransporter();
+  const { transporter, fromLine, emailApiUrl, systemName } = await getTransporter();
 
   if (emailApiUrl) {
     console.log(`Sending email via HTTP API to ${to}`);
@@ -103,7 +105,13 @@ async function sendEmail({ to, subject, html }) {
       const response = await fetch(emailApiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ to, subject, html })
+        body: JSON.stringify({ 
+          to, 
+          subject, 
+          html,
+          fromName: systemName,
+          name: systemName
+        })
       });
       const data = await response.json();
       if (!data.success) {

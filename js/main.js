@@ -56,6 +56,12 @@ function showAuthScreen() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+    // Sync localStorage to sessionStorage for compatibility with other JS files
+    const localToken = localStorage.getItem('token');
+    const localUser = localStorage.getItem('user');
+    if (localToken) sessionStorage.setItem('token', localToken);
+    if (localUser) sessionStorage.setItem('user', localUser);
+
     initFirebaseAuth();
 
     const splashStartTime = Date.now();
@@ -63,9 +69,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     let isLoggedIn = false;
     try {
-        // Check if there's an active session via the HTTP-only cookie
+        // Check if there's an active session via the HTTP-only cookie OR localStorage
+        const existingToken = localStorage.getItem('token');
+        const headers = {};
+        if (existingToken) headers['Authorization'] = `Bearer ${existingToken}`;
+
         const res = await fetch(`${API_BASE}auth/profile`, {
             method: 'GET',
+            headers,
             credentials: 'include'
         });
         if (res.ok) {
@@ -73,8 +84,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (data.success && data.user) {
                 // Valid session found — restore user state
                 currentUser = data.user;
-                // Also store in sessionStorage for compatibility
-                sessionStorage.setItem('user', JSON.stringify({
+                // Also store in localStorage for compatibility
+                localStorage.setItem('user', JSON.stringify({
                     id: data.user._id,
                     username: data.user.username || data.user.email.split('@')[0],
                     name: data.user.name,
@@ -83,6 +94,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     avatar: data.user.avatar,
                     billingAccess: data.user.billingAccess
                 }));
+                // Restore token if provided (e.g. new tab login via cookie)
+                if (data.token) {
+                    localStorage.setItem('token', data.token);
+                }
                 isLoggedIn = true;
             }
         }
@@ -127,8 +142,7 @@ async function signInWithGoogle() {
         hideLoading();
 
         if (response.ok && data.success) {
-            sessionStorage.setItem('token', data.token);
-            sessionStorage.setItem('user', JSON.stringify({
+            const userObj = {
                 id: data.user_id,
                 username: data.username,
                 name: data.name,
@@ -136,7 +150,11 @@ async function signInWithGoogle() {
                 email: data.email,
                 avatar: data.avatar,
                 billingAccess: data.billingAccess
-            }));
+            };
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('user', JSON.stringify(userObj));
+            sessionStorage.setItem('token', data.token);
+            sessionStorage.setItem('user', JSON.stringify(userObj));
             showNotification(`Welcome back, ${data.name}!`, 'success');
             setTimeout(() => {
                 switchToApp();
@@ -296,6 +314,8 @@ async function login() {
                 billingAccess: result.billingAccess || false
             };
 
+            localStorage.setItem('user', JSON.stringify(currentUser));
+            localStorage.setItem('token', result.token);
             sessionStorage.setItem('user', JSON.stringify(currentUser));
             sessionStorage.setItem('token', result.token);
 
@@ -507,6 +527,7 @@ function confirmLogout() {
     }).catch(() => {}); // Silent fail — UI rok nahi sakta
 
     // Frontend cache + session clear karo
+    localStorage.clear();
     sessionStorage.clear();
     localStorage.removeItem('hospitalSettings'); // Settings cache clear
     localStorage.removeItem('patients');          // Patient list cache clear
@@ -536,6 +557,7 @@ function forceLogoutDueToOtherDevice(message) {
     }
 
     // Clear all local data
+    localStorage.clear();
     sessionStorage.clear();
     localStorage.removeItem('hospitalSettings');
     localStorage.removeItem('patients');
@@ -694,9 +716,9 @@ function updateUserInfo() {
 
 async function updateSidebarStats() {
     try {
-        const pRes = await fetch(`${API_BASE}patients`, { headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('token') } });
+        const pRes = await fetch(`${API_BASE}patients`, { headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') } });
         const pData = await pRes.json();
-        const uRes = await fetch(`${API_BASE}auth/users`, { headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('token') } });
+        const uRes = await fetch(`${API_BASE}auth/users`, { headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') } });
         const uData = await uRes.json();
 
         if (pData.success && document.getElementById('stat-patients')) {
@@ -1011,8 +1033,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     migratePatientIds(); // Run once to clean old IDs
 
-    const savedUser = sessionStorage.getItem('user');
-    const token = sessionStorage.getItem('token');
+    const savedUser = localStorage.getItem('user');
+    const token = localStorage.getItem('token');
 
     if (savedUser && token) {
         currentUser = JSON.parse(savedUser);
@@ -1809,7 +1831,7 @@ async function saveProfilePhoto() {
 
     showLoading('Uploading photo...');
     try {
-        const token = sessionStorage.getItem('token');
+        const token = localStorage.getItem('token');
         const response = await fetch(`${API_BASE}auth/users/${currentUser.id}`, {
             method: 'PUT',
             headers: { 'Authorization': `Bearer ${token}` },
@@ -1822,7 +1844,7 @@ async function saveProfilePhoto() {
         if (result.success) {
             showNotification('Photo updated successfully!', 'success');
             if (result.user.avatar) currentUser.avatar = result.user.avatar;
-            sessionStorage.setItem('user', JSON.stringify(currentUser));
+            localStorage.setItem('user', JSON.stringify(currentUser));
             updateUserInfo();
             const photoBtn = document.getElementById('save-photo-btn');
             if (photoBtn) photoBtn.style.display = 'none';
@@ -1846,7 +1868,7 @@ async function checkCurrentPassword() {
 
     showLoading('Verifying...');
     try {
-        const token = sessionStorage.getItem('token');
+        const token = localStorage.getItem('token');
         if (!token) {
             hideLoading();
             showNotification('Session expired. Please logout and login again.', 'error');
@@ -1909,7 +1931,7 @@ async function saveProfileChanges() {
 
     showLoading('Updating password...');
     try {
-        const token = sessionStorage.getItem('token');
+        const token = localStorage.getItem('token');
         
         let response;
         if (profileAuthMode === 'otp' && profileOtpVerified) {
@@ -1987,7 +2009,7 @@ async function initPushNotifications() {
     let apiKey, projectId, messagingSenderId, appId, vapidKey;
     try {
         const response = await fetch(`${API_BASE}integrations/config`, {
-            headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('token') }
+            headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
         });
         if (!response.ok) return;
         const result = await response.json();
@@ -2055,14 +2077,14 @@ async function initPushNotifications() {
         if (token) {
             console.log('FCM Token generated successfully:', token);
             window.fcmToken = token;
-            sessionStorage.setItem('fcmToken', token);
+            localStorage.setItem('fcmToken', token);
 
             // Sync with backend
             const response = await fetch(`${API_BASE}auth/fcm-token`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
                 },
                 body: JSON.stringify({ fcmToken: token })
             });
@@ -2139,7 +2161,7 @@ window.fetch = async function (...args) {
         // Global 401 Interceptor: If session is expired or concurrent login kicks user out
         if (response.status === 401) {
             // Check if we are already logged out to prevent infinite loops or spam
-            if (sessionStorage.getItem('token')) {
+            if (localStorage.getItem('token')) {
                 showNotification('Session expired. Your account was logged in from another device.', 'error', 'Security Alert');
                 setTimeout(() => {
                     confirmLogout();

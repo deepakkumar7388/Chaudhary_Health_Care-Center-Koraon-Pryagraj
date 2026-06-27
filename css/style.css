@@ -15,14 +15,14 @@
     /* Amber - Alert */
     --danger: #ef4444;
     /* Rose - Urgent */
-    --background: var(--background);
+    --background: #f8fafc;
     /* Modern Gray/Blue Background */
     --sidebar-bg: #ffffff;
     --card-bg: #ffffff;
     --text-main: #0f172a;
     /* High Contrast Text */
     --text-muted: #64748b;
-    --border: var(--border);
+    --border: #e2e8f0;
     --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 }
@@ -2028,4 +2028,23 @@ textarea:not(:focus):hover {
 }
 .btn-delete-doc:active {
     transform: scale(0.95);
+}
+
+/* Force visible black borders for all input fields across the app */
+input:not([type="submit"]):not([type="button"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+select,
+textarea {
+    border: 1px solid #c8c8c8 !important;
+}
+
+input:not([type="submit"]):not([type="button"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):focus,
+select:focus,
+textarea:focus {
+    border-color: #4e4d4d !important;
+    box-shadow: 0 0 0 2px rgba(116, 114, 114, 0.15) !important;
+}
+
+/* Force all label text colors to be black for better visibility in light theme */
+body:not(.dark-theme) label {
+    color: #3a3939 !important;
 }

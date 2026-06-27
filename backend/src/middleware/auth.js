@@ -12,7 +12,7 @@ exports.authenticate = async (req, res, next) => {
             token = req.cookies.token;
         }
 
-        if (!token) {
+        if (!token || token === 'null' || token === 'undefined') {
             return res.status(401).json({ message: 'Authentication failed: No token provided' });
         }
 
