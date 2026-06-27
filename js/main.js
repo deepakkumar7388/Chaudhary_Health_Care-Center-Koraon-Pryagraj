@@ -64,9 +64,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     initFirebaseAuth();
 
-    const splashStartTime = Date.now();
-    const MIN_SPLASH_MS = 1800; // Minimum 1.8 seconds for native feel
-
     let isLoggedIn = false;
     try {
         // Check if there's an active session via the HTTP-only cookie OR localStorage
@@ -106,18 +103,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.warn('Session check failed:', e.message);
     }
 
-    // Ensure splash screen shows for at least MIN_SPLASH_MS for native feel
-    const elapsed = Date.now() - splashStartTime;
-    const remaining = Math.max(0, MIN_SPLASH_MS - elapsed);
-
-    setTimeout(() => {
-        hideSplashScreen();
-        if (isLoggedIn) {
-            switchToApp(); // Go directly to dashboard — no login flash!
-        } else {
-            showAuthScreen(); // Show login form with Google SmartLock support
-        }
-    }, remaining);
+    // Hide splash screen instantly as soon as session check completes
+    hideSplashScreen();
+    if (isLoggedIn) {
+        switchToApp(); // Go directly to dashboard — no login flash!
+    } else {
+        showAuthScreen(); // Show login form with Google SmartLock support
+    }
 });
 
 async function signInWithGoogle() {
