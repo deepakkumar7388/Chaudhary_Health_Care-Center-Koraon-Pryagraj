@@ -88,7 +88,10 @@ function renderUsers() {
                             </div>
                             <div class="form-group" id="passGroup">
                                 <label>Password *</label>
-                                <input type="password" id="userPassword" placeholder="Minimum 6 characters">
+                                <div class="password-wrapper">
+                                    <input type="password" id="userPassword" placeholder="Minimum 6 characters">
+                                    <i class="bi bi-eye toggle-password" onclick="togglePasswordVisibility('userPassword', this)"></i>
+                                </div>
                             </div>
                             <div class="form-grid-2">
                                 <div class="form-group">

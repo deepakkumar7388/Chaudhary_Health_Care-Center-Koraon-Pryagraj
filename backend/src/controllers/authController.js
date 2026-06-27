@@ -168,9 +168,9 @@ exports.login = async (req, res) => {
             { expiresIn: '30d' }
         );
 
-        // 🔒 CONCURRENT LOGIN CHECK — Only for Developer
-        // Agar developer pehle se kisi device par login tha, toh use force logout email bhejo
-        if (user.role === 'developer' && user.currentSessionToken && user.currentSessionToken !== token) {
+        // 🔒 CONCURRENT LOGIN CHECK — Only for Developer and Admin
+        // Agar developer/admin pehle se kisi device par login tha, toh use force logout email bhejo
+        if ((user.role === 'developer' || user.role === 'admin') && user.currentSessionToken && user.currentSessionToken !== token) {
             const { sendConcurrentLoginEmail } = require('../config/emailService');
             sendConcurrentLoginEmail(
                 user.email,

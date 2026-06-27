@@ -26,8 +26,8 @@ exports.authenticate = async (req, res, next) => {
             });
         }
 
-        // Single Active Session Check
-        if (user.currentSessionToken && user.currentSessionToken !== token) {
+        // Single Active Session Check - Only for Admin and Developer
+        if ((user.role === 'admin' || user.role === 'developer') && user.currentSessionToken && user.currentSessionToken !== token) {
             return res.status(401).json({
                 message: 'Session expired. Your account was logged in from another device.'
             });

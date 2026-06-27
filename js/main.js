@@ -2178,3 +2178,19 @@ window.fetch = async function (...args) {
         throw error;
     }
 };
+
+// Global helper function to toggle password visibility
+function togglePasswordVisibility(inputId, iconElement) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        iconElement.classList.remove('bi-eye');
+        iconElement.classList.add('bi-eye-slash');
+    } else {
+        input.type = 'password';
+        iconElement.classList.remove('bi-eye-slash');
+        iconElement.classList.add('bi-eye');
+    }
+}

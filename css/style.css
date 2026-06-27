@@ -2062,3 +2062,34 @@ body:not(.dark-theme) label {
 .google-logo-only-btn:active {
     transform: scale(0.92);
 }
+
+/* Password Toggle Styling */
+.password-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.password-wrapper input {
+    padding-right: 45px !important;
+}
+
+.password-wrapper .toggle-password {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: var(--text-muted, #64748b);
+    font-size: 16px;
+    z-index: 10;
+    transition: color 0.2s ease, transform 0.1s ease;
+}
+
+.password-wrapper .toggle-password:hover {
+    color: var(--primary, #4f46e5);
+}
+
+.password-wrapper .toggle-password:active {
+    transform: translateY(-50%) scale(0.9);
+}
+

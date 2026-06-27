@@ -829,7 +829,10 @@ async function renderSettings() {
                                 </div>
                                 <div class="form-group">
                                     <label>SMTP App Password</label>
-                                    <input type="password" id="email-pass" placeholder="16-digit App Password">
+                                    <div class="password-wrapper">
+                                        <input type="password" id="email-pass" placeholder="16-digit App Password">
+                                        <i class="bi bi-eye toggle-password" onclick="togglePasswordVisibility('email-pass', this)"></i>
+                                    </div>
                                 </div>
                                 <div class="form-group" style="grid-column: span 2;">
                                     <label>Google Apps Script Web App URL (HTTP API Fallback for Render/Railway)</label>
@@ -859,7 +862,10 @@ async function renderSettings() {
                                 </div>
                                 <div class="form-group">
                                     <label>SMS Gateway API Key</label>
-                                    <input type="password" id="sms-api-key" placeholder="Enter key">
+                                    <div class="password-wrapper">
+                                        <input type="password" id="sms-api-key" placeholder="Enter key">
+                                        <i class="bi bi-eye toggle-password" onclick="togglePasswordVisibility('sms-api-key', this)"></i>
+                                    </div>
                                 </div>
                                 <div class="form-group">
                                     <label>Sender ID</label>
