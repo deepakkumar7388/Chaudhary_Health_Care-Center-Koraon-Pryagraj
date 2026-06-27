@@ -146,13 +146,13 @@ body {
 
 
 .auth-form-panel {
-    flex: 1.2;
+    flex: 1.6;
     background: var(--card-bg);
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 60px 50px 30px 50px;
+    padding: 50px 50px 10px 10px;
     position: relative;
 }
 
@@ -1591,7 +1591,7 @@ body {
 
     .auth-form-panel {
         width: 100%;
-        padding: 40px 20px;
+        padding: 40px 20px 5px 20px;
     }
 
 
@@ -1600,7 +1600,7 @@ body {
     }
 
     .auth-form-panel {
-        padding: 40px 20px;
+        padding: 40px 20px 5px 20px;
     }
 
     .auth-form-container h2 {
