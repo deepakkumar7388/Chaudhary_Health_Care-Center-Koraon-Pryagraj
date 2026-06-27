@@ -80,8 +80,8 @@
     .surgery-consent-grid div > div:has(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="hidden"])):has(label),
     .surgery-consent-grid div > div:has(textarea):has(label) {
         position: relative !important;
-        margin-top: 12px !important;
-        margin-bottom: 12px !important;
+        margin-top: 8px !important;
+        margin-bottom: 8px !important;
     }
 
     /* Margin for Select wrappers (with static labels) to prevent clumping */
@@ -89,8 +89,8 @@
     .input-group:has(select),
     .surgery-form-grid > div:has(select),
     .surgery-consent-grid div > div:has(select) {
-        margin-top: 14px !important;
-        margin-bottom: 14px !important;
+        margin-top: 10px !important;
+        margin-bottom: 10px !important;
         position: relative !important;
     }
 
@@ -1137,8 +1137,8 @@
         overflow-x: hidden !important;
         padding-top: 76px !important;
         /* Tighter padding-top below 64px mobile header */
-        padding-left: 10px !important;
-        padding-right: 10px !important;
+        padding-left: 4px !important;
+        padding-right: 4px !important;
     }
 
     /* Tables — always scrollable and compact */
