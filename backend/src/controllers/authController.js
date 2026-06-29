@@ -150,7 +150,7 @@ exports.login = async (req, res) => {
         const user = await User.findOne({ email });
 
         if (!user || !(await user.comparePassword(password))) {
-            return res.status(401).json({ success: false, message: 'Invalid credentials' });
+            return res.status(401).json({ success: false, message: 'Incorrect password' });
         }
 
         // 🔒 SECURITY: Developer role is exclusively reserved for authorized emails
@@ -170,7 +170,9 @@ exports.login = async (req, res) => {
 
         // 🔒 CONCURRENT LOGIN CHECK — Only for Developer and Admin
         // Agar developer/admin pehle se kisi device par login tha, toh use force logout email bhejo
+        let concurrentEmailSent = false;
         if ((user.role === 'developer' || user.role === 'admin') && user.currentSessionToken && user.currentSessionToken !== token) {
+            concurrentEmailSent = true;
             const { sendConcurrentLoginEmail } = require('../config/emailService');
             sendConcurrentLoginEmail(
                 user.email,
@@ -186,8 +188,8 @@ exports.login = async (req, res) => {
         user.currentSessionToken = token;
         await user.save();
 
-        // Send security alert email for Developer and Admin
-        if (user.role === 'developer' || user.role === 'admin') {
+        // Send security alert email for Developer and Admin (skip if concurrent email already sent)
+        if (!concurrentEmailSent && (user.role === 'developer' || user.role === 'admin')) {
             const { sendSecurityAlertEmail } = require('../config/emailService');
             sendSecurityAlertEmail(user.email, user.name, req.ip, req.headers['user-agent']).catch(err => {
                 console.error('Failed to send security alert email:', err.message);

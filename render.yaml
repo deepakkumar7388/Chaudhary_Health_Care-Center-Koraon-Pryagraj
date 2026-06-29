@@ -54,3 +54,5 @@ services:
         sync: false
       - key: EMAIL_PASS
         sync: false
+      - key: EMAIL_API_URL
+        sync: false

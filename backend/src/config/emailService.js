@@ -95,16 +95,19 @@ async function getTransporter() {
 
 /**
  * Send an email — now uses cached transporter (no DB hit on every call)
+ * Priority: HTTP API (Google Apps Script) → SMTP Fallback
  */
 async function sendEmail({ to, subject, html }) {
   const { transporter, fromLine, emailApiUrl, systemName } = await getTransporter();
 
+  // ===== TRY HTTP API FIRST (Google Apps Script) =====
   if (emailApiUrl) {
-    console.log(`Sending email via HTTP API to ${to}`);
+    console.log(`📧 Attempting email via HTTP API to ${to}`);
     try {
       const response = await fetch(emailApiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        redirect: 'follow', // Follow Google's redirects automatically
         body: JSON.stringify({ 
           to, 
           subject, 
@@ -113,18 +116,32 @@ async function sendEmail({ to, subject, html }) {
           name: systemName
         })
       });
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(data.error || 'HTTP API Email Failed');
+
+      // Check if response is actually JSON before parsing
+      const contentType = response.headers.get('content-type') || '';
+      const responseText = await response.text();
+
+      if (!contentType.includes('application/json')) {
+        // Google Apps Script returned HTML (error page, login page, or redirect issue)
+        console.warn(`⚠️ HTTP API returned non-JSON (${contentType}). Response preview: ${responseText.substring(0, 150)}...`);
+        throw new Error(`HTTP API returned HTML instead of JSON. Script may be expired or not deployed correctly.`);
       }
+
+      const data = JSON.parse(responseText);
+      if (!data.success) {
+        throw new Error(data.error || 'HTTP API returned failure');
+      }
+      console.log(`✅ Email sent via HTTP API to ${to}`);
       return data;
     } catch (err) {
-      console.error('HTTP API Email send error:', err);
-      throw err;
+      console.error(`❌ HTTP API Email failed: ${err.message}`);
+      console.log(`🔄 Falling back to SMTP for ${to}...`);
+      // Don't throw — fall through to SMTP below
     }
   }
 
-  console.log(`Sending email via SMTP to ${to}`);
+  // ===== SMTP FALLBACK =====
+  console.log(`📧 Sending email via SMTP to ${to}`);
   const mailOptions = {
     from: fromLine,
     to,
