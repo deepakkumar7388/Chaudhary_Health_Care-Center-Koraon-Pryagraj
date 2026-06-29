@@ -282,12 +282,21 @@ function toggleAuthPanel(mode) {
 }
 
 async function login() {
+    if (window.isLoggingIn) return;
+
     const email = document.getElementById('login-email').value.trim();
     const password = document.getElementById('password').value.trim();
 
     if (!email || !password) {
         document.getElementById('login-error').textContent = 'Please fill all fields';
         return;
+    }
+
+    window.isLoggingIn = true;
+    const loginBtn = document.querySelector('.login-btn');
+    if (loginBtn) {
+        loginBtn.disabled = true;
+        loginBtn.style.opacity = '0.7';
     }
 
     showLoading('Authenticating...');
@@ -332,7 +341,9 @@ async function login() {
                     userId: currentUser.id
                 });
             }
+            window.isLoggingIn = false;
         } else {
+            resetLoginButton();
             hideLoading();
             if (response.status === 403) {
                 // Account is pending or rejected
@@ -352,10 +363,11 @@ async function login() {
                 showNotification(msg, type, title);
                 document.getElementById('login-error').textContent = msg;
             } else {
-                document.getElementById('login-error').textContent = result.message || 'Invalid credentials';
+                document.getElementById('login-error').textContent = result.message || 'Incorrect password';
             }
         }
     } catch (error) {
+        resetLoginButton();
         console.error('Login error:', error);
         hideLoading();
         let errorMsg = 'Cannot connect to server. Please ensure the backend is running.';
@@ -364,6 +376,15 @@ async function login() {
         }
         showNotification(errorMsg, 'error', 'Connection Error');
         document.getElementById('login-error').textContent = errorMsg;
+    }
+}
+
+function resetLoginButton() {
+    window.isLoggingIn = false;
+    const loginBtn = document.querySelector('.login-btn');
+    if (loginBtn) {
+        loginBtn.disabled = false;
+        loginBtn.style.opacity = '1';
     }
 }
 
