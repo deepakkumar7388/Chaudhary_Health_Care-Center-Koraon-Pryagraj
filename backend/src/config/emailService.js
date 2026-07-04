@@ -95,19 +95,20 @@ async function getTransporter() {
 
 /**
  * Send an email — now uses cached transporter (no DB hit on every call)
- * Priority: HTTP API (Google Apps Script) → SMTP Fallback
+ * If HTTP API (Google Apps Script) is configured, use ONLY that.
+ * SMTP is used ONLY when no HTTP API URL is configured.
  */
 async function sendEmail({ to, subject, html }) {
   const { transporter, fromLine, emailApiUrl, systemName } = await getTransporter();
 
-  // ===== TRY HTTP API FIRST (Google Apps Script) =====
+  // ===== HTTP API METHOD (Google Apps Script) =====
   if (emailApiUrl) {
-    console.log(`📧 Attempting email via HTTP API to ${to}`);
+    console.log(`📧 Sending email via HTTP API to ${to}`);
     try {
       const response = await fetch(emailApiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        redirect: 'follow', // Follow Google's redirects automatically
+        redirect: 'follow',
         body: JSON.stringify({ 
           to, 
           subject, 
@@ -117,14 +118,13 @@ async function sendEmail({ to, subject, html }) {
         })
       });
 
-      // Check if response is actually JSON before parsing
       const contentType = response.headers.get('content-type') || '';
       const responseText = await response.text();
 
       if (!contentType.includes('application/json')) {
-        // Google Apps Script returned HTML (error page, login page, or redirect issue)
-        console.warn(`⚠️ HTTP API returned non-JSON (${contentType}). Response preview: ${responseText.substring(0, 150)}...`);
-        throw new Error(`HTTP API returned HTML instead of JSON. Script may be expired or not deployed correctly.`);
+        console.warn(`⚠️ HTTP API returned non-JSON (${contentType}). Preview: ${responseText.substring(0, 150)}...`);
+        // Do NOT fallback to SMTP — that causes double emails
+        throw new Error(`HTTP API returned HTML instead of JSON. Script may need redeployment.`);
       }
 
       const data = JSON.parse(responseText);
@@ -134,13 +134,13 @@ async function sendEmail({ to, subject, html }) {
       console.log(`✅ Email sent via HTTP API to ${to}`);
       return data;
     } catch (err) {
-      console.error(`❌ HTTP API Email failed: ${err.message}`);
-      console.log(`🔄 Falling back to SMTP for ${to}...`);
-      // Don't throw — fall through to SMTP below
+      console.error(`❌ HTTP API Email failed for ${to}: ${err.message}`);
+      // NO SMTP FALLBACK — prevents duplicate emails
+      throw err;
     }
   }
 
-  // ===== SMTP FALLBACK =====
+  // ===== SMTP METHOD (only when HTTP API is NOT configured) =====
   console.log(`📧 Sending email via SMTP to ${to}`);
   const mailOptions = {
     from: fromLine,
