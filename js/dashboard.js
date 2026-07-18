@@ -733,7 +733,7 @@ async function renderDevTechConsole() {
             <!-- Server Cards -->
             <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:12px; margin-bottom:18px;">
                 ${[
-                    { label: 'Main Backend (Render)', url: 'https://chaudhary-health-care-center-koraon-bbw0.onrender.com', id: 'srv-main' },
+                    { label: 'Main Backend (Render)', url: 'https://chaudhary-hms-api-h7nl.onrender.com', id: 'srv-main' },
                     { label: 'HMS Backend (Render)', url: 'https://hms-backend-w20q.onrender.com', id: 'srv-hms' },
                     { label: 'Local Dev Server', url: 'http://127.0.0.1:5000', id: 'srv-local' }
                 ].map(srv => `
@@ -789,7 +789,7 @@ async function renderDevTechConsole() {
 
     // Check server health
     const servers = [
-        { id: 'srv-main', url: 'https://chaudhary-health-care-center-koraon-bbw0.onrender.com/api/health' },
+        { id: 'srv-main', url: 'https://chaudhary-hms-api-h7nl.onrender.com/api/health' },
         { id: 'srv-hms',  url: 'https://hms-backend-w20q.onrender.com/api/health' },
         { id: 'srv-local', url: 'http://127.0.0.1:5000/api/health' }
     ];

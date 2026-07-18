@@ -14,7 +14,7 @@
         if (loc.protocol === 'file:' || loc.hostname === '127.0.0.1' || loc.hostname === 'localhost') {
             return 'http://127.0.0.1:5000';
         }
-        return 'https://chaudhary-health-care-center-koraon-bbw0.onrender.com';
+        return 'https://chaudhary-hms-api-h7nl.onrender.com';
     }
 
     function getUserRole() {
