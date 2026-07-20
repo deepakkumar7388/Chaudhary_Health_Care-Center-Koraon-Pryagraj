@@ -896,29 +896,29 @@ function editPatient(patientId) {
             </div>
             <div style="padding: 25px; background: var(--card-bg); max-height: 80vh; overflow-y: auto;">
                 <form id="edit-patient-form" onsubmit="event.preventDefault(); ${isReadOnly ? 'this.closest(\'.modal\').remove()' : `savePatientEdit('${patient.patient_id || patient.id}')`}">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-                        <div style="grid-column: span 2;">
-                            <label style="display:block; font-size:11px; font-weight:700; color:#a0aec0; text-transform:uppercase; margin-bottom:5px;">Patient Type</label>
-                            <select id="edit-p-type" class="filter-select" style="width:100%;" ${isReadOnly ? 'disabled' : ''} onchange="toggleEditPatientTypeFields()">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label>Patient Type</label>
+                            <select id="edit-p-type" ${isReadOnly ? 'disabled' : ''} onchange="toggleEditPatientTypeFields()">
                                 <option value="IPD" ${pType === 'IPD' ? 'selected' : ''}>IPD (Inpatient Admission)</option>
                                 <option value="OPD" ${pType === 'OPD' ? 'selected' : ''}>OPD (Outpatient Consultation)</option>
                             </select>
                         </div>
-                        <div>
-                            <label style="display:block; font-size:11px; font-weight:700; color:#a0aec0; text-transform:uppercase; margin-bottom:5px;">Patient Name *</label>
-                            <input type="text" id="edit-p-name" value="${pName}" class="search-input" style="width:100%;" ${isReadOnly ? 'disabled' : 'required'}>
+                        <div class="form-group">
+                            <label>Patient Name *</label>
+                            <input type="text" id="edit-p-name" value="${pName}" ${isReadOnly ? 'disabled' : 'required'}>
                         </div>
-                        <div>
-                            <label style="display:block; font-size:11px; font-weight:700; color:#a0aec0; text-transform:uppercase; margin-bottom:5px;">Guardian Name</label>
-                            <input type="text" id="edit-p-guardian" value="${pGuardian}" class="search-input" style="width:100%;" ${isReadOnly ? 'disabled' : ''}>
+                        <div class="form-group">
+                            <label>Guardian Name</label>
+                            <input type="text" id="edit-p-guardian" value="${pGuardian}" ${isReadOnly ? 'disabled' : ''}>
                         </div>
-                        <div>
-                            <label style="display:block; font-size:11px; font-weight:700; color:#a0aec0; text-transform:uppercase; margin-bottom:5px;">Age (Yrs)</label>
-                            <input type="number" id="edit-p-age" value="${pAge}" class="search-input" style="width:100%;" ${isReadOnly ? 'disabled' : ''}>
+                        <div class="form-group">
+                            <label>Age (Yrs)</label>
+                            <input type="number" id="edit-p-age" value="${pAge}" ${isReadOnly ? 'disabled' : ''}>
                         </div>
-                        <div>
-                            <label style="display:block; font-size:11px; font-weight:700; color:#a0aec0; text-transform:uppercase; margin-bottom:5px;">Gender</label>
-                            <select id="edit-p-gender" class="filter-select" style="width:100%;" ${isReadOnly ? 'disabled' : ''} onchange="loadAvailableBedsForEdit('${pBedNo}', this.value)">
+                        <div class="form-group">
+                            <label>Gender</label>
+                            <select id="edit-p-gender" ${isReadOnly ? 'disabled' : ''} onchange="loadAvailableBedsForEdit('${pBedNo}', this.value)">
                                 <option value="Male" ${pGender === 'Male' ? 'selected' : ''}>Male</option>
                                 <option value="Female" ${pGender === 'Female' ? 'selected' : ''}>Female</option>
                                 <option value="Other" ${pGender === 'Other' ? 'selected' : ''}>Other</option>
@@ -926,45 +926,45 @@ function editPatient(patientId) {
                         </div>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-                        <div>
-                            <label style="display:block; font-size:11px; font-weight:700; color:#a0aec0; text-transform:uppercase; margin-bottom:5px;">Mobile / Contact</label>
-                            <input type="text" id="edit-p-mobile" value="${pMobile}" class="search-input" style="width:100%;" ${isReadOnly ? 'disabled' : ''}>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="form-group">
+                            <label>Mobile / Contact</label>
+                            <input type="text" id="edit-p-mobile" value="${pMobile}" ${isReadOnly ? 'disabled' : ''}>
                         </div>
-                        <div>
-                            <label style="display:block; font-size:11px; font-weight:700; color:#a0aec0; text-transform:uppercase; margin-bottom:5px;">Email Address</label>
-                            <input type="email" id="edit-p-email" value="${pEmail}" class="search-input" style="width:100%;" placeholder="patient@example.com" ${isReadOnly ? 'disabled' : ''}>
+                        <div class="form-group">
+                            <label>Email Address</label>
+                            <input type="email" id="edit-p-email" value="${pEmail}" placeholder="Optional" ${isReadOnly ? 'disabled' : ''}>
                         </div>
                     </div>
 
-                    <div style="margin-bottom: 20px;">
-                        <label style="display:block; font-size:11px; font-weight:700; color:#a0aec0; text-transform:uppercase; margin-bottom:5px;">Address</label>
-                        <textarea id="edit-p-address" class="search-input" style="width:100%; height:60px; padding:10px;" ${isReadOnly ? 'disabled' : ''}>${pAddress}</textarea>
+                    <div class="form-group">
+                        <label>Address</label>
+                        <textarea id="edit-p-address" ${isReadOnly ? 'disabled' : ''}>${pAddress}</textarea>
                     </div>
 
                     <hr style="border: none; border-top: 1px dashed var(--border); margin: 25px 0;">
                     
-                    <div id="edit-bed-details-container" style="background: var(--background); padding: 15px; border-radius: 10px; display: ${pType === 'OPD' ? 'none' : 'block'};">
+                    <div id="edit-bed-details-container" style="display: ${pType === 'OPD' ? 'none' : 'block'};">
                         <h4 style="margin: 0 0 10px 0; font-size: 14px; display: flex; align-items: center; gap: 8px;">
                             <i class="fa-solid fa-bed"></i> Ward / Bed Stay Details
                         </h4>
                         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
-                            <div>
-                                <label style="display:block; font-size:10px; color:#718096; margin-bottom:3px;">Ward Type</label>
-                                <select id="edit-p-ward-type" class="filter-select" style="width:100%; height: 35px;" ${isReadOnly ? 'disabled' : ''}>
+                            <div class="form-group">
+                                <label>Ward Type</label>
+                                <select id="edit-p-ward-type" ${isReadOnly ? 'disabled' : ''}>
                                     <option value="General" ${pWardType === 'General' ? 'selected' : ''}>General Ward</option>
                                     <option value="ICU" ${pWardType === 'ICU' ? 'selected' : ''}>ICU (Intensive Care)</option>
                                 </select>
                             </div>
-                            <div>
-                                <label style="display:block; font-size:10px; color:#718096; margin-bottom:3px;">Bed Number</label>
-                                <select id="edit-p-bed-no" class="filter-select" style="width:100%; height: 35px;" ${isReadOnly ? 'disabled' : ''} onchange="handleEditBedChange(this.value)">
+                            <div class="form-group">
+                                <label>Bed Number</label>
+                                <select id="edit-p-bed-no" ${isReadOnly ? 'disabled' : ''} onchange="handleEditBedChange(this.value)">
                                     <option value="${pBedNo}">${pBedNo || 'Select Bed'}</option>
                                 </select>
                             </div>
-                            <div>
-                                <label style="display:block; font-size:10px; color:#718096; margin-bottom:3px;">Daily Charge (${window.currencySymbol || '₹'})</label>
-                                <input type="number" id="edit-p-daily-charge" value="${pWardCharge}" class="search-input" style="width:100%; height: 35px; padding: 5px;" ${isReadOnly ? 'disabled' : ''}>
+                            <div class="form-group">
+                                <label>Daily Charge (${window.currencySymbol || '₹'})</label>
+                                <input type="number" id="edit-p-daily-charge" value="${pWardCharge}" ${isReadOnly ? 'disabled' : ''}>
                             </div>
                         </div>
                     </div>
@@ -1059,16 +1059,16 @@ function openTransferBedModal(patientId) {
                         <div style="font-size: 13px; color: #475569;"><strong>Current Bed:</strong> ${patient.bed_no || 'Unassigned'}</div>
                     </div>
 
-                    <div style="margin-bottom: 15px;">
-                        <label style="display:block; font-size:11px; font-weight:700; color:#a0aec0; text-transform:uppercase; margin-bottom:5px;">Select New Bed</label>
-                        <select id="transfer-new-bed" class="filter-select" style="width:100%; height: 35px;" required onchange="handleTransferBedChange(this.value)">
+                    <div class="form-group">
+                        <label>Select New Bed</label>
+                        <select id="transfer-new-bed" required onchange="handleTransferBedChange(this.value)">
                             <option value="">Loading beds...</option>
                         </select>
                     </div>
 
-                    <div style="margin-bottom: 20px;">
-                        <label style="display:block; font-size:11px; font-weight:700; color:#a0aec0; text-transform:uppercase; margin-bottom:5px;">New Daily Charge (${window.currencySymbol || '₹'})</label>
-                        <input type="number" id="transfer-daily-charge" value="${tCharge}" class="search-input" style="width:100%;" required>
+                    <div class="form-group">
+                        <label>New Daily Charge (${window.currencySymbol || '₹'})</label>
+                        <input type="number" id="transfer-daily-charge" value="${tCharge}" required>
                     </div>
 
                     <div style="display: flex; gap: 10px; justify-content: center;">
