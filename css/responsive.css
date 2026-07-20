@@ -70,80 +70,118 @@
 }
 
 @media (max-width: 768px) {
-    /* Global Outlined Floating Labels for Mobile View (Excluding Select, Checkbox, Radio, and File elements) */
-    .form-group:has(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="hidden"])):has(label),
-    .form-group:has(textarea):has(label),
-    .input-group:has(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="hidden"])):has(label),
-    .input-group:has(textarea):has(label),
-    .surgery-form-grid > div:has(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="hidden"])):has(label),
-    .surgery-form-grid > div:has(textarea):has(label),
-    .surgery-consent-grid div > div:has(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="hidden"])):has(label),
-    .surgery-consent-grid div > div:has(textarea):has(label) {
+    /* ==========================================
+       UNIFIED MODERN OUTLINED FLOATING LABELS
+       Works for all inputs, textareas & select containers
+       ========================================== */
+
+    /* Ensure parent containers have exact structural position & spacing */
+    .form-group,
+    .input-group,
+    .surgery-form-grid > div,
+    .surgery-consent-grid div > div {
         position: relative !important;
-        margin-top: 8px !important;
-        margin-bottom: 8px !important;
+        margin-top: 20px !important; /* Extra spacing on top so floating label doesn't touch content above */
+        margin-bottom: 12px !important;
+        display: flex !important;
+        flex-direction: column !important;
     }
 
-    /* Margin for Select wrappers (with static labels) to prevent clumping */
+    /* Keep select fields with permanent/static labels to prevent clumping */
     .form-group:has(select),
     .input-group:has(select),
     .surgery-form-grid > div:has(select),
     .surgery-consent-grid div > div:has(select) {
-        margin-top: 10px !important;
-        margin-bottom: 10px !important;
-        position: relative !important;
+        margin-top: 14px !important;
     }
 
-    .form-group:has(input):has(label) > label,
+    /* Setup universal inputs standard height, border, and padding */
+    .form-group input,
+    .form-group select,
+    .input-group input,
+    .input-group select,
+    .password-wrapper input,
+    .surgery-form-grid input,
+    .surgery-consent-grid input {
+        height: 52px !important;
+        font-size: 14px !important;
+        padding: 0 16px !important;
+        border-radius: 12px !important;
+        border: 1.5px solid var(--border, #e2e8f0) !important;
+        background: var(--card-bg, #ffffff) !important;
+        color: var(--text, #1e293b) !important;
+        box-sizing: border-box !important;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+        width: 100% !important;
+    }
+
+    /* Textarea dynamic padding */
+    .form-group textarea,
+    .input-group textarea,
+    .surgery-form-grid textarea,
+    .surgery-consent-grid textarea {
+        font-size: 14px !important;
+        padding: 16px !important;
+        border-radius: 12px !important;
+        border: 1.5px solid var(--border, #e2e8f0) !important;
+        background: var(--card-bg, #ffffff) !important;
+        color: var(--text, #1e293b) !important;
+        box-sizing: border-box !important;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+        width: 100% !important;
+        min-height: 100px !important;
+    }
+
+    /* Label positioning - centered inside the input field natively */
+    .form-group:has(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="hidden"])):has(label) > label,
     .form-group:has(textarea):has(label) > label,
-    .input-group:has(input):has(label) > label,
+    .input-group:has(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="hidden"])):has(label) > label,
     .input-group:has(textarea):has(label) > label,
-    .surgery-form-grid > div:has(input):has(label) > label,
+    .surgery-form-grid > div:has(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="hidden"])):has(label) > label,
     .surgery-form-grid > div:has(textarea):has(label) > label,
-    .surgery-consent-grid div > div:has(input):has(label) > label,
+    .surgery-consent-grid div > div:has(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="hidden"])):has(label) > label,
     .surgery-consent-grid div > div:has(textarea):has(label) > label,
     .password-wrapper label {
         position: absolute !important;
         left: 16px !important;
-        top: 50% !important;
+        top: 26px !important; /* Perfect middle of 52px input */
         transform: translateY(-50%) !important;
         background: transparent !important;
         padding: 0 4px !important;
         color: var(--text-muted, #64748b) !important;
-        font-size: 13px !important;
-        font-weight: 600 !important;
+        font-size: 14px !important;
+        font-weight: 500 !important;
         pointer-events: none !important;
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
         z-index: 5 !important;
-        text-transform: none !important;
-        letter-spacing: normal !important;
-        margin-bottom: 0 !important;
         display: block !important;
     }
 
-    /* Adjust default top position for textarea labels specifically (since textareas are tall) */
-    .form-group:has(textarea) label,
-    .input-group:has(textarea) label,
-    .surgery-form-grid > div:has(textarea) label,
-    .surgery-consent-grid div > div:has(textarea) label {
-        top: 24px !important;
+    /* Position label for Textareas at the top-left offset */
+    .form-group:has(textarea) > label,
+    .input-group:has(textarea) > label,
+    .surgery-form-grid > div:has(textarea) > label,
+    .surgery-consent-grid div > div:has(textarea) > label {
+        top: 20px !important;
         transform: none !important;
     }
 
-    /* Hide standard placeholders globally on mobile for floating fields */
+    /* Hide native placeholders to let floating label work smoothly */
     .form-group input::placeholder,
     .form-group textarea::placeholder,
     .input-group input::placeholder,
     .input-group textarea::placeholder,
-    .surgery-form-grid > div:has(label) input::placeholder,
-    .surgery-form-grid > div:has(label) textarea::placeholder,
-    .surgery-consent-grid div > div:has(label) input::placeholder,
-    .surgery-consent-grid div > div:has(label) textarea::placeholder {
+    .surgery-form-grid > div input::placeholder,
+    .surgery-form-grid > div textarea::placeholder,
+    .surgery-consent-grid div > div input::placeholder,
+    .surgery-consent-grid div > div textarea::placeholder {
         color: transparent !important;
         opacity: 0 !important;
     }
 
-    /* NATIVE FLOATING: If browser supports :placeholder-shown (autofill, prefill, typed value without JS reliance) */
+    /* ══════════════════════════════════════════════
+       FLOATING TRIGGER: Focus, Prefill & Autofill
+       ══════════════════════════════════════════════ */
     .form-group:has(input:focus) > label,
     .form-group:has(input:not(:placeholder-shown)) > label,
     .form-group:has(textarea:focus) > label,
@@ -160,7 +198,7 @@
     .surgery-consent-grid div > div:has(input:not(:placeholder-shown)) > label,
     .surgery-consent-grid div > div:has(textarea:focus) > label,
     .surgery-consent-grid div > div:has(textarea:not(:placeholder-shown)) > label,
-    /* JS FALLBACK FLOATING (using .focused and .has-value classes) */
+    /* JS FALLBACKS */
     .form-group.focused label,
     .form-group.has-value label,
     .input-group.focused label,
@@ -177,7 +215,7 @@
         z-index: 6 !important;
     }
 
-    /* Date and Time inputs: Label floats permanently on mobile view to prevent overlapping with default browser placeholders (mm/dd/yyyy, --:-- --) */
+    /* Permanent float for date/time/select components */
     .form-group:has(input[type="date"]) > label,
     .form-group:has(input[type="time"]) > label,
     .input-group:has(input[type="date"]) > label,
@@ -194,7 +232,15 @@
         z-index: 6 !important;
     }
 
-    /* Highlight border color on active focus */
+    /* Active input focus borders */
+    .form-group:has(input:focus) input,
+    .form-group:has(textarea:focus) textarea,
+    .input-group:has(input:focus) input,
+    .input-group:has(textarea:focus) textarea,
+    .surgery-form-grid > div:has(input:focus) input,
+    .surgery-form-grid > div:has(textarea:focus) textarea,
+    .surgery-consent-grid div > div:has(input:focus) input,
+    .surgery-consent-grid div > div:has(textarea:focus) textarea,
     .form-group.focused input,
     .form-group.focused textarea,
     .input-group.focused input,
@@ -204,6 +250,8 @@
     .surgery-consent-grid div > div.focused input,
     .surgery-consent-grid div > div.focused textarea {
         border-color: var(--primary, #4f46e5) !important;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1) !important;
+        outline: none !important;
     }
 
     /* Settings form grids to single column */
