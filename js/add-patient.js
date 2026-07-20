@@ -41,11 +41,11 @@ function renderAddPatient() {
                         <div class="form-grid">
                             <div class="form-group" style="grid-column: span 2;">
                                 <label>Full Name *</label>
-                                <input type="text" id="opd-name" required placeholder="Patient full name" autocomplete="off">
+                                <input type="text" id="opd-name" required placeholder="" autocomplete="off">
                             </div>
                             <div class="form-group">
                                 <label>Age *</label>
-                                <input type="number" id="opd-age" required min="1" max="120" placeholder="e.g. 35">
+                                <input type="number" id="opd-age" required min="1" max="120" placeholder="">
                             </div>
                             <div class="form-group">
                                 <label>Gender *</label>
@@ -63,7 +63,7 @@ function renderAddPatient() {
                         <h3><i class="bi bi-house"></i> Address</h3>
                         <div class="form-group">
                             <label>Full Address *</label>
-                            <textarea rows="2" id="opd-address" required placeholder="Village, Post, District, State"></textarea>
+                            <textarea rows="2" id="opd-address" required placeholder=""></textarea>
                         </div>
                     </div>
 
@@ -72,7 +72,7 @@ function renderAddPatient() {
                         <div class="form-grid">
                             <div class="form-group" style="grid-column: span 2;">
                                 <label>Condition / Problem *</label>
-                                <textarea rows="2" id="opd-problem" required placeholder="e.g. Fever, Stomach pain, Cough..."></textarea>
+                                <textarea rows="2" id="opd-problem" required placeholder=""></textarea>
                             </div>
                             <div class="form-group">
                                 <label>Department *</label>
@@ -88,13 +88,13 @@ function renderAddPatient() {
                             </div>
                             <div class="form-group" style="grid-column: span 2;">
                                 <label>Consultation Fee (₹)</label>
-                                <input type="number" id="opd-consult-fee" min="0" placeholder="Auto-fills on doctor select" ${isFeeReadOnly}>
+                                <input type="number" id="opd-consult-fee" min="0" placeholder="" ${isFeeReadOnly}>
                             </div>
                         </div>
                         <!-- Optional mobile number -->
                         <div class="form-group" style="margin-top:8px;">
                             <label>Mobile <span style="font-size:11px; color:#94a3b8; font-weight:400;">(Optional)</span></label>
-                            <input type="tel" id="opd-mobile" pattern="[0-9]{10}" placeholder="10-digit mobile number" maxlength="10">
+                            <input type="tel" id="opd-mobile" pattern="[0-9]{10}" placeholder="" maxlength="10">
                         </div>
                     </div>
 
@@ -115,11 +115,11 @@ function renderAddPatient() {
                         <div class="form-grid">
                             <div class="form-group">
                                 <label>Full Name *</label>
-                                <input type="text" id="p-name" required placeholder="Patient name" autocomplete="off">
+                                <input type="text" id="p-name" required placeholder="" autocomplete="off">
                             </div>
                             <div class="form-group">
                                 <label>Age *</label>
-                                <input type="number" id="p-age" required min="1" max="120" placeholder="Age">
+                                <input type="number" id="p-age" required min="1" max="120" placeholder="">
                             </div>
                             <div class="form-group">
                                 <label>Gender *</label>
@@ -132,15 +132,15 @@ function renderAddPatient() {
                             </div>
                             <div class="form-group">
                                 <label>Guardian Name *</label>
-                                <input type="text" id="p-guardian" placeholder="S/o, D/o, W/o" required>
+                                <input type="text" id="p-guardian" placeholder="" required>
                             </div>
                             <div class="form-group">
                                 <label>Mobile *</label>
-                                <input type="tel" id="p-mobile" required pattern="[0-9]{10}" placeholder="10-digit number">
+                                <input type="tel" id="p-mobile" required pattern="[0-9]{10}" placeholder="">
                             </div>
                             <div class="form-group">
                                 <label>Email Address</label>
-                                <input type="email" id="p-email" placeholder="patient@example.com">
+                                <input type="email" id="p-email" placeholder="">
                             </div>
                             <div class="form-group" id="bed-group">
                                 <label>Bed Number *</label>
@@ -155,7 +155,7 @@ function renderAddPatient() {
                         <h3><i class="bi bi-house"></i> Address</h3>
                         <div class="form-group">
                             <label>Full Address *</label>
-                            <textarea rows="2" id="p-address" required placeholder="Village, Post, District, State"></textarea>
+                            <textarea rows="2" id="p-address" required placeholder=""></textarea>
                         </div>
                     </div>
                     
@@ -164,7 +164,7 @@ function renderAddPatient() {
                         <div class="form-grid" style="grid-template-columns: 1fr 1fr; align-items: flex-start;">
                             <div class="form-group">
                                 <label>Condition / Problem</label>
-                                <textarea rows="3" id="p-problem" placeholder="Symptoms or diagnosis" style="min-height: 80px;"></textarea>
+                                <textarea rows="3" id="p-problem" placeholder="" style="min-height: 80px;"></textarea>
                             </div>
                             <div class="form-group" style="display: none;">
                                 <label>Department</label>

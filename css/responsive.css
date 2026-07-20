@@ -69,97 +69,109 @@
     }
 }
 
-}
-
 /* ============================================================
-   CLEAN PROFESSIONAL FORM SYSTEM
-   Static labels above inputs — reliable on all devices
+   PREMIUM OUTLINED LABEL FORM SYSTEM
+   Label sits permanently on the TOP BORDER of the input box
    ============================================================ */
 
-/* Form group container */
+/* Form group container — margin-top creates space for the label above */
 .form-group,
-.input-group {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 6px !important;
-    margin-bottom: 16px !important;
+.input-group,
+.surgery-form-grid > div,
+.surgery-consent-grid div > div > div {
     position: relative !important;
+    margin-top: 18px !important;
+    margin-bottom: 18px !important;
+    overflow: visible !important;
 }
 
-/* Label — clearly above input */
-.form-group label,
-.input-group label {
-    font-size: 12px !important;
-    font-weight: 600 !important;
-    color: var(--text-muted, #64748b) !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.5px !important;
-    display: block !important;
-    position: static !important;
-    transform: none !important;
-    background: transparent !important;
-    pointer-events: auto !important;
-    margin-bottom: 0 !important;
-    transition: color 0.2s ease !important;
-}
-
-/* Input fields */
+/* Input / Select base */
 .form-group input,
 .input-group input,
 .form-group select,
 .input-group select,
-.password-wrapper input {
-    height: 44px !important;
-    font-size: 14px !important;
-    padding: 0 14px !important;
-    border-radius: 10px !important;
-    border: 1.5px solid var(--border, #e2e8f0) !important;
-    background: var(--card-bg, #ffffff) !important;
-    color: var(--text, #1e293b) !important;
-    box-sizing: border-box !important;
+.password-wrapper input,
+.surgery-form-grid input,
+.surgery-consent-grid input {
+    display: block !important;
     width: 100% !important;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+    height: 60px !important;
+    padding: 0 20px !important;
+    font-size: 15px !important;
+    color: var(--text, #1e293b) !important;
+    border: 1.8px solid var(--border, #e2e8f0) !important;
+    border-radius: 12px !important;
+    background: var(--background, #f8fafc) !important;
+    box-sizing: border-box !important;
     outline: none !important;
+    transition: border-color 0.2s, box-shadow 0.2s !important;
 }
 
-/* Textarea */
+/* Textarea base */
 .form-group textarea,
-.input-group textarea {
-    font-size: 14px !important;
-    padding: 12px 14px !important;
-    border-radius: 10px !important;
-    border: 1.5px solid var(--border, #e2e8f0) !important;
-    background: var(--card-bg, #ffffff) !important;
-    color: var(--text, #1e293b) !important;
-    box-sizing: border-box !important;
+.input-group textarea,
+.surgery-form-grid textarea,
+.surgery-consent-grid textarea {
+    display: block !important;
     width: 100% !important;
     min-height: 90px !important;
-    resize: vertical !important;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+    padding: 14px 18px !important;
+    font-size: 14px !important;
+    color: var(--text, #1e293b) !important;
+    border: 1.8px solid var(--border, #e2e8f0) !important;
+    border-radius: 12px !important;
+    background: var(--background, #f8fafc) !important;
+    box-sizing: border-box !important;
     outline: none !important;
+    resize: vertical !important;
+    transition: border-color 0.2s, box-shadow 0.2s !important;
 }
 
-/* Focus state — clean highlight */
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus,
-.input-group input:focus,
-.input-group select:focus,
-.input-group textarea:focus,
+/* LABEL — always fixed at the top border, never moves */
+.form-group > label,
+.input-group > label,
+.surgery-form-grid label,
+.surgery-consent-grid label {
+    position: absolute !important;
+    top: 0px !important;                        /* Sits exactly on the top border */
+    left: 14px !important;
+    transform: translateY(-50%) !important;     /* Half above, half below the border */
+    background: var(--card-bg, #ffffff) !important;  /* Masks the border line with the card background */
+    padding: 0 5px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    color: var(--primary, #059669) !important;
+    white-space: nowrap !important;
+    line-height: 1.4 !important;
+    z-index: 10 !important;
+    pointer-events: none !important;
+    text-transform: none !important;
+    letter-spacing: 0.2px !important;
+}
+
+
+
+/* Focus highlight */
+.form-group:focus-within input,
+.form-group:focus-within select,
+.form-group:focus-within textarea,
+.input-group:focus-within input,
+.input-group:focus-within select,
+.input-group:focus-within textarea,
 .password-wrapper input:focus {
     border-color: var(--primary, #059669) !important;
-    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.12) !important;
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1) !important;
 }
 
-/* Placeholder text */
+/* Hide placeholder text — label serves as the label */
 .form-group input::placeholder,
 .form-group textarea::placeholder,
 .input-group input::placeholder,
 .input-group textarea::placeholder {
-    color: var(--text-muted, #94a3b8) !important;
-    opacity: 1 !important;
-    font-size: 13px !important;
+    color: transparent !important;
 }
+
+
 
 @media (max-width: 768px) {
 
@@ -1160,21 +1172,17 @@
     }
 
     /* Compress default padding of forms and input components */
-    input,
-    select,
-    textarea,
-    .form-group input,
-    .form-group select,
-    .form-group textarea,
     .discharge-form input,
     .discharge-form select,
-    .discharge-form textarea,
-    .users-search,
-    .users-filter {
+    .discharge-form textarea {
         padding: 8px 12px !important;
         font-size: 13px !important;
         min-height: unset !important;
         height: auto !important;
+    }
+
+    .users-search {
+        padding-left: 42px !important;
     }
 
     .form-group,

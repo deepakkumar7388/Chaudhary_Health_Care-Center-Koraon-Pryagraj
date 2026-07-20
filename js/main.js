@@ -2342,6 +2342,61 @@ function getInputContainer(input) {
     return null;
 }
 
-// Form system uses static labels — no floating label JS needed
+function updateGroupFloatingState(group) {
+    const input = group.querySelector('input, textarea, select');
+    if (input) {
+        const hasValue = input.value && input.value.trim() !== '';
+        const isAutofilled = input.matches && (
+            input.matches(':-webkit-autofill') || 
+            input.matches(':autofill')
+        );
+
+        if (hasValue || isAutofilled) {
+            group.classList.add('has-value');
+        } else {
+            group.classList.remove('has-value');
+        }
+    }
+}
+
+// Global window event triggers for floating state management
+document.addEventListener('focusin', (e) => {
+    const container = getInputContainer(e.target);
+    if (container) {
+        container.classList.add('focused');
+    }
+});
+
+document.addEventListener('focusout', (e) => {
+    const container = getInputContainer(e.target);
+    if (container) {
+        container.classList.remove('focused');
+        updateGroupFloatingState(container);
+    }
+});
+
+document.addEventListener('input', (e) => {
+    const container = getInputContainer(e.target);
+    if (container) {
+        updateGroupFloatingState(container);
+    }
+});
+
+document.addEventListener('change', (e) => {
+    const container = getInputContainer(e.target);
+    if (container) {
+        updateGroupFloatingState(container);
+    }
+});
+
+// Periodic scanner (every 500ms) to ensure auto-filled values by password managers/Google get floats
+setInterval(() => {
+    document.querySelectorAll('.form-group, .input-group, .surgery-form-grid > div, .surgery-consent-grid div > div').forEach(updateGroupFloatingState);
+}, 500);
+
+// Initial run for static content
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.form-group, .input-group, .surgery-form-grid > div, .surgery-consent-grid div > div').forEach(updateGroupFloatingState);
+});
 
 
