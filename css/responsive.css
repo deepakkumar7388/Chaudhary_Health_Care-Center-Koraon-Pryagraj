@@ -182,21 +182,20 @@
     /* ══════════════════════════════════════════════
        FLOATING TRIGGER: Focus, Prefill & Autofill
        ══════════════════════════════════════════════ */
-    .form-group:has(input:focus) > label,
-    .form-group:has(input:not(:placeholder-shown)) > label,
-    .form-group:has(textarea:focus) > label,
+    
+    /* Shift label to top whenever input has focus, is active, or contains any text/placeholder value */
+    .form-group:focus-within > label,
+    .input-group:focus-within > label,
+    .surgery-form-grid > div:focus-within > label,
+    .surgery-consent-grid div > div:focus-within > label,
+    /* NATIVE FLOATING: When input has value or browser auto-fills it */
+    .form-group:has(input:not([placeholder=""]):not(:placeholder-shown)) > label,
     .form-group:has(textarea:not(:placeholder-shown)) > label,
-    .input-group:has(input:focus) > label,
-    .input-group:has(input:not(:placeholder-shown)) > label,
-    .input-group:has(textarea:focus) > label,
+    .input-group:has(input:not([placeholder=""]):not(:placeholder-shown)) > label,
     .input-group:has(textarea:not(:placeholder-shown)) > label,
-    .surgery-form-grid > div:has(input:focus) > label,
-    .surgery-form-grid > div:has(input:not(:placeholder-shown)) > label,
-    .surgery-form-grid > div:has(textarea:focus) > label,
+    .surgery-form-grid > div:has(input:not([placeholder=""]):not(:placeholder-shown)) > label,
     .surgery-form-grid > div:has(textarea:not(:placeholder-shown)) > label,
-    .surgery-consent-grid div > div:has(input:focus) > label,
-    .surgery-consent-grid div > div:has(input:not(:placeholder-shown)) > label,
-    .surgery-consent-grid div > div:has(textarea:focus) > label,
+    .surgery-consent-grid div > div:has(input:not([placeholder=""]):not(:placeholder-shown)) > label,
     .surgery-consent-grid div > div:has(textarea:not(:placeholder-shown)) > label,
     /* JS FALLBACKS */
     .form-group.focused label,
