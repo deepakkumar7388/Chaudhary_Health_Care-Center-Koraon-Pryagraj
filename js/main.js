@@ -1079,15 +1079,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     migratePatientIds(); // Run once to clean old IDs
 
-    const savedUser = localStorage.getItem('user');
-    const token = localStorage.getItem('token');
-
-    if (savedUser && token) {
-        currentUser = JSON.parse(savedUser);
-        switchToApp();
-    } else {
-        toggleAuthPanel('login');
-    }
+    // Always initialize panel to login state by default; 
+    // verified session handler (first DOMContentLoaded block) will switch to app if valid.
+    toggleAuthPanel('login');
 
     const today = new Date().toISOString().split('T')[0];
     document.querySelectorAll('input[type="date"]').forEach(input => {
