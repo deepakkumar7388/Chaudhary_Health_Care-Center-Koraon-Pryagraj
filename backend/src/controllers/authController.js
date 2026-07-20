@@ -6,7 +6,7 @@ const signupOtpCache = new Map();
 
 exports.signup = async (req, res) => {
     try {
-        const { name, email, mobile, username, password, role, status: requestedStatus } = req.body;
+        const { name, email, mobile, username, password, role, status: requestedStatus, googleIdToken } = req.body;
 
         // Check if user exists by email
         const existingUser = await User.findOne({ email });
@@ -70,6 +70,44 @@ exports.signup = async (req, res) => {
                 console.error(`❌ Welcome email failed for ${email}:`, mailErr.message);
             });
             return;
+        }
+
+        // --- GOOGLE VERIFIED SIGNUP (OTP NOT REQUIRED) --- //
+        // If user used Google auto-fill, verify the idToken with Firebase Admin SDK.
+        // Google has already verified the email — no need for a separate OTP.
+        if (googleIdToken) {
+            try {
+                const { admin } = require('../config/firebase');
+                if (admin && admin.apps.length > 0) {
+                    const decodedToken = await admin.auth().verifyIdToken(googleIdToken);
+
+                    // Ensure the token's email matches the signup email (anti-spoofing)
+                    if (decodedToken.email && decodedToken.email.toLowerCase() === email.toLowerCase()) {
+                        // ✅ Google verified — create user directly, no OTP
+                        const newUser = new User({
+                            name, email, mobile,
+                            username: finalUsername,
+                            password,
+                            role: finalRole,
+                            status: 'pending' // Still requires admin approval
+                        });
+                        await newUser.save();
+
+                        // Send welcome email non-blocking
+                        const { sendWelcomeEmail } = require('../config/emailService');
+                        sendWelcomeEmail(email, name, finalRole).catch(() => {});
+
+                        return res.status(201).json({
+                            success: true,
+                            message: 'Account created! Awaiting admin approval.'
+                        });
+                    }
+                    // If emails don't match, fall through to normal OTP flow
+                }
+            } catch (firebaseErr) {
+                console.warn('Google token verification failed, falling back to OTP:', firebaseErr.message);
+                // Fall through to normal OTP flow if Firebase verification fails
+            }
         }
 
         // --- PUBLIC SIGNUP (OTP REQUIRED) --- //

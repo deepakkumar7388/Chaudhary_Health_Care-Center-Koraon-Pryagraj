@@ -172,6 +172,9 @@ async function signInWithGoogle() {
     }
 }
 
+// Stores Google idToken temporarily so signup() can skip OTP verification
+let _googleSignupIdToken = null;
+
 async function signUpWithGoogleAutoFill() {
     if (typeof firebase === 'undefined' || firebase.apps.length === 0) {
         showNotification("Firebase is not initialized. Please try again later.", "error");
@@ -183,25 +186,31 @@ async function signUpWithGoogleAutoFill() {
         const result = await firebase.auth().signInWithPopup(provider);
         const name = result.user.displayName;
         const email = result.user.email;
-        
+
+        // Get idToken — backend will use this to verify Google identity & skip OTP
+        _googleSignupIdToken = await result.user.getIdToken();
+
         // Auto-fill form and make fields read-only
         const nameInput = document.getElementById('signup-name');
         const emailInput = document.getElementById('signup-email');
-        
+
         nameInput.value = name || '';
         emailInput.value = email || '';
-        
+
         nameInput.readOnly = true;
-        nameInput.style.backgroundColor = "#f3f4f6";
+        nameInput.style.backgroundColor = 'var(--background, #f3f4f6)';
         emailInput.readOnly = true;
-        emailInput.style.backgroundColor = "#f3f4f6";
-        
-        showNotification("Google info auto-filled! Please complete the remaining fields.", "success");
-        firebase.auth().signOut(); // They just used it for auto-fill
+        emailInput.style.backgroundColor = 'var(--background, #f3f4f6)';
+
+        // NOTE: We do NOT sign out from Firebase here.
+        // The idToken is kept so signup() can pass it to backend for OTP bypass.
+        // Firebase session is a local popup session only — backend handles actual user creation.
+        showNotification('Google info auto-filled! Please complete the remaining fields.', 'success');
     } catch (error) {
+        _googleSignupIdToken = null;
         if (error.code !== 'auth/popup-closed-by-user') {
             console.error(error);
-            showNotification("Failed to fetch info from Google.", "error");
+            showNotification('Failed to fetch info from Google.', 'error');
         }
     }
 }
@@ -414,21 +423,42 @@ async function signup() {
     showLoading('Creating account...');
 
     try {
+        // Build request body — include googleIdToken if Google auto-fill was used
+        // Backend will verify this token and skip OTP for Google-verified emails
+        const requestBody = { name, email, mobile, password, role };
+        if (_googleSignupIdToken) {
+            requestBody.googleIdToken = _googleSignupIdToken;
+        }
+
         const response = await fetch(`${API_BASE}auth/signup`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, email, mobile, password, role })
+            body: JSON.stringify(requestBody)
         });
 
         const result = await response.json();
 
+        // Clear the token regardless of outcome (one-time use)
+        _googleSignupIdToken = null;
+        // Also sign out from Firebase popup session (cleanup)
+        if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
+            firebase.auth().signOut().catch(() => {});
+        }
+
         if (result.success) {
             hideLoading();
             if (result.requiresOtp) {
+                // Normal manual signup — OTP needed
                 document.getElementById('signup-otp-modal').style.display = 'flex';
             } else {
+                // Google-verified or admin-created — no OTP needed
                 showNotification(result.message || 'Account created successfully!', 'success', 'Signup Complete');
                 document.getElementById('signup-form').reset();
+                // Reset read-only states on email/name fields
+                const nameInput = document.getElementById('signup-name');
+                const emailInput = document.getElementById('signup-email');
+                if (nameInput) { nameInput.readOnly = false; nameInput.style.backgroundColor = ''; }
+                if (emailInput) { emailInput.readOnly = false; emailInput.style.backgroundColor = ''; }
                 toggleAuthPanel('login');
             }
         } else {
@@ -437,6 +467,7 @@ async function signup() {
         }
     } catch (error) {
         console.error('Signup error:', error);
+        _googleSignupIdToken = null;
         hideLoading();
         showNotification('Connection error while creating account. Please try again.', 'error');
         document.getElementById('signup-error').textContent = 'Cannot connect to server';
