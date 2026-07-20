@@ -83,7 +83,7 @@ function renderUsers() {
                                 </div>
                                 <div class="form-group">
                                     <label>Mobile Number</label>
-                                    <input type="text" id="userMobile" placeholder="Enter 10-digit mobile number">
+                                    <input type="text" id="userMobile" placeholder="Optional">
                                 </div>
                             </div>
                             <div class="form-group" id="passGroup">

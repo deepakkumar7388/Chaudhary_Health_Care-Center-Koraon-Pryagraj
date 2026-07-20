@@ -1670,19 +1670,19 @@ function openSurgeryModal(patientId) {
                     </div>
                     <div>
                         <label style="display:block; font-size:12px; font-weight:600; color:#475569; margin-bottom:6px;">INDOOR No. (IPD No.) <span style="font-weight: normal; color: #94a3b8;">(Optional)</span></label>
-                        <input type="text" id="surgery-indoor-no" placeholder="Indoor No. (Optional)" value="${sIndoorNo}" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background: var(--card-bg);">
+                        <input type="text" id="surgery-indoor-no" placeholder="Optional" value="${sIndoorNo}" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background: var(--card-bg);">
                     </div>
                     <div>
                         <label style="display:block; font-size:12px; font-weight:600; color:#475569; margin-bottom:6px;">WARD No. <span style="font-weight: normal; color: #94a3b8;">(Optional)</span></label>
-                        <input type="text" id="surgery-ward-no" placeholder="Ward No. (Optional)" value="${sWardNo}" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background: var(--card-bg);">
+                        <input type="text" id="surgery-ward-no" placeholder="Optional" value="${sWardNo}" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background: var(--card-bg);">
                     </div>
                     <div style="grid-column: span 2;">
                         <label style="display:block; font-size:12px; font-weight:600; color:#475569; margin-bottom:6px;">Provisional Diagnosis <span style="font-weight: normal; color: #94a3b8;">(Optional)</span></label>
-                        <input type="text" id="surgery-provisional" placeholder="Provisional Diagnosis (Optional)" value="${sProvisional}" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background: var(--card-bg);">
+                        <input type="text" id="surgery-provisional" placeholder="Optional" value="${sProvisional}" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background: var(--card-bg);">
                     </div>
                     <div style="grid-column: span 2;">
                         <label style="display:block; font-size:12px; font-weight:600; color:#475569; margin-bottom:6px;">Final Diagnosis <span style="font-weight: normal; color: #94a3b8;">(Optional)</span></label>
-                        <input type="text" id="surgery-final" placeholder="Final Diagnosis (Optional)" value="${sFinal}" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background: var(--card-bg);">
+                        <input type="text" id="surgery-final" placeholder="Optional" value="${sFinal}" style="width:100%; padding:10px 12px; border:1px solid #94a3b8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none; background: var(--card-bg);">
                     </div>
                 </div>
 
@@ -1719,7 +1719,7 @@ function openSurgeryModal(patientId) {
                                 </div>
                                 <div>
                                     <label style="display:block; font-size:11px; font-weight:600; color:#64748b; margin-bottom:4px;">स्थान (Place)</label>
-                                    <input type="text" id="surgery-witness-place" value="${sWitnessPlace}" placeholder="" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background: var(--card-bg);">
+                                    <input type="text" id="surgery-witness-place" value="${sWitnessPlace}" placeholder="Optional" style="width:100%; padding:8px 10px; border:1px solid #94a3b8; border-radius:4px; font-size:13px; box-sizing:border-box; outline:none; background: var(--card-bg);">
                                 </div>
                             </div>
                         </div>

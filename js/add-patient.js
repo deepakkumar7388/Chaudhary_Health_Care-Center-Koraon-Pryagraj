@@ -94,7 +94,7 @@ function renderAddPatient() {
                         <!-- Optional mobile number -->
                         <div class="form-group" style="margin-top:8px;">
                             <label>Mobile <span style="font-size:11px; color:#94a3b8; font-weight:400;">(Optional)</span></label>
-                            <input type="tel" id="opd-mobile" pattern="[0-9]{10}" placeholder="" maxlength="10">
+                            <input type="tel" id="opd-mobile" pattern="[0-9]{10}" placeholder="Optional" maxlength="10">
                         </div>
                     </div>
 
@@ -140,7 +140,7 @@ function renderAddPatient() {
                             </div>
                             <div class="form-group">
                                 <label>Email Address</label>
-                                <input type="email" id="p-email" placeholder="">
+                                <input type="email" id="p-email" placeholder="Optional">
                             </div>
                             <div class="form-group" id="bed-group">
                                 <label>Bed Number *</label>
@@ -164,7 +164,7 @@ function renderAddPatient() {
                         <div class="form-grid" style="grid-template-columns: 1fr 1fr; align-items: flex-start;">
                             <div class="form-group">
                                 <label>Condition / Problem</label>
-                                <textarea rows="3" id="p-problem" placeholder="" style="min-height: 80px;"></textarea>
+                                <textarea rows="3" id="p-problem" placeholder="Optional" style="min-height: 80px;"></textarea>
                             </div>
                             <div class="form-group" style="display: none;">
                                 <label>Department</label>

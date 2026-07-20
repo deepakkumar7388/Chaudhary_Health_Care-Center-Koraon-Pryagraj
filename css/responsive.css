@@ -163,12 +163,14 @@
     box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1) !important;
 }
 
-/* Hide placeholder text — label serves as the label */
+/* Subtle placeholder text style for optional hints */
 .form-group input::placeholder,
 .form-group textarea::placeholder,
 .input-group input::placeholder,
 .input-group textarea::placeholder {
-    color: transparent !important;
+    color: var(--text-muted, #94a3b8) !important;
+    opacity: 0.65 !important;
+    font-size: 14px !important;
 }
 
 
