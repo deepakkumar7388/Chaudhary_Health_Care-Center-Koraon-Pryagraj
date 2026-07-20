@@ -310,7 +310,6 @@
         box-sizing: border-box !important;
     }
 
-    /* Buttons scaling - sleek, rounded and balanced */
     .btn,
     .login-btn,
     .btn-primary,
@@ -318,7 +317,7 @@
         height: 52px !important;
         border-radius: 14px !important;
         font-size: 14px !important;
-        display: flex !important;
+        display: flex;
         align-items: center !important;
         justify-content: center !important;
         box-sizing: border-box !important;
