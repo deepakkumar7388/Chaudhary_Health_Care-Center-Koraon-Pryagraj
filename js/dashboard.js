@@ -4,7 +4,7 @@ function renderDashboard() {
     const moduleEl = document.getElementById('module-dashboard');
     if (!moduleEl) return;
 
-    const role = currentUser?.role || 'admin';
+    const role = currentUser?.role || 'staff';
 
     const showCharts = (role === 'admin' || role === 'developer');
     const showFinancials = (role === 'admin' || role === 'developer' || role === 'doctor');
@@ -403,7 +403,7 @@ async function updateDashboardStats() {
     let pendingBills = 0;
     let totalPendingAmt = 0;
 
-    const role = currentUser?.role || 'admin';
+    const role = currentUser?.role || 'staff';
     const showFinancials = (role === 'admin' || role === 'developer' || role === 'doctor');
 
     let allActivities = [];

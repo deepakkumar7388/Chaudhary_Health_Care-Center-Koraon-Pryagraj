@@ -535,7 +535,7 @@ async function updateReportsDashboard() {
     const metrics = calculateMetrics(filteredPatients, billingMap);
 
     const currency = window.currencySymbol || '₹';
-    const role = currentUser?.role || 'admin';
+    const role = currentUser?.role || 'staff';
     const showFinancials = (role === 'admin' || role === 'developer');
 
     // Dynamically show or hide financial cards depending on user role

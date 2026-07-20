@@ -818,7 +818,7 @@ function updateSidebarStats() {
         if (elPat) elPat.textContent = patients.length.toLocaleString();
         if (elDoc) elDoc.textContent = doctors.toLocaleString();
 
-        const role = currentUser?.role || 'admin';
+        const role = currentUser?.role || 'staff';
         if (role === 'admin' || role === 'developer') {
             if (elRev) elRev.textContent = `${curr}${totalRevenue.toLocaleString()}`;
         } else {
@@ -832,7 +832,7 @@ function updateSidebarStats() {
 
 // ==================== MODULE SYSTEM ====================
 function showModule(moduleName, preventHashUpdate = false) {
-    const role = currentUser?.role || 'admin';
+    const role = currentUser?.role || 'staff';
 
     // Security check for unauthorized module access
     const hasBillingAccess = (role === 'developer' || role === 'admin') || (currentUser?.billingAccess === true);
