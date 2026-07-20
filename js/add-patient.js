@@ -5,7 +5,6 @@ function renderAddPatient() {
     if (!moduleEl) return;
 
     const role = currentUser?.role;
-    const isFeeReadOnly = (role === 'admin' || role === 'developer') ? '' : 'readonly style="background-color: var(--background); cursor: not-allowed;"';
 
     moduleEl.innerHTML = `
         <div class="add-patient-container">
@@ -88,7 +87,7 @@ function renderAddPatient() {
                             </div>
                             <div class="form-group" style="grid-column: span 2;">
                                 <label>Consultation Fee (₹)</label>
-                                <input type="number" id="opd-consult-fee" min="0" placeholder="" ${isFeeReadOnly}>
+                                <input type="number" id="opd-consult-fee" min="0" placeholder="" readonly style="cursor: not-allowed;">
                             </div>
                         </div>
                         <!-- Optional mobile number -->
