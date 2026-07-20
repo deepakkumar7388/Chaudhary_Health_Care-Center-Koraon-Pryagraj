@@ -145,6 +145,49 @@
         #auth-container {
             display: none;
         }
+
+        /* SECURITY: Hide all role-restricted sidebar/nav items by default.
+           updateUserInfo() will show only the allowed items after role is confirmed.
+           These rules ONLY apply before role is loaded (no .role-applied class on body).
+           Once role is applied, JS inline styles take full control. */
+        body:not(.role-applied) .menu .menu-item:not([onclick*="dashboard"]):not([onclick*="profile-hub"]) {
+            display: none !important;
+        }
+        body:not(.role-applied) #admin-menu {
+            display: none !important;
+        }
+        body:not(.role-applied) .bottom-nav-item[data-role-access] {
+            display: none !important;
+        }
+        /* Role-guard overlay: covers app until roles are applied */
+        #role-guard-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg, #f8fafc);
+            z-index: 9000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 12px;
+        }
+        #role-guard-overlay.active {
+            display: flex;
+        }
+        #role-guard-overlay .rg-spinner {
+            width: 36px; height: 36px;
+            border: 3px solid #e2e8f0;
+            border-top-color: var(--primary, #4f46e5);
+            border-radius: 50%;
+            animation: rgSpin 0.7s linear infinite;
+        }
+        @keyframes rgSpin { to { transform: rotate(360deg); } }
+        #role-guard-overlay p {
+            font-size: 13px;
+            color: var(--text-muted, #64748b);
+            margin: 0;
+            font-family: 'Outfit', sans-serif;
+        }
     </style>
 </head>
 
@@ -259,6 +302,13 @@
         </div>
     </div>
 
+    <!-- ==================== ROLE GUARD OVERLAY ==================== -->
+    <!-- Shown briefly after login to prevent unauthorized menu flash before role is applied -->
+    <div id="role-guard-overlay">
+        <div class="rg-spinner"></div>
+        <p>Setting up your workspace...</p>
+    </div>
+
     <!-- ==================== MAIN APP ==================== -->
     <div id="app-container" class="app-container" style="display:none;">
         <!-- Mobile Header -->
@@ -309,7 +359,7 @@
                     <i class="bi bi-box-arrow-right"></i> <span>Discharge</span>
                 </div>
 
-                <div id="admin-menu" class="admin-menu">
+                <div id="admin-menu" class="admin-menu" style="display:none;">
                     <div class="menu-item" onclick="showModule('users')"><i class="bi bi-person-gear"></i>
                         <span>Users</span>
                     </div>

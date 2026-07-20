@@ -484,12 +484,32 @@ async function verifySignupOtp() {
 }
 
 async function switchToApp() {
-    document.getElementById('auth-container').style.display = 'none';
-    document.getElementById('app-container').style.display = 'flex';
+    // SECURITY: Show role-guard overlay to block any flash of unauthorized UI
+    const roleGuard = document.getElementById('role-guard-overlay');
+    if (roleGuard) roleGuard.classList.add('active');
+
+    // Apply global settings first (theme, etc.) — hidden behind overlay
     if (typeof applyGlobalSettings === 'function') {
         await applyGlobalSettings();
     }
+
+    // Show the app container (still behind role-guard overlay)
+    document.getElementById('auth-container').style.display = 'none';
+    document.getElementById('app-container').style.display = 'flex';
+
+    // Apply role-based permissions BEFORE removing the guard overlay
+    // This sets which menu items are visible/hidden per role
     updateUserInfo();
+
+    // Mark sidebar as role-applied — removes CSS default-hidden state
+    document.body.classList.add('role-applied');
+
+    // Small paint delay to ensure DOM has updated before revealing
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+    // NOW hide the guard overlay — user sees the correctly filtered UI
+    if (roleGuard) roleGuard.classList.remove('active');
+
     updateClock();
     setInterval(updateClock, 1000);
     
@@ -555,6 +575,9 @@ function confirmLogout() {
     localStorage.removeItem('users');             // Users cache clear
     currentUser = null;
 
+    // SECURITY: Reset role-applied state so CSS default-hidden rules kick in again
+    document.body.classList.remove('role-applied');
+
     document.getElementById('app-container').style.display = 'none';
     document.getElementById('auth-container').style.display = 'flex';
     document.getElementById('login-form').reset();
@@ -579,6 +602,9 @@ function forceLogoutDueToOtherDevice(message) {
     // Clear all local data
     localStorage.clear();
     sessionStorage.clear();
+    
+    // SECURITY: Reset role state
+    document.body.classList.remove('role-applied');
     localStorage.removeItem('hospitalSettings');
     localStorage.removeItem('patients');
     localStorage.removeItem('billings');
