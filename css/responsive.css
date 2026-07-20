@@ -72,193 +72,93 @@
 }
 
 /* ============================================================
-   GLOBAL UNIFIED MODERN OUTLINED FLOATING LABELS
-   Applies to all viewports (Mobile, Tablet, and Desktop)
+   CLEAN PROFESSIONAL FORM SYSTEM
+   Static labels above inputs — reliable on all devices
    ============================================================ */
 
-/* Ensure parent containers have exact structural position & spacing */
+/* Form group container */
 .form-group,
-.input-group,
-.surgery-form-grid > div,
-.surgery-consent-grid div > div {
-    position: relative !important;
-    margin-top: 20px !important; /* Extra spacing on top so floating label doesn't touch content above */
-    margin-bottom: 12px !important;
+.input-group {
     display: flex !important;
     flex-direction: column !important;
+    gap: 6px !important;
+    margin-bottom: 16px !important;
+    position: relative !important;
 }
 
-/* Keep select fields with permanent/static labels to prevent clumping */
-.form-group:has(select),
-.input-group:has(select),
-.surgery-form-grid > div:has(select),
-.surgery-consent-grid div > div:has(select) {
-    margin-top: 14px !important;
-}
-
-/* Setup universal inputs standard height, border, and padding */
-.form-group input,
-.form-group select,
-.input-group input,
-.input-group select,
-.password-wrapper input,
-.surgery-form-grid input,
-.surgery-consent-grid input {
-    height: 52px !important;
-    font-size: 14px !important;
-    padding: 0 16px !important;
-    border-radius: 12px !important;
-    border: 1.5px solid var(--border, #e2e8f0) !important;
-    background: var(--card-bg, #ffffff) !important;
-    color: var(--text, #1e293b) !important;
-    box-sizing: border-box !important;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
-    width: 100% !important;
-}
-
-/* Textarea dynamic padding */
-.form-group textarea,
-.input-group textarea,
-.surgery-form-grid textarea,
-.surgery-consent-grid textarea {
-    font-size: 14px !important;
-    padding: 16px !important;
-    border-radius: 12px !important;
-    border: 1.5px solid var(--border, #e2e8f0) !important;
-    background: var(--card-bg, #ffffff) !important;
-    color: var(--text, #1e293b) !important;
-    box-sizing: border-box !important;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
-    width: 100% !important;
-    min-height: 100px !important;
-}
-
-/* Label positioning - centered inside the input field natively */
-.form-group:has(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="hidden"])):has(label) > label,
-.form-group:has(textarea):has(label) > label,
-.input-group:has(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="hidden"])):has(label) > label,
-.input-group:has(textarea):has(label) > label,
-.surgery-form-grid > div:has(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="hidden"])):has(label) > label,
-.surgery-form-grid > div:has(textarea):has(label) > label,
-.surgery-consent-grid div > div:has(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="hidden"])):has(label) > label,
-.surgery-consent-grid div > div:has(textarea):has(label) > label,
-.password-wrapper label {
-    position: absolute !important;
-    left: 16px !important;
-    top: 26px !important; /* Perfect middle of 52px input */
-    transform: translateY(-50%) !important;
-    background: transparent !important;
-    padding: 0 4px !important;
+/* Label — clearly above input */
+.form-group label,
+.input-group label {
+    font-size: 12px !important;
+    font-weight: 600 !important;
     color: var(--text-muted, #64748b) !important;
-    font-size: 14px !important;
-    font-weight: 500 !important;
-    pointer-events: none !important;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    z-index: 5 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
     display: block !important;
-}
-
-/* Position label for Textareas at the top-left offset */
-.form-group:has(textarea) > label,
-.input-group:has(textarea) > label,
-.surgery-form-grid > div:has(textarea) > label,
-.surgery-consent-grid div > div:has(textarea) > label {
-    top: 20px !important;
+    position: static !important;
     transform: none !important;
+    background: transparent !important;
+    pointer-events: auto !important;
+    margin-bottom: 0 !important;
+    transition: color 0.2s ease !important;
 }
 
-/* Hide native placeholders to let floating label work smoothly */
+/* Input fields */
+.form-group input,
+.input-group input,
+.form-group select,
+.input-group select,
+.password-wrapper input {
+    height: 44px !important;
+    font-size: 14px !important;
+    padding: 0 14px !important;
+    border-radius: 10px !important;
+    border: 1.5px solid var(--border, #e2e8f0) !important;
+    background: var(--card-bg, #ffffff) !important;
+    color: var(--text, #1e293b) !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+    outline: none !important;
+}
+
+/* Textarea */
+.form-group textarea,
+.input-group textarea {
+    font-size: 14px !important;
+    padding: 12px 14px !important;
+    border-radius: 10px !important;
+    border: 1.5px solid var(--border, #e2e8f0) !important;
+    background: var(--card-bg, #ffffff) !important;
+    color: var(--text, #1e293b) !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-height: 90px !important;
+    resize: vertical !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+    outline: none !important;
+}
+
+/* Focus state — clean highlight */
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus,
+.input-group input:focus,
+.input-group select:focus,
+.input-group textarea:focus,
+.password-wrapper input:focus {
+    border-color: var(--primary, #059669) !important;
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.12) !important;
+}
+
+/* Placeholder text */
 .form-group input::placeholder,
 .form-group textarea::placeholder,
 .input-group input::placeholder,
-.input-group textarea::placeholder,
-.surgery-form-grid > div input::placeholder,
-.surgery-form-grid > div textarea::placeholder,
-.surgery-consent-grid div > div input::placeholder,
-.surgery-consent-grid div > div textarea::placeholder {
-    color: transparent !important;
-    opacity: 0 !important;
-}
-
-/* ══════════════════════════════════════════════
-   FLOATING TRIGGER: Focus, Prefill & Autofill
-   ══════════════════════════════════════════════ */
-
-/* JS FALLBACKS & NATIVE FOCUS (Safe, guaranteed to work everywhere) */
-.form-group:focus-within > label,
-.input-group:focus-within > label,
-.surgery-form-grid > div:focus-within > label,
-.surgery-consent-grid div > div:focus-within > label,
-.form-group.focused label,
-.form-group.has-value label,
-.input-group.focused label,
-.input-group.has-value label,
-.surgery-form-grid > div.focused label,
-.surgery-form-grid > div.has-value label,
-.surgery-consent-grid div > div.focused label,
-.surgery-consent-grid div > div.has-value label {
-    top: 0px !important;
-    transform: translateY(-50%) scale(0.85) !important;
-    background: var(--card-bg, #ffffff) !important;
-    color: var(--primary, #4f46e5) !important;
-    font-weight: 700 !important;
-    z-index: 6 !important;
-}
-
-/* NATIVE FLOATING via :has() (Progressive enhancement for modern browsers) */
-.form-group:has(input:not(:placeholder-shown)) > label,
-.form-group:has(textarea:not(:placeholder-shown)) > label,
-.input-group:has(input:not(:placeholder-shown)) > label,
-.input-group:has(textarea:not(:placeholder-shown)) > label,
-.surgery-form-grid > div:has(input:not(:placeholder-shown)) > label,
-.surgery-form-grid > div:has(textarea:not(:placeholder-shown)) > label,
-.surgery-consent-grid div > div:has(input:not(:placeholder-shown)) > label,
-.surgery-consent-grid div > div:has(textarea:not(:placeholder-shown)) > label {
-    top: 0px !important;
-    transform: translateY(-50%) scale(0.85) !important;
-    background: var(--card-bg, #ffffff) !important;
-    color: var(--primary, #4f46e5) !important;
-    font-weight: 700 !important;
-    z-index: 6 !important;
-}
-
-/* Permanent float for date/time/select components */
-.form-group:has(input[type="date"]) > label,
-.form-group:has(input[type="time"]) > label,
-.input-group:has(input[type="date"]) > label,
-.input-group:has(input[type="time"]) > label,
-.surgery-form-grid > div:has(input[type="date"]) > label,
-.surgery-form-grid > div:has(input[type="time"]) > label,
-.surgery-consent-grid div > div:has(input[type="date"]) > label,
-.surgery-consent-grid div > div:has(input[type="time"]) > label {
-    top: 0px !important;
-    transform: translateY(-50%) scale(0.85) !important;
-    background: var(--card-bg, #ffffff) !important;
-    color: var(--text-muted, #64748b) !important;
-    font-weight: 700 !important;
-    z-index: 6 !important;
-}
-
-/* Active input focus borders */
-.form-group:has(input:focus) input,
-.form-group:has(textarea:focus) textarea,
-.input-group:has(input:focus) input,
-.input-group:has(textarea:focus) textarea,
-.surgery-form-grid > div:has(input:focus) input,
-.surgery-form-grid > div:has(textarea:focus) textarea,
-.surgery-consent-grid div > div:has(input:focus) input,
-.surgery-consent-grid div > div:has(textarea:focus) textarea,
-.form-group.focused input,
-.form-group.focused textarea,
-.input-group.focused input,
-.input-group.focused textarea,
-.surgery-form-grid > div.focused input,
-.surgery-form-grid > div.focused textarea,
-.surgery-consent-grid div > div.focused input,
-.surgery-consent-grid div > div.focused textarea {
-    border-color: var(--primary, #4f46e5) !important;
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1) !important;
-    outline: none !important;
+.input-group textarea::placeholder {
+    color: var(--text-muted, #94a3b8) !important;
+    opacity: 1 !important;
+    font-size: 13px !important;
 }
 
 @media (max-width: 768px) {
