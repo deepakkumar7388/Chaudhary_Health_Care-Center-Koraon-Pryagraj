@@ -107,6 +107,17 @@
     transition: border-color 0.2s, box-shadow 0.2s !important;
 }
 
+/* Specific compact styling for Surgery Modal grids to prevent gap doubling */
+.surgery-form-grid,
+.surgery-consent-grid {
+    row-gap: 4px !important;
+}
+.surgery-form-grid > div,
+.surgery-consent-grid div > div > div {
+    margin-top: 12px !important;
+    margin-bottom: 0px !important;
+}
+
 /* Textarea base */
 .form-group textarea,
 .input-group textarea,
