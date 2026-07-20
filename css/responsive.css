@@ -74,14 +74,14 @@
    Label sits permanently on the TOP BORDER of the input box
    ============================================================ */
 
-/* Form group container — margin-top creates space for the label above */
+/* Form group container — compact space for top-border labels */
 .form-group,
 .input-group,
 .surgery-form-grid > div,
 .surgery-consent-grid div > div > div {
     position: relative !important;
-    margin-top: 18px !important;
-    margin-bottom: 18px !important;
+    margin-top: 10px !important;
+    margin-bottom: 6px !important;
     overflow: visible !important;
 }
 
