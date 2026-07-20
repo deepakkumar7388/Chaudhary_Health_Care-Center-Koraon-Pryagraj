@@ -2093,14 +2093,4 @@ body:not(.dark-theme) label {
     transform: translateY(-50%) scale(0.9);
 }
 
-/* Floating Outlined Labels Configuration */
-.floating-group {
-    position: relative;
-}
-
-/* Hide floating labels on desktop */
-.floating-group label {
-    display: none;
-}
-
 

@@ -218,14 +218,14 @@
                         <h2>Sign In</h2>
 
                         <form id="login-form" onsubmit="event.preventDefault(); login();">
-                            <div class="input-group floating-group">
-                                <input type="email" id="login-email" placeholder="Email Address" required>
+                            <div class="input-group">
                                 <label for="login-email">Email Address</label>
+                                <input type="email" id="login-email" placeholder="Enter your email" required>
                             </div>
-                            <div class="input-group floating-group">
+                            <div class="input-group">
+                                <label for="password">Password</label>
                                 <div class="password-wrapper">
-                                    <input type="password" id="password" placeholder="Password" required>
-                                    <label for="password">Password</label>
+                                    <input type="password" id="password" placeholder="Enter your password" required>
                                     <i class="bi bi-eye toggle-password" onclick="togglePasswordVisibility('password', this)"></i>
                                 </div>
                             </div>
@@ -251,34 +251,35 @@
                         <h2>Create Account</h2>
 
                         <form id="signup-form" onsubmit="event.preventDefault(); signup();">
-                            <div class="input-group floating-group">
-                                <input type="text" id="signup-name" placeholder="Full Name" required>
+                            <div class="input-group">
                                 <label for="signup-name">Full Name</label>
+                                <input type="text" id="signup-name" placeholder="Enter your full name" required>
                             </div>
-                            <div class="input-group floating-group">
-                                <input type="email" id="signup-email" placeholder="Email" required>
+                            <div class="input-group">
                                 <label for="signup-email">Email</label>
+                                <input type="email" id="signup-email" placeholder="Enter your email" required>
                             </div>
-                            <div class="input-group floating-group">
-                                <input type="tel" id="signup-mobile" placeholder="Mobile Number" required>
+                            <div class="input-group">
                                 <label for="signup-mobile">Mobile Number</label>
+                                <input type="tel" id="signup-mobile" placeholder="10-digit mobile number" required>
                             </div>
 
-                            <div class="input-group floating-group">
+                            <div class="input-group">
+                                <label for="signup-password">Password</label>
                                 <div class="password-wrapper">
-                                    <input type="password" id="signup-password" placeholder="Password" required>
-                                    <label for="signup-password">Password</label>
+                                    <input type="password" id="signup-password" placeholder="Create a password" required>
                                     <i class="bi bi-eye toggle-password" onclick="togglePasswordVisibility('signup-password', this)"></i>
                                 </div>
                             </div>
-                            <div class="input-group floating-group">
+                            <div class="input-group">
+                                <label for="signup-confirm">Confirm Password</label>
                                 <div class="password-wrapper">
-                                    <input type="password" id="signup-confirm" placeholder="Confirm Password" required>
-                                    <label for="signup-confirm">Confirm Password</label>
+                                    <input type="password" id="signup-confirm" placeholder="Confirm your password" required>
                                     <i class="bi bi-eye toggle-password" onclick="togglePasswordVisibility('signup-confirm', this)"></i>
                                 </div>
                             </div>
                             <div class="input-group">
+                                <label for="signup-role">Select Role</label>
                                 <select id="signup-role" required>
                                     <option value="">Select role</option>
                                     <option value="doctor">Doctor</option>
