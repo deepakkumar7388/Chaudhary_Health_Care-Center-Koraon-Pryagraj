@@ -1642,7 +1642,7 @@ function openSurgeryModal(patientId) {
                 </h3>
                 <button class="modal-close" style="font-size: 24px; color: #94a3b8; background: none; border: none; cursor: pointer;" onclick="window.closePatientModal(this.closest('.modal'))">&times;</button>
             </div>
-            <div style="padding: 24px;">
+            <div style="padding: 24px; max-height: 72vh; overflow-y: auto; background: var(--card-bg);">
                 <p style="margin-top:0; color:#475569; font-size:14px; margin-bottom:20px; padding: 10px 14px; background: var(--background); border-radius: 6px; border-left: 4px solid #6366f1;">
                     <i class="bi bi-person-circle"></i> Recording surgery for patient: <strong style="color: #0f172a;">${patientObj ? patientObj.name : patientId}</strong>
                 </p>
