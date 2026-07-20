@@ -164,7 +164,7 @@ function renderAddPatient() {
                         <div class="form-grid" style="grid-template-columns: 1fr 1fr; align-items: flex-start;">
                             <div class="form-group">
                                 <label>Condition / Problem</label>
-                                <textarea rows="3" id="p-problem" placeholder="Optional" style="min-height: 80px;"></textarea>
+                                <textarea rows="3" id="p-problem" placeholder="" style="min-height: 80px;"></textarea>
                             </div>
                             <div class="form-group" style="display: none;">
                                 <label>Department</label>
