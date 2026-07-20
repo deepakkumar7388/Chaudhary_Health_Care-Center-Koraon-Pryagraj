@@ -21,12 +21,12 @@ function renderAddPatient() {
                 <!-- ── PATIENT TYPE TOGGLE ── -->
                 <div class="form-section" style="padding-bottom: 0;">
                     <div style="display: flex; gap: 8px; align-items: stretch;">
-                        <label id="type-btn-ipd" onclick="selectPatientType('IPD')" style="flex:1; display:flex; align-items:center; justify-content:center; gap:7px; padding:10px 12px; border-radius:10px; cursor:pointer; border:2px solid var(--primary); background:var(--primary); color:#fff; font-weight:600; font-size:13px; transition:all 0.2s; user-select:none;">
+                        <label id="type-btn-ipd" onclick="selectPatientType('IPD')" style="flex:1; display:flex; align-items:center; justify-content:center; gap:7px; padding:11px 12px; border-radius:10px; cursor:pointer; border:1px solid #047857; background:linear-gradient(135deg,#059669,#047857); color:#fff; font-weight:600; font-size:13px; transition:all 0.2s; user-select:none; box-shadow:0 4px 6px -1px rgba(5, 150, 105, 0.2);">
                             <input type="radio" name="p-type" value="IPD" checked style="display:none;">
                             <i class="fas fa-bed" style="font-size:15px;"></i>
                             <span>IPD</span>
                         </label>
-                        <label id="type-btn-opd" onclick="selectPatientType('OPD')" style="flex:1; display:flex; align-items:center; justify-content:center; gap:7px; padding:10px 12px; border-radius:10px; cursor:pointer; border:2px solid var(--border); background:var(--background); color:var(--text-muted); font-weight:600; font-size:13px; transition:all 0.2s; user-select:none;">
+                        <label id="type-btn-opd" onclick="selectPatientType('OPD')" style="flex:1; display:flex; align-items:center; justify-content:center; gap:7px; padding:11px 12px; border-radius:10px; cursor:pointer; border:1px solid var(--border, #e2e8f0); background:var(--card-bg, #ffffff); color:var(--text-muted, #64748b); font-weight:600; font-size:13px; transition:all 0.2s; user-select:none; box-shadow:0 1px 3px rgba(0, 0, 0, 0.05);">
                             <input type="radio" name="p-type" value="OPD" style="display:none;">
                             <i class="bi bi-person-check" style="font-size:15px;"></i>
                             <span>OPD</span>
@@ -219,8 +219,18 @@ window.selectPatientType = function(type) {
         if (ipdRadio) ipdRadio.checked = false;
 
         // Buttons style
-        if (opdBtn) { opdBtn.style.background='linear-gradient(135deg,#059669,#047857)'; opdBtn.style.color='#fff'; opdBtn.style.borderColor='#059669'; }
-        if (ipdBtn) { ipdBtn.style.background='var(--background)'; ipdBtn.style.color='var(--text-muted)'; ipdBtn.style.borderColor='var(--border)'; }
+        if (opdBtn) { 
+            opdBtn.style.background = 'linear-gradient(135deg,#059669,#047857)'; 
+            opdBtn.style.color = '#fff'; 
+            opdBtn.style.borderColor = '#047857';
+            opdBtn.style.boxShadow = '0 4px 6px -1px rgba(5, 150, 105, 0.2)';
+        }
+        if (ipdBtn) { 
+            ipdBtn.style.background = 'var(--card-bg, #ffffff)'; 
+            ipdBtn.style.color = 'var(--text-muted, #64748b)'; 
+            ipdBtn.style.borderColor = 'var(--border, #e2e8f0)'; 
+            ipdBtn.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.05)';
+        }
 
         // Show/hide sections
         if (opdForm) opdForm.style.display = 'block';
@@ -246,8 +256,18 @@ window.selectPatientType = function(type) {
         if (opdRadio) opdRadio.checked = false;
 
         // Buttons style
-        if (ipdBtn) { ipdBtn.style.background='var(--primary)'; ipdBtn.style.color='#fff'; ipdBtn.style.borderColor='var(--primary)'; }
-        if (opdBtn) { opdBtn.style.background='var(--background)'; opdBtn.style.color='var(--text-muted)'; opdBtn.style.borderColor='var(--border)'; }
+        if (ipdBtn) { 
+            ipdBtn.style.background = 'linear-gradient(135deg,#059669,#047857)'; 
+            ipdBtn.style.color = '#fff'; 
+            ipdBtn.style.borderColor = '#047857';
+            ipdBtn.style.boxShadow = '0 4px 6px -1px rgba(5, 150, 105, 0.2)';
+        }
+        if (opdBtn) { 
+            opdBtn.style.background = 'var(--card-bg, #ffffff)'; 
+            opdBtn.style.color = 'var(--text-muted, #64748b)'; 
+            opdBtn.style.borderColor = 'var(--border, #e2e8f0)'; 
+            opdBtn.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.05)';
+        }
 
         // Show/hide sections
         if (ipdForm) ipdForm.style.display = 'block';
