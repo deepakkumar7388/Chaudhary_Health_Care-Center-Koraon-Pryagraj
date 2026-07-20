@@ -150,14 +150,15 @@ async function signInWithGoogle() {
                 avatar: data.avatar,
                 billingAccess: data.billingAccess
             };
+            // CRITICAL: Set global currentUser BEFORE switchToApp so role is available immediately
+            currentUser = userObj;
             localStorage.setItem('token', data.token);
             localStorage.setItem('user', JSON.stringify(userObj));
             sessionStorage.setItem('token', data.token);
             sessionStorage.setItem('user', JSON.stringify(userObj));
             showNotification(`Welcome back, ${data.name}!`, 'success');
-            setTimeout(() => {
-                switchToApp();
-            }, 1000);
+            // No setTimeout — switch immediately so role-guard overlay stays active throughout
+            switchToApp();
         } else {
             showNotification(data.message || 'Google Login failed', 'error');
             firebase.auth().signOut(); // clear local state
@@ -484,36 +485,98 @@ async function verifySignupOtp() {
 }
 
 async function switchToApp() {
-    // SECURITY: Show role-guard overlay to block any flash of unauthorized UI
-    const roleGuard = document.getElementById('role-guard-overlay');
-    if (roleGuard) roleGuard.classList.add('active');
+    // ══════════════════════════════════════════════════════════
+    // SECURITY GATE: No UI renders until role is 100% confirmed
+    // ══════════════════════════════════════════════════════════
 
-    // Apply global settings first (theme, etc.) — hidden behind overlay
+    // Step 1: Activate role-guard overlay immediately — this blocks ALL app UI
+    const roleGuard = document.getElementById('role-guard-overlay');
+    if (roleGuard) {
+        roleGuard.style.display = 'flex'; // force show even before CSS class
+        roleGuard.classList.add('active');
+    }
+
+    // Step 2: Validate that currentUser has a real role before proceeding
+    const validRoles = ['developer', 'admin', 'doctor', 'staff', 'receptionist'];
+    if (!currentUser || !validRoles.includes(currentUser.role)) {
+        // Role is missing/invalid — try to re-fetch from server as fallback
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${API_BASE}auth/profile`, {
+                headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+                credentials: 'include'
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (data.success && data.user && validRoles.includes(data.user.role)) {
+                    currentUser = {
+                        id: data.user._id,
+                        username: data.user.username || data.user.email?.split('@')[0],
+                        name: data.user.name,
+                        role: data.user.role,
+                        email: data.user.email,
+                        avatar: data.user.avatar,
+                        billingAccess: data.user.billingAccess
+                    };
+                    localStorage.setItem('user', JSON.stringify(currentUser));
+                } else {
+                    // Server says role is invalid — abort, show login
+                    if (roleGuard) { roleGuard.classList.remove('active'); roleGuard.style.display = ''; }
+                    showAuthScreen();
+                    return;
+                }
+            } else {
+                // Server rejected the session — abort, show login
+                if (roleGuard) { roleGuard.classList.remove('active'); roleGuard.style.display = ''; }
+                showAuthScreen();
+                return;
+            }
+        } catch (e) {
+            console.error('Role validation fetch failed:', e);
+            // Network error — abort to be safe
+            if (roleGuard) { roleGuard.classList.remove('active'); roleGuard.style.display = ''; }
+            showAuthScreen();
+            return;
+        }
+    }
+
+    // Step 3: Apply global settings (theme etc.) — still behind overlay
     if (typeof applyGlobalSettings === 'function') {
         await applyGlobalSettings();
     }
 
-    // Show the app container (still behind role-guard overlay)
+    // Step 4: Show app container BEHIND the overlay (user cannot see it yet)
     document.getElementById('auth-container').style.display = 'none';
     document.getElementById('app-container').style.display = 'flex';
 
-    // Apply role-based permissions BEFORE removing the guard overlay
-    // This sets which menu items are visible/hidden per role
+    // Step 5: Apply role-based UI restrictions — menu items, admin-menu etc.
     updateUserInfo();
 
-    // Mark sidebar as role-applied — removes CSS default-hidden state
+    // Step 6: Add role-applied class — disables CSS default-hidden rules,
+    //         from here JS inline styles are fully in control
     document.body.classList.add('role-applied');
 
-    // Small paint delay to ensure DOM has updated before revealing
+    // Step 7: Wait for TWO full paint frames so browser finishes rendering
+    //         all display:none / display:flex changes from updateUserInfo()
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
-    // NOW hide the guard overlay — user sees the correctly filtered UI
-    if (roleGuard) roleGuard.classList.remove('active');
+    // Step 8: NOW remove the overlay — user sees role-correct UI for first time
+    if (roleGuard) {
+        roleGuard.classList.remove('active');
+        // Small fade-out transition
+        roleGuard.style.transition = 'opacity 0.2s ease';
+        roleGuard.style.opacity = '0';
+        setTimeout(() => {
+            roleGuard.style.display = 'none';
+            roleGuard.style.opacity = '';
+            roleGuard.style.transition = '';
+        }, 220);
+    }
 
+    // Step 9: Start clock and route to initial module
     updateClock();
     setInterval(updateClock, 1000);
-    
-    // Handle initial routing based on URL hash
+
     const hash = window.location.hash.substring(1);
     if (hash) {
         showModule(hash, true);
@@ -521,8 +584,8 @@ async function switchToApp() {
         showModule('dashboard', true);
         window.history.replaceState(null, '', '#dashboard');
     }
-    
-    // Initialize push notifications
+
+    // Step 10: Initialize push notifications in background
     if (typeof initPushNotifications === 'function') {
         initPushNotifications();
     }
