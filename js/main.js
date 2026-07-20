@@ -2345,7 +2345,14 @@ function getInputContainer(input) {
 function updateGroupFloatingState(group) {
     const input = group.querySelector('input, textarea');
     if (input) {
-        if (input.value && input.value.trim() !== '') {
+        // Detect normal values or native browser autofill pseudo-classes
+        const hasValue = input.value && input.value.trim() !== '';
+        const isAutofilled = input.matches && (
+            input.matches(':-webkit-autofill') || 
+            input.matches(':autofill')
+        );
+
+        if (hasValue || isAutofilled) {
             group.classList.add('has-value');
         } else {
             group.classList.remove('has-value');
@@ -2353,6 +2360,7 @@ function updateGroupFloatingState(group) {
     }
 }
 
+// Global window event triggers for mobile floating labels
 document.addEventListener('focusin', (e) => {
     if (window.innerWidth <= 768) {
         if (e.target.tagName === 'SELECT') return;
@@ -2383,6 +2391,13 @@ document.addEventListener('input', (e) => {
         }
     }
 });
+
+// Periodic check (every 500ms) to ensure auto-filled values by password managers/Google get floats
+setInterval(() => {
+    if (window.innerWidth <= 768) {
+        document.querySelectorAll('.form-group, .input-group, .surgery-form-grid > div, .surgery-consent-grid div > div').forEach(updateGroupFloatingState);
+    }
+}, 500);
 
 // MutationObserver to automatically detect dynamically rendered forms
 const floatingLabelObserver = new MutationObserver((mutations) => {

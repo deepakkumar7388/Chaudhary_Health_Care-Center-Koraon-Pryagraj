@@ -105,7 +105,7 @@
     .password-wrapper label {
         position: absolute !important;
         left: 16px !important;
-        top: 26px !important; /* Centered in 52px height inputs */
+        top: 50% !important;
         transform: translateY(-50%) !important;
         background: transparent !important;
         padding: 0 4px !important;
@@ -127,6 +127,7 @@
     .surgery-form-grid > div:has(textarea) label,
     .surgery-consent-grid div > div:has(textarea) label {
         top: 24px !important;
+        transform: none !important;
     }
 
     /* Hide standard placeholders globally on mobile for floating fields */
@@ -139,9 +140,27 @@
     .surgery-consent-grid div > div:has(label) input::placeholder,
     .surgery-consent-grid div > div:has(label) textarea::placeholder {
         color: transparent !important;
+        opacity: 0 !important;
     }
 
-    /* Floating state: When focused or has a value */
+    /* NATIVE FLOATING: If browser supports :placeholder-shown (autofill, prefill, typed value without JS reliance) */
+    .form-group:has(input:focus) > label,
+    .form-group:has(input:not(:placeholder-shown)) > label,
+    .form-group:has(textarea:focus) > label,
+    .form-group:has(textarea:not(:placeholder-shown)) > label,
+    .input-group:has(input:focus) > label,
+    .input-group:has(input:not(:placeholder-shown)) > label,
+    .input-group:has(textarea:focus) > label,
+    .input-group:has(textarea:not(:placeholder-shown)) > label,
+    .surgery-form-grid > div:has(input:focus) > label,
+    .surgery-form-grid > div:has(input:not(:placeholder-shown)) > label,
+    .surgery-form-grid > div:has(textarea:focus) > label,
+    .surgery-form-grid > div:has(textarea:not(:placeholder-shown)) > label,
+    .surgery-consent-grid div > div:has(input:focus) > label,
+    .surgery-consent-grid div > div:has(input:not(:placeholder-shown)) > label,
+    .surgery-consent-grid div > div:has(textarea:focus) > label,
+    .surgery-consent-grid div > div:has(textarea:not(:placeholder-shown)) > label,
+    /* JS FALLBACK FLOATING (using .focused and .has-value classes) */
     .form-group.focused label,
     .form-group.has-value label,
     .input-group.focused label,
