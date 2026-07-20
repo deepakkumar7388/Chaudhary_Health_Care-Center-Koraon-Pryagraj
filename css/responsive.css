@@ -118,6 +118,16 @@
     margin-bottom: 0px !important;
 }
 
+/* Specific compact styling for Edit Patient Details modal to match gaps */
+#edit-patient-form div[style*="display: grid"],
+#edit-bed-details-container div[style*="display: grid"] {
+    row-gap: 2px !important;
+}
+#edit-patient-form .form-group {
+    margin-top: 10px !important;
+    margin-bottom: 0px !important;
+}
+
 /* Textarea base */
 .form-group textarea,
 .input-group textarea,
