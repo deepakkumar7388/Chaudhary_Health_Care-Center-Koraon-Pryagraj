@@ -184,21 +184,11 @@
    FLOATING TRIGGER: Focus, Prefill & Autofill
    ══════════════════════════════════════════════ */
 
-/* Shift label to top whenever input has focus, is active, or contains any text/placeholder value */
+/* JS FALLBACKS & NATIVE FOCUS (Safe, guaranteed to work everywhere) */
 .form-group:focus-within > label,
 .input-group:focus-within > label,
 .surgery-form-grid > div:focus-within > label,
 .surgery-consent-grid div > div:focus-within > label,
-/* NATIVE FLOATING: When input has value or browser auto-fills it */
-.form-group:has(input:not([placeholder=""]):not(:placeholder-shown)) > label,
-.form-group:has(textarea:not(:placeholder-shown)) > label,
-.input-group:has(input:not([placeholder=""]):not(:placeholder-shown)) > label,
-.input-group:has(textarea:not(:placeholder-shown)) > label,
-.surgery-form-grid > div:has(input:not([placeholder=""]):not(:placeholder-shown)) > label,
-.surgery-form-grid > div:has(textarea:not(:placeholder-shown)) > label,
-.surgery-consent-grid div > div:has(input:not([placeholder=""]):not(:placeholder-shown)) > label,
-.surgery-consent-grid div > div:has(textarea:not(:placeholder-shown)) > label,
-/* JS FALLBACKS */
 .form-group.focused label,
 .form-group.has-value label,
 .input-group.focused label,
@@ -207,6 +197,23 @@
 .surgery-form-grid > div.has-value label,
 .surgery-consent-grid div > div.focused label,
 .surgery-consent-grid div > div.has-value label {
+    top: 0px !important;
+    transform: translateY(-50%) scale(0.85) !important;
+    background: var(--card-bg, #ffffff) !important;
+    color: var(--primary, #4f46e5) !important;
+    font-weight: 700 !important;
+    z-index: 6 !important;
+}
+
+/* NATIVE FLOATING via :has() (Progressive enhancement for modern browsers) */
+.form-group:has(input:not(:placeholder-shown)) > label,
+.form-group:has(textarea:not(:placeholder-shown)) > label,
+.input-group:has(input:not(:placeholder-shown)) > label,
+.input-group:has(textarea:not(:placeholder-shown)) > label,
+.surgery-form-grid > div:has(input:not(:placeholder-shown)) > label,
+.surgery-form-grid > div:has(textarea:not(:placeholder-shown)) > label,
+.surgery-consent-grid div > div:has(input:not(:placeholder-shown)) > label,
+.surgery-consent-grid div > div:has(textarea:not(:placeholder-shown)) > label {
     top: 0px !important;
     transform: translateY(-50%) scale(0.85) !important;
     background: var(--card-bg, #ffffff) !important;
