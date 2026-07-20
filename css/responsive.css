@@ -163,14 +163,20 @@
 
 @media (max-width: 768px) {
 
-    /* Settings form grids to single column */
+    /* Collapse all form grids to a single column layout on mobile screens */
+    .form-grid,
+    .form-grid-2,
+    .surgery-form-grid,
     .settings-container .form-grid {
         grid-template-columns: 1fr !important;
+        gap: 12px !important;
     }
 
-    /* Fix span-2 items that overflow on single column */
-    .settings-container .form-grid>div[style*="grid-column: span 2"],
-    .settings-container .form-grid>div[style*="grid-column:span 2"] {
+    /* Override span-2 styling so items stretch completely */
+    .form-grid > div,
+    .form-grid-2 > div,
+    .surgery-form-grid > div,
+    .settings-container .form-grid > div {
         grid-column: span 1 !important;
     }
 
