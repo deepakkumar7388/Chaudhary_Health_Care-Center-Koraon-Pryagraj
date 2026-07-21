@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config.dart';
@@ -134,13 +135,17 @@ class ApiService {
 
   // ==================== PATIENTS ====================
   static Future<List<dynamic>> getPatients() async {
-    final response = await http.get(
-      Uri.parse('${apiBaseUrl}patients'),
-      headers: _headers,
-    );
-    final data = jsonDecode(response.body);
-    if (data['success'] == true) {
-      return data['patients'] ?? [];
+    try {
+      final response = await http.get(
+        Uri.parse('${apiBaseUrl}patients'),
+        headers: _headers,
+      ).timeout(const Duration(seconds: 3));
+      final data = jsonDecode(response.body);
+      if (data['success'] == true) {
+        return data['patients'] ?? [];
+      }
+    } catch (e) {
+      debugPrint('getPatients network error / offline demo: $e');
     }
     return [];
   }
