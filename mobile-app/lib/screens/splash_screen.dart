@@ -156,6 +156,53 @@ class _LoginScreenState extends State<LoginScreen> {
       _errorMessage = null;
     });
 
+    // ── OFFLINE DEMO CREDENTIALS BYPASS ──
+    final lowercaseEmail = email.toLowerCase();
+    bool isDemo = false;
+    String demoName = '';
+    String demoRole = '';
+
+    if (lowercaseEmail == 'admin@chaudhary.com' && password == 'admin123') {
+      isDemo = true;
+      demoName = 'Admin Demo';
+      demoRole = 'admin';
+    } else if (lowercaseEmail == 'doctor@chaudhary.com' && password == 'doctor123') {
+      isDemo = true;
+      demoName = 'Doctor Demo';
+      demoRole = 'doctor';
+    } else if (lowercaseEmail == 'staff@chaudhary.com' && password == 'staff123') {
+      isDemo = true;
+      demoName = 'Staff Demo';
+      demoRole = 'staff';
+    } else if (lowercaseEmail == 'receptionist@chaudhary.com' && password == 'receptionist123') {
+      isDemo = true;
+      demoName = 'Receptionist Demo';
+      demoRole = 'receptionist';
+    }
+
+    if (isDemo) {
+      final mockUser = {
+        'success': true,
+        'token': 'demo_secret_token_123',
+        'user': {
+          'id': 'demo_id_$demoRole',
+          'name': demoName,
+          'email': lowercaseEmail,
+          'role': demoRole,
+          'billingAccess': demoRole == 'admin' || demoRole == 'developer',
+        }
+      };
+
+      await ApiService.saveMockLogin(mockUser);
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+      );
+      return;
+    }
+
     try {
       final result = await ApiService.login(email, password);
       if (!mounted) return;
@@ -379,7 +426,74 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ).animate().fadeIn(delay: 400.ms, duration: 400.ms),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 28),
+
+              // Divider
+              Row(
+                children: [
+                  Expanded(child: Divider(color: isDark ? Colors.grey.shade800 : Colors.grey.shade300)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Text(
+                      'TEST DEMO ACCOUNTS',
+                      style: GoogleFonts.inter(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                  ),
+                  Expanded(child: Divider(color: isDark ? Colors.grey.shade800 : Colors.grey.shade300)),
+                ],
+              ).animate().fadeIn(delay: 450.ms),
+
+              const SizedBox(height: 16),
+
+              // Grid of 4 Role Demo Accounts
+              GridView.count(
+                crossAxisCount: 2,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                mainAxisSpacing: 10,
+                crossAxisSpacing: 10,
+                childAspectRatio: 2.3,
+                children: [
+                  _buildDemoAccountBtn(
+                    role: 'admin',
+                    name: 'Admin Demo',
+                    icon: Icons.admin_panel_settings_rounded,
+                    color: const Color(0xFFEF4444),
+                  ),
+                  _buildDemoAccountBtn(
+                    role: 'doctor',
+                    name: 'Doctor Demo',
+                    icon: Icons.healing_rounded,
+                    color: const Color(0xFF3B82F6),
+                  ),
+                  _buildDemoAccountBtn(
+                    role: 'staff',
+                    name: 'Staff (No Billing)',
+                    icon: Icons.badge_rounded,
+                    color: const Color(0xFFF59E0B),
+                  ),
+                  _buildDemoAccountBtn(
+                    role: 'staff',
+                    name: 'Staff (+ Billing)',
+                    icon: Icons.point_of_sale_rounded,
+                    color: const Color(0xFF8B5CF6),
+                    billingAccess: true,
+                  ),
+                  _buildDemoAccountBtn(
+                    role: 'receptionist',
+                    name: 'Receptionist',
+                    icon: Icons.support_agent_rounded,
+                    color: const Color(0xFF10B981),
+                  ),
+                ],
+              ).animate().fadeIn(delay: 500.ms, duration: 450.ms),
+
+              const SizedBox(height: 36),
 
               // Footer
               Center(
@@ -399,4 +513,101 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
+
+  // ── DEMO ACCOUNT BYPASS HELPER ──
+  Widget _buildDemoAccountBtn({
+    required String role,
+    required String name,
+    required IconData icon,
+    required Color color,
+    bool? billingAccess,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final hasBilling = billingAccess ?? (role == 'admin' || role == 'developer');
+    return InkWell(
+      onTap: () async {
+        // Save dummy mock details directly into SharedPreferences bypassing API auth
+        final mockUser = {
+          'success': true,
+          'token': 'demo_secret_token_123',
+          'user': {
+            'id': 'demo_id_$role',
+            'name': name,
+            'email': '$role@chaudhary.com',
+            'role': role,
+            'billingAccess': hasBilling,
+          }
+        };
+
+        // Initialize SharedPreferences via ApiService mockup bypass
+        await ApiService.saveMockLogin(mockUser);
+
+        if (!mounted) return;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        );
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E293B) : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: color.withValues(alpha: 0.3),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: color.withValues(alpha: 0.05),
+              blurRadius: 6,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 16),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    role.toUpperCase(),
+                    style: GoogleFonts.inter(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w800,
+                      color: color,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  Text(
+                    name,
+                    style: GoogleFonts.inter(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
+

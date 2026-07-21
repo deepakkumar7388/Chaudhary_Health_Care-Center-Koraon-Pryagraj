@@ -170,7 +170,7 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
                       Text('Gender *', style: _labelStyle(isDark)),
                       const SizedBox(height: 8),
                       DropdownButtonFormField<String>(
-                        value: _gender,
+                        initialValue: _gender,
                         decoration: const InputDecoration(
                           prefixIcon: Icon(Icons.wc_outlined, size: 20),
                         ),

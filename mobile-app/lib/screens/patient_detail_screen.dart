@@ -76,6 +76,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
         );
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Error: Cannot connect to server'), backgroundColor: AppColors.error),
       );

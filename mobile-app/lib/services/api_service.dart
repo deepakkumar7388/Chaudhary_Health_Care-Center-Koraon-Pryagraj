@@ -29,26 +29,59 @@ class ApiService {
         if (_token != null) 'Authorization': 'Bearer $_token',
       };
 
+  // ==================== MOCK AUTH BYPASS ====================
+  static Future<void> saveMockLogin(Map<String, dynamic> mockResponse) async {
+    _token = mockResponse['token'];
+    final userObj = mockResponse['user'];
+    
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('token', _token!);
+    await prefs.setString('user', jsonEncode(userObj));
+
+    RoleAccess.setRole(
+      userObj['role'] as String,
+      billingAccess: userObj['billingAccess'] == true,
+    );
+  }
+
   // ==================== AUTH ====================
   static Future<Map<String, dynamic>> login(String email, String password) async {
-    final response = await http.post(
-      Uri.parse('${apiBaseUrl}auth/login'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'email': email, 'password': password}),
-    );
-    final data = jsonDecode(response.body);
-    if (data['success'] == true) {
-      _token = data['token'];
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('token', _token!);
-      await prefs.setString('user', jsonEncode(data));
-      // Set role-based access
-      RoleAccess.setRole(
-        data['role'] ?? 'staff',
-        billingAccess: data['billingAccess'] == true,
-      );
+    try {
+      final response = await http.post(
+        Uri.parse('${apiBaseUrl}auth/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'password': password}),
+      ).timeout(const Duration(seconds: 15));
+
+      final data = jsonDecode(response.body);
+      if (data['success'] == true) {
+        _token = data['token'];
+
+        // Save clean user object (not raw response) for easy retrieval
+        final userObj = {
+          'id': data['user_id'] ?? data['id'] ?? '',
+          'name': data['name'] ?? '',
+          'email': data['email'] ?? email,
+          'role': data['role'] ?? 'staff',
+          'username': data['username'] ?? email.split('@')[0],
+          'avatar': data['avatar'] ?? '',
+          'billingAccess': data['billingAccess'] ?? false,
+        };
+
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('token', _token!);
+        await prefs.setString('user', jsonEncode(userObj));
+
+        // Set role-based access immediately
+        RoleAccess.setRole(
+          userObj['role'] as String,
+          billingAccess: userObj['billingAccess'] == true,
+        );
+      }
+      return data;
+    } on Exception catch (e) {
+      return {'success': false, 'message': 'Connection failed: $e'};
     }
-    return data;
   }
 
   static Future<void> logout() async {
@@ -61,11 +94,16 @@ class ApiService {
   static Future<Map<String, dynamic>?> getSavedUser() async {
     final prefs = await SharedPreferences.getInstance();
     final userJson = prefs.getString('user');
-    if (userJson != null) {
-      return jsonDecode(userJson);
+    if (userJson != null && userJson.isNotEmpty) {
+      try {
+        return Map<String, dynamic>.from(jsonDecode(userJson));
+      } catch (_) {
+        return null;
+      }
     }
     return null;
   }
+
 
   static Future<Map<String, dynamic>> forgotPassword(String email) async {
     final response = await http.post(

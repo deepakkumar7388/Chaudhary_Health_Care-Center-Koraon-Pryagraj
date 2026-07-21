@@ -77,8 +77,8 @@ class _BillingScreenState extends State<BillingScreen> {
                 ),
                 const SizedBox(height: 14),
 
-                DropdownButtonFormField<String>(
-                  value: modeController.text,
+                  DropdownButtonFormField<String>(
+                  initialValue: modeController.text,
                   decoration: const InputDecoration(
                     labelText: 'Payment Mode',
                     prefixIcon: Icon(Icons.payment_outlined, size: 20),
