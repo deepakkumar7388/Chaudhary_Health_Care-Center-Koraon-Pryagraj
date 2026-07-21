@@ -5,6 +5,9 @@ import 'package:fl_chart/fl_chart.dart';
 import '../theme.dart';
 import '../services/api_service.dart';
 import '../services/role_access.dart';
+import '../widgets/overview_card.dart';
+import '../widgets/quick_action_card.dart';
+import '../widgets/radar_chart_widget.dart';
 import 'splash_screen.dart';
 import 'add_patient_screen.dart';
 import 'patient_detail_screen.dart';
@@ -186,9 +189,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final hour = now.hour;
     final greeting = hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening';
     final bgColor = isDark ? AppColors.backgroundDark : const Color(0xFFF8FAFC);
-    
-    // Primary aesthetic color for Overview Cards (vibrant orange)
-    final cardAccentColor = isDark ? const Color(0xFFFB923C) : const Color(0xFFEA580C);
 
     return SafeArea(
       child: RefreshIndicator(
@@ -376,40 +376,30 @@ class _HomeScreenState extends State<HomeScreen> {
                         padding: const EdgeInsets.only(left: 20, right: 8),
                         physics: const BouncingScrollPhysics(),
                         children: [
-                          _buildMetricChip(
+                          OverviewCard(
                             icon: Icons.people_alt_rounded,
                             label: 'Total Patients',
                             value: '${_stats['totalPatients'] ?? 0}',
-                            accentColor: cardAccentColor,
-                            isDark: isDark,
                           ),
-                          _buildMetricChip(
+                          OverviewCard(
                             icon: Icons.hotel_rounded,
                             label: 'Admitted Now',
                             value: '${_stats['admittedPatients'] ?? 0}',
-                            accentColor: cardAccentColor,
-                            isDark: isDark,
                           ),
-                          _buildMetricChip(
+                          OverviewCard(
                             icon: Icons.task_alt_rounded,
                             label: 'Discharged',
                             value: '${_stats['dischargedPatients'] ?? 0}',
-                            accentColor: cardAccentColor,
-                            isDark: isDark,
                           ),
-                          _buildMetricChip(
+                          OverviewCard(
                             icon: Icons.bed_rounded,
                             label: 'IPD Patients',
                             value: '${_stats['ipdPatients'] ?? 0}',
-                            accentColor: cardAccentColor,
-                            isDark: isDark,
                           ),
-                          _buildMetricChip(
+                          OverviewCard(
                             icon: Icons.medical_services_rounded,
                             label: 'OPD Patients',
                             value: '${_stats['opdPatients'] ?? 0}',
-                            accentColor: cardAccentColor,
-                            isDark: isDark,
                           ),
                         ],
                       ),
@@ -437,12 +427,12 @@ class _HomeScreenState extends State<HomeScreen> {
                             children: [
                               if (RoleAccess.canAddPatient) ...[
                                 Expanded(
-                                  child: _buildActionCard(
+                                  child: QuickActionCard(
                                     icon: Icons.person_add_rounded,
                                     label: 'Register Patient',
                                     description: 'New Entry',
                                     gradient: const LinearGradient(
-                                      colors: [Color(0xFF1E40AF), Color(0xFF3B82F6)],
+                                      colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
                                       begin: Alignment.topLeft,
                                       end: Alignment.bottomRight,
                                     ),
@@ -456,12 +446,12 @@ class _HomeScreenState extends State<HomeScreen> {
                               ],
                               if (RoleAccess.canViewDailyNotes)
                                 Expanded(
-                                  child: _buildActionCard(
+                                  child: QuickActionCard(
                                     icon: Icons.edit_note_rounded,
                                     label: 'Daily Notes',
                                     description: 'Patient Log',
                                     gradient: const LinearGradient(
-                                      colors: [Color(0xFF0D9488), Color(0xFF14B8A6)],
+                                      colors: [Color(0xFFA855F7), Color(0xFF7E22CE)],
                                       begin: Alignment.topLeft,
                                       end: Alignment.bottomRight,
                                     ),
@@ -476,12 +466,12 @@ class _HomeScreenState extends State<HomeScreen> {
                             const SizedBox(height: 12),
                             SizedBox(
                               width: double.infinity,
-                              child: _buildActionCard(
+                              child: QuickActionCard(
                                 icon: Icons.receipt_long_rounded,
-                                label: 'Billing & Invoices',
+                                label: 'Billing & Payments',
                                 description: 'Financial Records',
                                 gradient: const LinearGradient(
-                                  colors: [Color(0xFF0284C7), Color(0xFF38BDF8)],
+                                  colors: [Color(0xFF10B981), Color(0xFF059669)],
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                 ),
@@ -715,69 +705,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
 
-                            // PAGE 4: Octagonal Performance Radar Chart (Matching User Image)
+                            // PAGE 4: Octagonal Performance Radar Chart (Using Extracted Component)
                             Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 20),
-                              child: _buildChartCard(
-                                isDark: isDark,
-                                title: 'Hospital Performance Radar',
-                                icon: Icons.radar_rounded,
-                                iconColor: const Color(0xFF10B981),
-                                child: SizedBox(
-                                  height: 160,
-                                  child: RadarChart(
-                                    RadarChartData(
-                                      radarShape: RadarShape.polygon,
-                                      radarBorderData: const BorderSide(color: Color(0xFF10B981), width: 1.5),
-                                      gridBorderData: BorderSide(color: isDark ? Colors.white24 : const Color(0xFFCBD5E1), width: 1),
-                                      tickBorderData: const BorderSide(color: Colors.transparent),
-                                      ticksTextStyle: const TextStyle(color: Colors.transparent),
-                                      titlePositionPercentageOffset: 0.15,
-                                      getTitle: (index, angle) {
-                                        const titles = ['Admissions', 'OPD', 'IPD', 'Billing', 'Discharges', 'Surgeries'];
-                                        return RadarChartTitle(
-                                          text: titles[index % titles.length],
-                                        );
-                                      },
-                                      dataSets: [
-                                        RadarDataSet(
-                                          fillColor: const Color(0xFFFBBF24).withValues(alpha: 0.65),
-                                          borderColor: const Color(0xFFF59E0B),
-                                          entryRadius: 3,
-                                          borderWidth: 2,
-                                          dataEntries: const [
-                                            RadarEntry(value: 8.5),
-                                            RadarEntry(value: 7.0),
-                                            RadarEntry(value: 9.0),
-                                            RadarEntry(value: 6.5),
-                                            RadarEntry(value: 8.0),
-                                            RadarEntry(value: 7.5),
-                                          ],
-                                        ),
-                                        RadarDataSet(
-                                          fillColor: const Color(0xFF10B981).withValues(alpha: 0.35),
-                                          borderColor: const Color(0xFF10B981),
-                                          entryRadius: 3,
-                                          borderWidth: 2,
-                                          dataEntries: const [
-                                            RadarEntry(value: 6.0),
-                                            RadarEntry(value: 8.5),
-                                            RadarEntry(value: 5.5),
-                                            RadarEntry(value: 8.0),
-                                            RadarEntry(value: 6.5),
-                                            RadarEntry(value: 9.0),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                legend: [
-                                  _buildLegendDot('Target', const Color(0xFFF59E0B)),
-                                  const SizedBox(width: 14),
-                                  _buildLegendDot('Actual', const Color(0xFF10B981)),
-                                ],
-                              ),
+                              child: RadarChartWidget(isDark: isDark),
                             ),
                           ],
                         ],
@@ -886,76 +817,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ── METRIC CHIP (horizontal scroll stats) ──
-  Widget _buildMetricChip({
-    required IconData icon,
-    required String label,
-    required String value,
-    required Color accentColor,
-    required bool isDark,
-  }) {
-    // Professional sleek hospital blue card with right margin hint
-    return Container(
-      width: 110,
-      margin: const EdgeInsets.only(right: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: isDark
-              ? [const Color(0xFF1E3A8A), const Color(0xFF1E293B)]
-              : [const Color(0xFF2563EB), const Color(0xFF1D4ED8)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF2563EB).withValues(alpha: 0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(5),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.20),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, size: 16, color: Colors.white),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                value,
-                style: GoogleFonts.inter(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white,
-                  letterSpacing: -0.5,
-                ),
-              ),
-              Text(
-                label,
-                style: GoogleFonts.inter(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white.withValues(alpha: 0.80),
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        ],
-      ),
-    ).animate().fadeIn(duration: 400.ms).slideX(begin: 0.05, end: 0);
-  }
+
 
   // ── CHART CARD wrapper ──
   Widget _buildChartCard({
@@ -1027,72 +889,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ── ACTION CARD ──
-  Widget _buildActionCard({
-    required IconData icon,
-    required String label,
-    required String description,
-    required Gradient gradient,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          gradient: gradient,
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(
-              color: gradient.colors.first.withValues(alpha: 0.3),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(icon, color: Colors.white, size: 20),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                  Text(
-                    description,
-                    style: GoogleFonts.inter(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white.withValues(alpha: 0.85),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-            Icon(Icons.chevron_right, color: Colors.white.withValues(alpha: 0.7), size: 18),
-          ],
-        ),
-      ),
-    );
-  }
+
 
   // ==================== PATIENT HUB TAB (Shows Patient List directly + Add FAB) ====================
   Widget _buildPatientHub() {
