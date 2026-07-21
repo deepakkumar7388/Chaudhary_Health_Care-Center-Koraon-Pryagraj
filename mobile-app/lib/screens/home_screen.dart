@@ -355,25 +355,26 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // ── OVERVIEW CARDS (Same professional theme color) ──
+                    // ── OVERVIEW CARDS (Harmonized blue gradient chips with swipe hint) ──
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Text(
                         'Hospital Overview',
                         style: GoogleFonts.inter(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? AppColors.textSecondaryDark : const Color(0xFF475569),
-                          letterSpacing: 0.3,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          color: isDark ? Colors.white : const Color(0xFF1E293B),
+                          letterSpacing: -0.2,
                         ),
                       ),
                     ),
                     const SizedBox(height: 12),
                     SizedBox(
-                      height: 95,
+                      height: 98,
                       child: ListView(
                         scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        padding: const EdgeInsets.only(left: 20, right: 8),
+                        physics: const BouncingScrollPhysics(),
                         children: [
                           _buildMetricChip(
                             icon: Icons.people_alt_rounded,
@@ -414,9 +415,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
 
-                    // ── QUICK ACTIONS ──
+                    // ── QUICK ACTIONS (Harmonized Medical Blue Theme) ──
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Column(
@@ -425,10 +426,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           Text(
                             'Quick Actions',
                             style: GoogleFonts.inter(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: isDark ? AppColors.textSecondaryDark : const Color(0xFF475569),
-                              letterSpacing: 0.3,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                              color: isDark ? Colors.white : const Color(0xFF1E293B),
+                              letterSpacing: -0.2,
                             ),
                           ),
                           const SizedBox(height: 12),
@@ -439,9 +440,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                   child: _buildActionCard(
                                     icon: Icons.person_add_rounded,
                                     label: 'Register Patient',
-                                    description: 'Add new patient',
+                                    description: 'New Entry',
                                     gradient: const LinearGradient(
-                                      colors: [Color(0xFF3B82F6), Color(0xFF60A5FA)],
+                                      colors: [Color(0xFF1E40AF), Color(0xFF3B82F6)],
                                       begin: Alignment.topLeft,
                                       end: Alignment.bottomRight,
                                     ),
@@ -458,9 +459,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                   child: _buildActionCard(
                                     icon: Icons.edit_note_rounded,
                                     label: 'Daily Notes',
-                                    description: 'Write patient notes',
+                                    description: 'Patient Log',
                                     gradient: const LinearGradient(
-                                      colors: [Color(0xFF8B5CF6), Color(0xFFA78BFA)],
+                                      colors: [Color(0xFF0D9488), Color(0xFF14B8A6)],
                                       begin: Alignment.topLeft,
                                       end: Alignment.bottomRight,
                                     ),
@@ -477,10 +478,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               width: double.infinity,
                               child: _buildActionCard(
                                 icon: Icons.receipt_long_rounded,
-                                label: 'Billing & Payments',
-                                description: 'Manage patient billing, payments and receipts',
+                                label: 'Billing & Invoices',
+                                description: 'Financial Records',
                                 gradient: const LinearGradient(
-                                  colors: [Color(0xFF10B981), Color(0xFF34D399)],
+                                  colors: [Color(0xFF0284C7), Color(0xFF38BDF8)],
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                 ),
@@ -494,18 +495,18 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ).animate().fadeIn(delay: 150.ms, duration: 350.ms),
 
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
 
-                    // ── 3 ANALYTICS GRAPHS (horizontal swipe carousel) ──
+                    // ── ANALYTICS GRAPHS ──
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
                       child: Text(
                         'Analytics & Trends',
                         style: GoogleFonts.inter(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? AppColors.textSecondaryDark : const Color(0xFF475569),
-                          letterSpacing: 0.3,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          color: isDark ? Colors.white : const Color(0xFF1E293B),
+                          letterSpacing: -0.2,
                         ),
                       ),
                     ),
@@ -806,7 +807,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 const SizedBox(height: 24),
 
-                // ── RECENT PATIENTS ──
+                // ── RECENT PATIENTS SECTION ──
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Row(
@@ -815,21 +816,27 @@ class _HomeScreenState extends State<HomeScreen> {
                       Text(
                         'Recent Patients',
                         style: GoogleFonts.inter(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? AppColors.textSecondaryDark : const Color(0xFF475569),
-                          letterSpacing: 0.3,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          color: isDark ? Colors.white : const Color(0xFF1E293B),
+                          letterSpacing: -0.2,
                         ),
                       ),
                       GestureDetector(
                         onTap: () => setState(() => _currentIndex = 1),
-                        child: Text(
-                          'View All →',
-                          style: GoogleFonts.inter(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.primary,
-                          ),
+                        child: Row(
+                          children: [
+                            Text(
+                              'View All',
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                            const SizedBox(width: 2),
+                            const Icon(Icons.arrow_forward_rounded, size: 14, color: AppColors.primary),
+                          ],
                         ),
                       ),
                     ],
@@ -887,10 +894,10 @@ class _HomeScreenState extends State<HomeScreen> {
     required Color accentColor,
     required bool isDark,
   }) {
-    // Professional sleek hospital blue card
+    // Professional sleek hospital blue card with right margin hint
     return Container(
-      width: 105,
-      margin: const EdgeInsets.only(right: 10),
+      width: 110,
+      margin: const EdgeInsets.only(right: 12),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -1071,7 +1078,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     description,
                     style: GoogleFonts.inter(
                       fontSize: 11,
-                      color: Colors.white.withValues(alpha: 0.8),
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white.withValues(alpha: 0.85),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
