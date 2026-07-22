@@ -142,13 +142,53 @@ class ApiService {
       ).timeout(const Duration(seconds: 3));
       final data = jsonDecode(response.body);
       if (data['success'] == true) {
-        return data['patients'] ?? [];
+        final list = List<dynamic>.from(data['patients'] ?? []);
+        if (list.isEmpty) {
+          list.addAll([_demoPatient, _demoOpdPatient]);
+        }
+        return list;
       }
     } catch (e) {
       debugPrint('getPatients network error / offline demo: $e');
     }
-    return [];
+    return [_demoPatient, _demoOpdPatient];
   }
+
+  static final Map<String, dynamic> _demoPatient = {
+    '_id': 'demo_patient_001',
+    'patient_id': 'PAT-2026-001',
+    'name': 'Ramesh Kumar (Demo)',
+    'age': 42,
+    'gender': 'Male',
+    'guardian_name': 'Suresh Kumar',
+    'mobile': '9876543210',
+    'email': 'ramesh@gmail.com',
+    'bed_no': 'Male-G1',
+    'address': 'Civil Lines, Prayagraj',
+    'problem': 'High Fever & Typhoid',
+    'doctor_assigned': 'Dr. Bhoopendra Chaudhary',
+    'patient_type': 'IPD',
+    'status': 'Admitted',
+    'createdAt': DateTime.now().toIso8601String(),
+  };
+
+  static final Map<String, dynamic> _demoOpdPatient = {
+    '_id': 'demo_patient_002',
+    'patient_id': 'PAT-2026-002',
+    'name': 'Sunita Sharma (Demo OPD)',
+    'age': 35,
+    'gender': 'Female',
+    'guardian_name': 'Rajesh Sharma',
+    'mobile': '9812345678',
+    'email': 'sunita@gmail.com',
+    'bed_no': 'OPD',
+    'address': 'Koraon, Prayagraj',
+    'problem': 'Severe Migraine & Headache',
+    'doctor_assigned': 'Dr. S. K. Singh',
+    'patient_type': 'OPD',
+    'status': 'Admitted',
+    'createdAt': DateTime.now().toIso8601String(),
+  };
 
   static Future<Map<String, dynamic>> getPatientById(String id) async {
     final response = await http.get(
@@ -176,6 +216,14 @@ class ApiService {
     return jsonDecode(response.body);
   }
 
+  static Future<Map<String, dynamic>> deletePatient(String id) async {
+    final response = await http.delete(
+      Uri.parse('${apiBaseUrl}patients/$id'),
+      headers: _headers,
+    );
+    return jsonDecode(response.body);
+  }
+
   static Future<Map<String, dynamic>> getAvailableBeds() async {
     final response = await http.get(
       Uri.parse('${apiBaseUrl}patients/available-beds'),
@@ -186,22 +234,83 @@ class ApiService {
 
   // ==================== DAILY NOTES ====================
   static Future<List<dynamic>> getDailyNotes(String patientId) async {
-    final response = await http.get(
-      Uri.parse('${apiBaseUrl}daily-notes/$patientId'),
-      headers: _headers,
-    );
-    final data = jsonDecode(response.body);
-    if (data['success'] == true) {
-      return data['notes'] ?? [];
+    try {
+      final response = await http.get(
+        Uri.parse('${apiBaseUrl}daily-notes/$patientId'),
+        headers: _headers,
+      ).timeout(const Duration(seconds: 3));
+      final data = jsonDecode(response.body);
+      if (data['success'] == true) {
+        final notes = List<dynamic>.from(data['notes'] ?? []);
+        if (notes.isEmpty && patientId == 'demo_patient_001') {
+          return _demoNotes;
+        }
+        return notes;
+      }
+    } catch (_) {}
+
+    if (patientId == 'demo_patient_001') {
+      return _demoNotes;
     }
     return [];
   }
+
+  static final List<dynamic> _demoNotes = [
+    {
+      '_id': 'note_demo_1',
+      'type': 'vitals',
+      'date': '2026-07-21',
+      'time': '10:30',
+      'pulse': '76',
+      'bp': '120/80',
+      'temp': '98.6',
+      'spo2': '99',
+      'rbs': '112',
+      'painScore': '2',
+      'urineOutput': '350',
+      'drainOutput': '50',
+      'addedBy': 'Staff Demo',
+    },
+    {
+      '_id': 'note_demo_2',
+      'type': 'medication',
+      'date': '2026-07-21',
+      'time': '11:00',
+      'medType': 'Injection',
+      'drugName': 'Monocef',
+      'dose': '1g IV',
+      'status': 'Pending',
+      'addedBy': 'Dr. Bhoopendra Chaudhary',
+    },
+    {
+      '_id': 'note_demo_3',
+      'type': 'medication',
+      'date': '2026-07-21',
+      'time': '08:00',
+      'medType': 'Tablet',
+      'drugName': 'PCM 650mg',
+      'dose': '1 Tab',
+      'status': 'Given',
+      'doneBy': 'Staff Nurse',
+      'doneTime': '08:15',
+      'addedBy': 'Dr. Bhoopendra Chaudhary',
+    },
+  ];
 
   static Future<Map<String, dynamic>> addDailyNote(String patientId, Map<String, dynamic> noteData) async {
     final response = await http.post(
       Uri.parse('${apiBaseUrl}daily-notes/$patientId'),
       headers: _headers,
       body: jsonEncode(noteData),
+    );
+    return jsonDecode(response.body);
+  }
+
+  static Future<Map<String, dynamic>> updateDailyNote(String noteId, Map<String, dynamic> updateData) async {
+    final response = await http.put(
+      Uri.parse('${apiBaseUrl}notes/$noteId'),
+      headers: _headers,
+      body: jsonEncode(updateData),
     );
     return jsonDecode(response.body);
   }

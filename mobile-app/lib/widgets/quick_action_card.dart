@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 class QuickActionCard extends StatelessWidget {
   final IconData icon;
   final String label;
-  final String description;
+  final String? description;
   final Gradient gradient;
   final VoidCallback onTap;
 
@@ -12,7 +12,7 @@ class QuickActionCard extends StatelessWidget {
     super.key,
     required this.icon,
     required this.label,
-    required this.description,
+    this.description,
     required this.gradient,
     required this.onTap,
   });
@@ -27,7 +27,7 @@ class QuickActionCard extends StatelessWidget {
         onTap: onTap,
         splashColor: Colors.white24,
         child: Ink(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
             gradient: gradient,
             borderRadius: BorderRadius.circular(16),
@@ -65,16 +65,19 @@ class QuickActionCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    Text(
-                      description,
-                      style: GoogleFonts.inter(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white.withValues(alpha: 0.85),
+                    if (description != null && description!.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        description!,
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white.withValues(alpha: 0.85),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    ],
                   ],
                 ),
               ),

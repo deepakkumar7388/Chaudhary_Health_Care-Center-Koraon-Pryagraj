@@ -5,6 +5,7 @@ class OverviewCard extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
+  final Color? iconColor;
   final VoidCallback? onTap;
 
   const OverviewCard({
@@ -12,6 +13,7 @@ class OverviewCard extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.value,
+    this.iconColor,
     this.onTap,
   });
 
@@ -31,14 +33,14 @@ class OverviewCard extends StatelessWidget {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF0052FF), Color(0xFF0043D9)],
+                colors: [Color(0xFFE0F2FE), Color(0xFFBAE6FD)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF0052FF).withValues(alpha: 0.3),
+                  color: const Color(0xFF38BDF8).withValues(alpha: 0.2),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -51,10 +53,10 @@ class OverviewCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
+                    color: (iconColor ?? const Color(0xFF0284C7)).withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(icon, size: 18, color: Colors.white),
+                  child: Icon(icon, size: 18, color: iconColor ?? const Color(0xFF0284C7)),
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -64,7 +66,7 @@ class OverviewCard extends StatelessWidget {
                       style: GoogleFonts.poppins(
                         fontSize: 22,
                         fontWeight: FontWeight.w700,
-                        color: Colors.white,
+                        color: const Color(0xFF0F172A),
                         height: 1.1,
                       ),
                     ),
@@ -73,8 +75,8 @@ class OverviewCard extends StatelessWidget {
                       label,
                       style: GoogleFonts.inter(
                         fontSize: 10,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white.withValues(alpha: 0.85),
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF0284C7),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,

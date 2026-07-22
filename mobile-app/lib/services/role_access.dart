@@ -42,5 +42,6 @@ class RoleAccess {
 
   // Check if user is admin-level (developer or admin)
   static bool get isAdminLevel => _currentRole == 'developer' || _currentRole == 'admin';
+  static bool get isDoctorLevel => _currentRole == 'doctor' || _currentRole == 'developer' || _currentRole == 'admin';
   static bool get isDeveloper => _currentRole == 'developer';
 }
