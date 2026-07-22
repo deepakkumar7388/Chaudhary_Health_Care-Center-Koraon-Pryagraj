@@ -2113,35 +2113,352 @@ class _PatientTileState extends State<_PatientTile> {
     }
   }
 
-  // ── DELETE PATIENT DIALOG (MATCHING WEB APP) ──
+  // ── DELETE PATIENT MODAL (MATCHING WEB APP 2-STEP CONFIRMATION) ──
   Future<void> _confirmDeletePatient(BuildContext context, dynamic patient) async {
-    final confirm = await showDialog<bool>(
+    final patientName = patient['name'] ?? 'Unknown Patient';
+    final patientId = patient['patient_id'] ?? patient['id'] ?? 'N/A';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final result = await showModalBottomSheet<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('Delete Patient Record', style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: const Color(0xFFEF4444))),
-        content: Text(
-          'Are you sure you want to delete "${patient['name']}" (ID: ${patient['patient_id']})?\nThis action cannot be undone.',
-          style: GoogleFonts.inter(fontSize: 13),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFEF4444)),
-            child: const Text('Delete Patient'),
-          ),
-        ],
-      ),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        int currentStep = 1;
+        final typeController = TextEditingController();
+        bool isMatched = false;
+        bool isDeleting = false;
+
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
+
+            return Container(
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF0F172A) : Colors.white,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + bottomPadding),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Header Drag Handle
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: isDark ? Colors.white24 : Colors.grey[300],
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Danger Icon Header
+                    Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFEF4444).withValues(alpha: 0.35),
+                            blurRadius: 16,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 32),
+                    ),
+                    const SizedBox(height: 12),
+
+                    Text(
+                      currentStep == 1 ? 'Delete Patient Record' : 'Final Confirmation',
+                      style: GoogleFonts.inter(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFFEF4444),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      currentStep == 1
+                          ? 'This action cannot be undone'
+                          : 'Type DELETE to permanently remove this record',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: isDark ? Colors.white70 : const Color(0xFF64748B),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Step Indicator Dots Bar
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 250),
+                          width: currentStep == 1 ? 24 : 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEF4444),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 250),
+                          width: currentStep == 2 ? 24 : 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: currentStep == 2
+                                ? const Color(0xFFEF4444)
+                                : (isDark ? Colors.white24 : const Color(0xFFE2E8F0)),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // STEP 1 CONTENT
+                    if (currentStep == 1) ...[
+                      // Patient Info Card
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isDark ? Colors.white10 : const Color(0xFFE2E8F0),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 20,
+                              backgroundColor: const Color(0xFFE0E7FF),
+                              child: Text(
+                                patientName.isNotEmpty ? patientName[0].toUpperCase() : 'P',
+                                style: GoogleFonts.inter(
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF4F46E5),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    patientName,
+                                    style: GoogleFonts.inter(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                      color: isDark ? Colors.white : const Color(0xFF1E293B),
+                                    ),
+                                  ),
+                                  Text(
+                                    'ID: $patientId',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 12,
+                                      color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'You are about to permanently delete this patient and all associated records including billing, notes, and medical history.\n\nAre you sure you want to proceed?',
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: isDark ? Colors.white70 : const Color(0xFF475569),
+                          height: 1.5,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+
+                    // STEP 2 CONTENT (TYPE DELETE CONFIRMATION)
+                    if (currentStep == 2) ...[
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFEF2F2),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFFECACA)),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.warning_rounded, color: Color(0xFFDC2626), size: 20),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: RichText(
+                                text: TextSpan(
+                                  style: GoogleFonts.inter(fontSize: 12, color: const Color(0xFF991B1B)),
+                                  children: [
+                                    const TextSpan(text: 'Type '),
+                                    TextSpan(
+                                      text: 'DELETE',
+                                      style: GoogleFonts.inter(
+                                        fontWeight: FontWeight.w900,
+                                        color: const Color(0xFFDC2626),
+                                        letterSpacing: 1.2,
+                                      ),
+                                    ),
+                                    const TextSpan(text: ' below to confirm permanent deletion.'),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: typeController,
+                        autofocus: true,
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.inter(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 3,
+                          color: isDark ? Colors.white : const Color(0xFF1E293B),
+                        ),
+                        decoration: InputDecoration(
+                          hintText: 'Type DELETE',
+                          hintStyle: GoogleFonts.inter(
+                            fontSize: 14,
+                            letterSpacing: 1,
+                            color: Colors.grey[400],
+                          ),
+                          filled: true,
+                          fillColor: isMatched
+                              ? const Color(0xFFFEF2F2)
+                              : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC)),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: isMatched
+                                  ? const Color(0xFFEF4444)
+                                  : (isDark ? Colors.white24 : const Color(0xFFCBD5E1)),
+                              width: isMatched ? 2 : 1,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: Color(0xFFEF4444), width: 2),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        ),
+                        onChanged: (val) {
+                          setModalState(() {
+                            isMatched = val.trim().toUpperCase() == 'DELETE';
+                          });
+                        },
+                      ),
+                    ],
+
+                    const SizedBox(height: 24),
+
+                    // Modal Action Buttons
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: isDeleting ? null : () => Navigator.pop(ctx, false),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              side: BorderSide(color: isDark ? Colors.white24 : const Color(0xFFCBD5E1)),
+                            ),
+                            child: Text(
+                              'Cancel',
+                              style: GoogleFonts.inter(
+                                fontWeight: FontWeight.w700,
+                                color: isDark ? Colors.white70 : const Color(0xFF475569),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: (currentStep == 2 && (!isMatched || isDeleting))
+                                ? null
+                                : () async {
+                                    if (currentStep == 1) {
+                                      setModalState(() => currentStep = 2);
+                                    } else if (currentStep == 2 && isMatched) {
+                                      setModalState(() => isDeleting = true);
+                                      try {
+                                        await ApiService.deletePatient(patient['_id'] ?? patient['id'] ?? '');
+                                        if (ctx.mounted) Navigator.pop(ctx, true);
+                                      } catch (e) {
+                                        setModalState(() => isDeleting = false);
+                                      }
+                                    }
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFEF4444),
+                              disabledBackgroundColor: const Color(0xFFEF4444).withValues(alpha: 0.4),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              elevation: currentStep == 2 && isMatched ? 4 : 0,
+                            ),
+                            child: isDeleting
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                                  )
+                                : Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        currentStep == 1
+                                            ? Icons.arrow_forward_rounded
+                                            : Icons.delete_forever_rounded,
+                                        color: Colors.white,
+                                        size: 18,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        currentStep == 1 ? 'Yes, Proceed' : 'Delete Permanently',
+                                        style: GoogleFonts.inter(
+                                          fontWeight: FontWeight.w800,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
 
-    if (confirm == true) {
-      try {
-        await ApiService.deletePatient(patient['_id'] ?? patient['id'] ?? '');
-      } catch (_) {}
-      if (widget.onRefresh != null) {
-        widget.onRefresh!();
-      }
+    if (result == true && widget.onRefresh != null) {
+      widget.onRefresh!();
     }
   }
 
