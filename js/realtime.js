@@ -148,7 +148,7 @@
         };
         Object.assign(toast.style, {
             position: 'fixed',
-            bottom: '80px',
+            top: '20px',
             right: '20px',
             background: colors[type] || colors.info,
             color: 'white',

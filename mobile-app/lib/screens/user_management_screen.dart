@@ -66,11 +66,17 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
 
   void _showSnack(String msg, {bool isError = false}) {
     if (!mounted) return;
+    final topPadding = MediaQuery.of(context).padding.top + 10;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(msg, style: GoogleFonts.inter()),
+        content: Text(msg, style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
         backgroundColor: isError ? const Color(0xFFEF4444) : const Color(0xFF10B981),
         behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.only(
+          bottom: MediaQuery.of(context).size.height - topPadding - 70,
+          left: 16,
+          right: 16,
+        ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
