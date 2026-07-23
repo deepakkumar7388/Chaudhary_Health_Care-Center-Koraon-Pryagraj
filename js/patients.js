@@ -9,6 +9,9 @@ function renderPatients() {
     const moduleEl = document.getElementById('module-patients');
     if (!moduleEl) return;
 
+    // Prevent destroying and re-building DOM structure if already rendered (prevents blinking)
+    if (moduleEl.querySelector('.patients-container')) return;
+
     moduleEl.innerHTML = `
         <div class="patients-container">
             <div class="module-header">
@@ -149,12 +152,16 @@ async function _fetchPatientsFresh() {
         const result = await response.json();
 
         if (result.success && result.patients) {
+            const newStr = JSON.stringify(result.patients);
+            const oldStr = JSON.stringify(window.allPatientsData || []);
             window.allPatientsData = result.patients;
-            // Cache update karo
-            localStorage.setItem('patients', JSON.stringify(result.patients));
-            // Table silently update karo (agar patients module active hai)
-            const tbody = document.getElementById('patients-table-body');
-            if (tbody) renderPatientsTable(result.patients);
+            localStorage.setItem('patients', newStr);
+            
+            // Only re-render table if data actually changed (completely eliminates blinking)
+            if (newStr !== oldStr) {
+                const tbody = document.getElementById('patients-table-body');
+                if (tbody) renderPatientsTable(result.patients);
+            }
         }
     } catch (error) {
         console.log('Background patient sync failed, using cache.');
