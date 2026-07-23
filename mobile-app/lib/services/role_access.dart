@@ -26,6 +26,11 @@ class RoleAccess {
       return _hasBillingAccess || _currentRole == 'developer' || _currentRole == 'admin';
     }
 
+    // Discharge special case: allowed if user has billing access or is doctor/developer/admin
+    if (module == 'discharge') {
+      return _hasBillingAccess || _currentRole == 'doctor' || _currentRole == 'developer' || _currentRole == 'admin';
+    }
+
     final perms = _permissions[_currentRole] ?? ['dashboard'];
     return perms.contains(module);
   }
@@ -41,6 +46,7 @@ class RoleAccess {
   static bool get canViewPatientRecord => canAccess('patient-record');
 
   // Check if user is admin-level (developer or admin)
+  static bool get canDeletePatient => _currentRole == 'developer' || _currentRole == 'admin';
   static bool get isAdminLevel => _currentRole == 'developer' || _currentRole == 'admin';
   static bool get isDoctorLevel => _currentRole == 'doctor' || _currentRole == 'developer' || _currentRole == 'admin';
   static bool get isDeveloper => _currentRole == 'developer';

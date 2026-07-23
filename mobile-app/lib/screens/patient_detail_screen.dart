@@ -6,6 +6,7 @@ import '../services/api_service.dart';
 import '../services/role_access.dart';
 import 'daily_notes_screen.dart';
 import 'billing_screen.dart';
+import 'discharge_screen.dart';
 
 class PatientDetailScreen extends StatefulWidget {
   final dynamic patient;
@@ -39,50 +40,13 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
     if (mounted) setState(() => _isLoading = false);
   }
 
-  Future<void> _dischargePatient() async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Confirm Discharge'),
-        content: Text('Are you sure you want to discharge ${_patient['name']}?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text('Discharge'),
-          ),
-        ],
+  void _dischargePatient() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => DischargeScreen(initialPatient: Map<String, dynamic>.from(_patient)),
       ),
-    );
-
-    if (confirm != true) return;
-    setState(() => _isLoading = true);
-
-    try {
-      final result = await ApiService.dischargePatient({
-        'patientId': _patient['_id'],
-      });
-      if (!mounted) return;
-
-      if (result['success'] == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Patient discharged successfully'), backgroundColor: AppColors.success),
-        );
-        Navigator.pop(context, true);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result['message'] ?? 'Discharge failed'), backgroundColor: AppColors.error),
-        );
-      }
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error: Cannot connect to server'), backgroundColor: AppColors.error),
-      );
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
+    ).then((_) => _refreshPatient());
   }
 
   @override
@@ -210,9 +174,9 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                       if (isAdmitted && RoleAccess.canDischarge) ...[
                         if (RoleAccess.canViewDailyNotes || RoleAccess.canViewBilling) const SizedBox(width: 12),
                         _ActionButton(
-                          icon: Icons.exit_to_app,
-                          label: 'Discharge',
-                          color: AppColors.error,
+                          icon: patientType == 'OPD' ? Icons.assignment_turned_in_rounded : Icons.exit_to_app,
+                          label: patientType == 'OPD' ? 'Visit Slip' : 'Discharge',
+                          color: patientType == 'OPD' ? const Color(0xFF2563EB) : AppColors.error,
                           onTap: _dischargePatient,
                         ),
                       ],

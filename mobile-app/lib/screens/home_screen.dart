@@ -13,6 +13,9 @@ import 'splash_screen.dart';
 import 'add_patient_screen.dart';
 import 'patient_detail_screen.dart';
 import 'daily_notes_screen.dart';
+import 'billing_screen.dart';
+import 'user_management_screen.dart';
+import 'discharge_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -29,8 +32,10 @@ class _HomeScreenState extends State<HomeScreen> {
   List<dynamic> _filteredPatients = [];
   bool _isLoading = true;
   final _searchController = TextEditingController();
+  final _billingSearchController = TextEditingController();
   String _filterStatus = 'All';
   String _filterType = 'All';
+  String _billingTabFilter = 'All'; // 'All', 'Pending', 'Paid'
   final _chartPageController = PageController();
   int _chartPage = 0;
   // Cached pages to avoid rebuild-on-tab-switch blink
@@ -1302,31 +1307,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ==================== BILLING HUB TAB (Mirrors Web layout) ====================
-  Widget _buildBillingHub() {
-    return SafeArea(
-      child: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          Text('Billing & Discharge', style: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.w800, letterSpacing: -0.5)),
-          const SizedBox(height: 24),
-
-          _HubTile(
-            icon: Icons.receipt_long,
-            title: 'Billing Records',
-            subtitle: 'Manage payments, bills and invoices',
-            color: AppColors.warning,
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => Scaffold(
-                appBar: AppBar(title: const Text('Select Patient for Billing')),
-                body: _buildPatientsList(),
-              )));
-            },
-          ),
-        ],
-      ),
-    );
-  }
 
   // ==================== PROFILE HUB TAB (Mirrors Web layout) ====================
   Widget _buildProfileHub() {
@@ -1361,7 +1341,12 @@ class _HomeScreenState extends State<HomeScreen> {
               title: 'Manage Users',
               subtitle: 'Add or edit system users',
               color: AppColors.info,
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const UserManagementScreen()),
+                );
+              },
             ),
 
           if (RoleAccess.canViewSettings)
@@ -1579,7 +1564,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: _filteredPatients.isEmpty
               ? Center(
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.person_search_rounded, size: 64, color: isDark ? Colors.white24 : const Color(0xFFCBD5E1)),
                       const SizedBox(height: 12),
@@ -1614,6 +1599,535 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
         ),
       ],
+    );
+  }
+
+  // ==================== BILLING HUB (MATCHING WEB APP) ====================
+  Widget _buildBillingHub() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return SafeArea(
+      child: RefreshIndicator(
+        onRefresh: _loadData,
+        child: CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Billing & Payments',
+                      style: GoogleFonts.inter(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Manage patient invoices, settlements and financial records',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Single Horizontal Row of Sleek Circular Metric Widgets (Matching Web App 1:1)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _buildCircularMetricItem(
+                            label: 'Patients',
+                            value: '${_stats['totalPatients'] ?? _patients.length}',
+                            icon: Icons.people_alt_rounded,
+                            color: const Color(0xFF2563EB),
+                            isDark: isDark,
+                          ),
+                          _buildCircularMetricItem(
+                            label: 'Invoices',
+                            value: '${_patients.length}',
+                            icon: Icons.receipt_long_rounded,
+                            color: const Color(0xFF7C3AED),
+                            isDark: isDark,
+                          ),
+                          _buildCircularMetricItem(
+                            label: 'Paid',
+                            value: '${_patients.where((p) => (p['payment_status'] ?? '').toString().toLowerCase() == 'paid' || p['status'] == 'Discharged').length}',
+                            icon: Icons.check_circle_rounded,
+                            color: const Color(0xFF059669),
+                            isDark: isDark,
+                          ),
+                          _buildCircularMetricItem(
+                            label: 'Action',
+                            value: '${_stats['admittedPatients'] ?? _patients.where((p) => p['status'] == 'Admitted').length}',
+                            icon: Icons.pending_actions_rounded,
+                            color: const Color(0xFFDC2626),
+                            isDark: isDark,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+
+                    // 🔍 BILLING SEARCH BAR (Matching Web App)
+                    Container(
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: isDark ? Colors.white10 : const Color(0xFFE2E8F0)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.03),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: TextField(
+                        controller: _billingSearchController,
+                        onChanged: (_) {
+                          setState(() {
+                            _rebuildPages();
+                          });
+                        },
+                        style: GoogleFonts.inter(fontSize: 13, color: isDark ? Colors.white : const Color(0xFF1E293B)),
+                        decoration: InputDecoration(
+                          hintText: 'Search by Name, Patient ID or Mobile...',
+                          hintStyle: GoogleFonts.inter(fontSize: 12.5, color: isDark ? Colors.white38 : const Color(0xFF94A3B8)),
+                          prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF0284C7), size: 20),
+                          suffixIcon: _billingSearchController.text.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.close_rounded, size: 18),
+                                  onPressed: () {
+                                    _billingSearchController.clear();
+                                    setState(() {
+                                      _rebuildPages();
+                                    });
+                                  },
+                                )
+                              : null,
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // 🏷️ CATEGORY FILTER TABS (Pending Bills, Paid Bills, All Records)
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          _buildBillingTabChip('Pending Bills', 'Pending', const Color(0xFFDC2626), isDark),
+                          const SizedBox(width: 8),
+                          _buildBillingTabChip('Paid Bills', 'Paid', const Color(0xFF059669), isDark),
+                          const SizedBox(width: 8),
+                          _buildBillingTabChip('All Records', 'All', const Color(0xFF0284C7), isDark),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                  ],
+                ),
+              ),
+            ),
+
+            // Patient List for Billing Selection
+            Builder(
+              builder: (context) {
+                final billingPatients = _getFilteredBillingPatients();
+                if (billingPatients.isEmpty) {
+                  return SliverToBoxAdapter(
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 40),
+                        child: Column(
+                          children: [
+                            Icon(Icons.receipt_long_outlined, size: 48, color: isDark ? Colors.white24 : const Color(0xFFCBD5E1)),
+                            const SizedBox(height: 8),
+                            Text(
+                              'No matching billing records found',
+                              style: GoogleFonts.inter(color: isDark ? Colors.white54 : const Color(0xFF64748B)),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                }
+
+                return SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final p = billingPatients[index];
+                        final name = p['name'] ?? 'Unknown';
+                        final pId = p['patient_id'] ?? '';
+                        final pType = p['patient_type'] ?? 'IPD';
+                        final status = (p['status'] ?? 'Admitted').toString();
+                        final isDischarged = status.toLowerCase() == 'discharged';
+                        final payStatus = (p['payment_status'] ?? '').toString().toLowerCase();
+
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: isDark ? Colors.white10 : const Color(0xFFE2E8F0),
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // 1. TOP SECTION (Patient Info - Full Width)
+                              Padding(
+                                padding: const EdgeInsets.all(14),
+                                child: Row(
+                                  children: [
+                                    // Avatar
+                                    CircleAvatar(
+                                      radius: 20,
+                                      backgroundColor: const Color(0xFF10B981).withValues(alpha: 0.12),
+                                      child: Text(
+                                        name.isNotEmpty ? name[0].toUpperCase() : 'P',
+                                        style: GoogleFonts.inter(
+                                          fontWeight: FontWeight.w800,
+                                          fontSize: 15,
+                                          color: const Color(0xFF10B981),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+
+                                    // Name + ID + Badges
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                child: Text(
+                                                  name,
+                                                  style: GoogleFonts.inter(
+                                                    fontWeight: FontWeight.w700,
+                                                    fontSize: 15,
+                                                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                                  ),
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+
+                                              // IPD / OPD Badge
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                                decoration: BoxDecoration(
+                                                  color: (pType == 'OPD' ? const Color(0xFF059669) : const Color(0xFF2563EB)).withValues(alpha: 0.12),
+                                                  borderRadius: BorderRadius.circular(6),
+                                                ),
+                                                child: Text(
+                                                  pType,
+                                                  style: GoogleFonts.inter(
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.w800,
+                                                    color: pType == 'OPD' ? const Color(0xFF059669) : const Color(0xFF2563EB),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 4),
+
+                                          // ID & Status row
+                                          Row(
+                                            children: [
+                                              Text(
+                                                'ID: $pId',
+                                                style: GoogleFonts.inter(
+                                                  fontSize: 12,
+                                                  color: isDark ? Colors.white54 : const Color(0xFF64748B),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Text('•', style: TextStyle(color: isDark ? Colors.white24 : Colors.grey, fontSize: 10)),
+                                              const SizedBox(width: 8),
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                decoration: BoxDecoration(
+                                                  color: isDischarged
+                                                      ? const Color(0xFF64748B).withValues(alpha: 0.12)
+                                                      : (payStatus == 'paid'
+                                                          ? const Color(0xFF10B981).withValues(alpha: 0.12)
+                                                          : const Color(0xFFF59E0B).withValues(alpha: 0.12)),
+                                                  borderRadius: BorderRadius.circular(4),
+                                                ),
+                                                child: Text(
+                                                  isDischarged ? 'Discharged' : (payStatus == 'paid' ? 'Paid' : status),
+                                                  style: GoogleFonts.inter(
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: isDischarged
+                                                        ? const Color(0xFF64748B)
+                                                        : (payStatus == 'paid'
+                                                            ? const Color(0xFF10B981)
+                                                            : const Color(0xFFD97706)),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              // 2. SUBTLE DIVIDER
+                              Divider(
+                                height: 1,
+                                thickness: 1,
+                                color: isDark ? Colors.white10 : const Color(0xFFF1F5F9),
+                              ),
+
+                              // 3. BOTTOM ACTION ROW
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                                child: Row(
+                                  children: [
+                                    // Bill Action
+                                    Expanded(
+                                      child: TextButton.icon(
+                                        onPressed: () async {
+                                          final result = await Navigator.push(
+                                            context,
+                                            MaterialPageRoute(builder: (_) => BillingScreen(patient: p)),
+                                          );
+                                          if (result == true) _loadData();
+                                        },
+                                        icon: const Icon(Icons.receipt_rounded, size: 18, color: Color(0xFF10B981)),
+                                        label: Text(
+                                          'Bill',
+                                          style: GoogleFonts.inter(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w700,
+                                            color: const Color(0xFF10B981),
+                                          ),
+                                        ),
+                                        style: TextButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(vertical: 10),
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                        ),
+                                      ),
+                                    ),
+
+                                    // Vertical Separator
+                                    if (RoleAccess.canDischarge) ...[
+                                      Container(
+                                        height: 20,
+                                        width: 1,
+                                        color: isDark ? Colors.white10 : const Color(0xFFE2E8F0),
+                                      ),
+
+                                      // Discharge / Visit Slip Action
+                                      Expanded(
+                                        child: TextButton.icon(
+                                          onPressed: () async {
+                                            await Navigator.push(
+                                              context,
+                                              MaterialPageRoute(builder: (_) => DischargeScreen(initialPatient: Map<String, dynamic>.from(p))),
+                                            );
+                                            _loadData();
+                                          },
+                                          icon: Icon(
+                                            pType == 'OPD' ? Icons.assignment_turned_in_rounded : Icons.output_rounded,
+                                            size: 18,
+                                            color: pType == 'OPD' ? const Color(0xFF2563EB) : const Color(0xFFEF4444),
+                                          ),
+                                          label: Text(
+                                            pType == 'OPD' ? 'Visit Slip' : 'Discharge',
+                                            style: GoogleFonts.inter(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w700,
+                                              color: pType == 'OPD' ? const Color(0xFF2563EB) : const Color(0xFFEF4444),
+                                            ),
+                                          ),
+                                          style: TextButton.styleFrom(
+                                            padding: const EdgeInsets.symmetric(vertical: 10),
+                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                      childCount: billingPatients.length,
+                    ),
+                  ),
+                );
+              },
+            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 80)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCircularMetricItem({
+    required String label,
+    required String value,
+    required IconData icon,
+    required Color color,
+    required bool isDark,
+  }) {
+    final labelColor = isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569);
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // Premium Multi-Layer Circular Container with Soft Gradient & Glow
+        Container(
+          width: 68,
+          height: 68,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: isDark ? const Color(0xFF1E293B) : Colors.white,
+            border: Border.all(
+              color: color.withValues(alpha: isDark ? 0.40 : 0.25),
+              width: 2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: color.withValues(alpha: 0.16),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Container(
+            margin: const EdgeInsets.all(3),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  color.withValues(alpha: isDark ? 0.28 : 0.14),
+                  color.withValues(alpha: isDark ? 0.08 : 0.03),
+                ],
+              ),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, size: 16, color: color),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    height: 1.1,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        // Horizontally centered label text below circle
+        Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: 11.5,
+            fontWeight: FontWeight.w600,
+            color: labelColor,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+
+  List<dynamic> _getFilteredBillingPatients() {
+    final query = _billingSearchController.text.trim().toLowerCase();
+    return _patients.where((p) {
+      final name = (p['name'] ?? '').toString().toLowerCase();
+      final id = (p['patient_id'] ?? '').toString().toLowerCase();
+      final mobile = (p['mobile'] ?? '').toString().toLowerCase();
+      final guardian = (p['guardian_name'] ?? '').toString().toLowerCase();
+      final payStatus = (p['payment_status'] ?? '').toString().toLowerCase();
+      final isDischarged = p['status'] == 'Discharged';
+      final isPaid = payStatus == 'paid' || isDischarged;
+
+      final matchesSearch = query.isEmpty ||
+          name.contains(query) ||
+          id.contains(query) ||
+          mobile.contains(query) ||
+          guardian.contains(query);
+
+      bool matchesTab = true;
+      if (_billingTabFilter == 'Pending') {
+        matchesTab = !isPaid;
+      } else if (_billingTabFilter == 'Paid') {
+        matchesTab = isPaid;
+      }
+
+      return matchesSearch && matchesTab;
+    }).toList();
+  }
+
+  Widget _buildBillingTabChip(String label, String tabKey, Color activeColor, bool isDark) {
+    final isSelected = _billingTabFilter == tabKey;
+    return ChoiceChip(
+      showCheckmark: false,
+      label: Text(
+        label,
+        style: GoogleFonts.inter(
+          fontSize: 12,
+          fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+          color: isSelected ? Colors.white : (isDark ? Colors.white70 : const Color(0xFF64748B)),
+        ),
+      ),
+      selected: isSelected,
+      onSelected: (selected) {
+        if (selected) {
+          setState(() {
+            _billingTabFilter = tabKey;
+            _rebuildPages();
+          });
+        }
+      },
+      selectedColor: activeColor,
+      backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+      side: BorderSide(
+        color: isSelected ? activeColor : (isDark ? Colors.white10 : const Color(0xFFE2E8F0)),
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
     );
   }
 }
@@ -1698,7 +2212,7 @@ class _PatientTileState extends State<_PatientTile> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final canEdit = RoleAccess.isDeveloper || RoleAccess.currentRole == 'admin' || RoleAccess.currentRole == 'doctor';
-    final canDelete = true; // Always visible on Patient Card
+    final canDelete = RoleAccess.canDeletePatient;
     final canWriteNotes = RoleAccess.currentRole != 'receptionist';
 
     final statusColor = isAdmitted ? const Color(0xFF10B981) : const Color(0xFF64748B);
@@ -1781,11 +2295,11 @@ class _PatientTileState extends State<_PatientTile> {
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: Text(
-                                    status.toUpperCase(),
+                                    (!isAdmitted ? status : (patientType == 'OPD' ? 'ACTIVE' : 'ADMITTED')).toUpperCase(),
                                     style: GoogleFonts.inter(
                                       fontSize: 9,
                                       fontWeight: FontWeight.w800,
-                                      color: statusColor,
+                                      color: isAdmitted && patientType == 'OPD' ? const Color(0xFF0284C7) : statusColor,
                                       letterSpacing: 0.5,
                                     ),
                                   ),
@@ -2115,6 +2629,16 @@ class _PatientTileState extends State<_PatientTile> {
 
   // ── DELETE PATIENT MODAL (MATCHING WEB APP 2-STEP CONFIRMATION) ──
   Future<void> _confirmDeletePatient(BuildContext context, dynamic patient) async {
+    if (!RoleAccess.canDeletePatient) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Access Denied. Only Admin and Developer can delete patients.'),
+          backgroundColor: Color(0xFFEF4444),
+        ),
+      );
+      return;
+    }
+
     final patientName = patient['name'] ?? 'Unknown Patient';
     final patientId = patient['patient_id'] ?? patient['id'] ?? 'N/A';
     final isDark = Theme.of(context).brightness == Brightness.dark;

@@ -940,8 +940,8 @@ function showModule(moduleName, preventHashUpdate = false) {
 
     // Billing access is dynamic — granted by admin/developer per user
     if (hasBillingAccess && !permissions[role]?.includes('billing')) {
-        permissions[role] = [...(permissions[role] || []), 'billing'];
-    }
+            permissions[role] = [...(permissions[role] || []), 'billing'];
+        }
 
     let checkModule = moduleName;
     if (moduleName === 'patient-hub') checkModule = 'patients';
@@ -2399,4 +2399,4 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.form-group, .input-group, .surgery-form-grid > div, .surgery-consent-grid div > div').forEach(updateGroupFloatingState);
 });
 
-
+

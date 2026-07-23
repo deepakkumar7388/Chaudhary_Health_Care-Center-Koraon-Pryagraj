@@ -213,7 +213,11 @@ function renderPatientsTable(patientsList) {
             <td data-label="Age/Gen">${patient.age}/${patient.gender?.charAt(0) || ''}</td>
             <td data-label="Bed No.">${bedDisplay}</td>
             <td data-label="Admission Date">${new Date(patient.admission_date).toLocaleDateString()}</td>
-            <td data-label="Status"><span class="status-badge ${(patient.status || '').toLowerCase() === 'discharged' ? 'payment-pending' : 'payment-paid'}">${(patient.status || 'Admitted').toUpperCase()}</span></td>
+            <td data-label="Status">
+                <span class="status-badge ${(patient.status || '').toLowerCase() === 'discharged' ? 'payment-pending' : (pType === 'OPD' ? 'type-opd' : 'payment-paid')}">
+                    ${(patient.status || '').toLowerCase() === 'discharged' ? 'DISCHARGED' : (pType === 'OPD' ? 'ACTIVE' : 'ADMITTED')}
+                </span>
+            </td>
 
             <td data-label="${canViewPayments() ? 'Payment Status' : 'Pay Status'}">
                 <span class="status-badge payment-${payStatus.toLowerCase()}">${payStatus}</span>

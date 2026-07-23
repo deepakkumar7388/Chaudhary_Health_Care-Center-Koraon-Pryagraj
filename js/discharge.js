@@ -121,7 +121,7 @@ function renderDischarge() {
                         </div>
                     </div>
                     
-                    <div class="report-title" style="text-align: center; margin: 25px 0; font-size: 24px; font-weight: bold; text-decoration: underline; color: #2d3748; letter-spacing: 1px;">
+                    <div class="report-title" id="rpt-title-heading" style="text-align: center; margin: 25px 0; font-size: 24px; font-weight: bold; text-decoration: underline; color: #2d3748; letter-spacing: 1px;">
                         DISCHARGE SUMMARY REPORT
                     </div>
                     
@@ -129,18 +129,18 @@ function renderDischarge() {
                     <table class="info-table">
                         <tr>
                             <td>Patient ID:</td><td id="rpt-patient-id">-</td>
-                            <td>Discharge Date:</td><td id="rpt-discharge-date">-</td>
+                            <td id="rpt-date-label">Discharge Date:</td><td id="rpt-discharge-date">-</td>
                         </tr>
                         <tr>
                             <td>Patient Name:</td><td id="rpt-patient-name">-</td>
-                            <td>Admission Date:</td><td id="rpt-admission-date">-</td>
+                            <td id="rpt-admit-label">Admission Date:</td><td id="rpt-admission-date">-</td>
                         </tr>
                         <tr>
                             <td>Doctor:</td><td id="rpt-doctor" colspan="3" style="font-weight:bold;">-</td>
                         </tr>
                     </table>
                     
-                    <div class="section-title">TREATMENT SUMMARY</div>
+                    <div class="section-title" id="rpt-summary-heading">TREATMENT SUMMARY</div>
                     <div class="content-box" id="rpt-summary">-</div>
                     
                     <div id="surgery-report-section" style="display:none; margin-top:20px;">
@@ -457,6 +457,32 @@ function executeDischarge(patientId, summary, dischargeDate, dischargeTime) {
 }
 
 function displayDischargeReport(data) {
+    const patientIdStr = document.getElementById('d-id').value;
+    const patientObj = dischargePatientsList?.find(p => String(p.patient_id) === String(patientIdStr) || String(p._id) === String(patientIdStr));
+    const isOpd = patientObj && patientObj.patient_type === 'OPD';
+
+    // Update patient status to Discharged locally
+    if (patientObj) {
+        patientObj.status = 'Discharged';
+    }
+
+    const titleHeading = document.getElementById('rpt-title-heading');
+    const dateLabel = document.getElementById('rpt-date-label');
+    const admitLabel = document.getElementById('rpt-admit-label');
+    const summaryHeading = document.getElementById('rpt-summary-heading');
+
+    if (isOpd) {
+        if (titleHeading) titleHeading.textContent = 'OPD PRESCRIPTION & VISIT SLIP';
+        if (dateLabel) dateLabel.textContent = 'Visit Date:';
+        if (admitLabel) admitLabel.textContent = 'Registration Date:';
+        if (summaryHeading) summaryHeading.textContent = 'CLINICAL NOTES & DIAGNOSIS';
+    } else {
+        if (titleHeading) titleHeading.textContent = 'DISCHARGE SUMMARY REPORT';
+        if (dateLabel) dateLabel.textContent = 'Discharge Date:';
+        if (admitLabel) admitLabel.textContent = 'Admission Date:';
+        if (summaryHeading) summaryHeading.textContent = 'TREATMENT SUMMARY';
+    }
+
     document.getElementById('rpt-patient-id').textContent = document.getElementById('d-id').value;
     document.getElementById('rpt-patient-name').textContent = document.getElementById('d-name').value;
     document.getElementById('rpt-discharge-date').textContent = data.dischargeDate;
@@ -509,8 +535,6 @@ function displayDischargeReport(data) {
     // Attach Surgery Details Dynamically
     const surgerySection = document.getElementById('surgery-report-section');
     const surgeryList = document.getElementById('rpt-surgery-list');
-    const patientIdStr = document.getElementById('d-id').value;
-    const patientObj = dischargePatientsList?.find(p => String(p.patient_id) === String(patientIdStr) || String(p._id) === String(patientIdStr));
     const patientSurgeries = (patientObj && patientObj.surgeries) || [];
 
     if (patientSurgeries && patientSurgeries.length > 0) {
