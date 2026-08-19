@@ -134,7 +134,8 @@ class _EditBillLineItemsScreenState extends State<EditBillLineItemsScreen> {
     };
 
     try {
-      await ApiService.saveBilling(widget.patient['_id'] ?? widget.patient['id'] ?? '', billingPayload);
+      final pId = (widget.patient['patient_id'] ?? widget.patient['_id'] ?? widget.patient['id'] ?? '').toString();
+      await ApiService.saveBilling(pId, billingPayload);
     } catch (_) {}
 
     if (mounted) {

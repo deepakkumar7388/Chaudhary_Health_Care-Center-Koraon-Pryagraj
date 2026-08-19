@@ -82,7 +82,7 @@ class _DischargeScreenState extends State<DischargeScreen> {
       _showSnack('Please enter treatment summary / clinical notes', isError: true);
       return;
     }
-    final patientId = _selectedPatient!['_id']?.toString() ?? _selectedPatient!['patient_id']?.toString() ?? '';
+    final patientId = _selectedPatient!['patient_id']?.toString() ?? _selectedPatient!['_id']?.toString() ?? '';
 
     setState(() => _isSubmitting = true);
 

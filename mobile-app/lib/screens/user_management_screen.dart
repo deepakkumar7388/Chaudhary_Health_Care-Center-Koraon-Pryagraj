@@ -245,7 +245,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                           };
                           final Map<String, dynamic> result;
                           if (isEdit) {
-                            result = await ApiService.updateUser(user!['_id'], data);
+                            result = await ApiService.updateUser(user['_id']?.toString() ?? user['id']?.toString() ?? '', data);
                           } else {
                             result = await ApiService.createUser(data);
                           }

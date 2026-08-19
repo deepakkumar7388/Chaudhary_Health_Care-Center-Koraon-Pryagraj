@@ -16,6 +16,7 @@ import 'daily_notes_screen.dart';
 import 'billing_screen.dart';
 import 'user_management_screen.dart';
 import 'discharge_screen.dart';
+import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -1355,7 +1356,12 @@ class _HomeScreenState extends State<HomeScreen> {
               title: 'Settings',
               subtitle: 'Configure system preferences',
               color: AppColors.accent,
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                );
+              },
             ),
 
           _HubTile(
@@ -2288,8 +2294,9 @@ class _PatientTileState extends State<_PatientTile> {
                                     ),
                                   ),
                                 ),
+                                const SizedBox(width: 6),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
                                   decoration: BoxDecoration(
                                     color: statusBg,
                                     borderRadius: BorderRadius.circular(6),
@@ -2324,37 +2331,38 @@ class _PatientTileState extends State<_PatientTile> {
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'ID: $id',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    color: isDark ? Colors.white54 : const Color(0xFF64748B),
-                                  ),
-                                ),
-                                if (age.isNotEmpty || gender.isNotEmpty) ...[
-                                  Text(
-                                    ' • $age $gender',
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    'ID: $id${(age.isNotEmpty || gender.isNotEmpty) ? ' • $age $gender' : ''}',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                     style: GoogleFonts.inter(
                                       fontSize: 11,
-                                      color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                                      fontWeight: FontWeight.w500,
+                                      color: isDark ? Colors.white54 : const Color(0xFF64748B),
                                     ),
                                   ),
-                                ],
+                                ),
                               ],
                             ),
                           ],
                         ),
                       ),
+                      const SizedBox(width: 4),
 
                       // Expand toggle
-                      IconButton(
-                        icon: Icon(
-                          _expanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
-                          color: isDark ? Colors.white54 : const Color(0xFF64748B),
+                      InkWell(
+                        onTap: () => setState(() => _expanded = !_expanded),
+                        borderRadius: BorderRadius.circular(20),
+                        child: Padding(
+                          padding: const EdgeInsets.all(6),
+                          child: Icon(
+                            _expanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                            size: 22,
+                            color: isDark ? Colors.white54 : const Color(0xFF64748B),
+                          ),
                         ),
-                        onPressed: () => setState(() => _expanded = !_expanded),
                       ),
                     ],
                   ),

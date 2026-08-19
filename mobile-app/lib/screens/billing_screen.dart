@@ -32,62 +32,34 @@ class _BillingScreenState extends State<BillingScreen> {
 
   Future<void> _loadBilling() async {
     setState(() => _isLoading = true);
+    final pId = (widget.patient['patient_id'] ?? widget.patient['_id'] ?? widget.patient['id'] ?? '').toString();
     try {
-      final result = await ApiService.getBilling(widget.patient['_id'] ?? widget.patient['id'] ?? '');
+      final result = await ApiService.getBilling(pId);
       if (result['success'] == true && result['billing'] != null) {
         _billing = Map<String, dynamic>.from(result['billing']);
       } else {
-        _generateDemoBillingFallback();
+        _initRealBillingFromPatient();
       }
     } catch (_) {
-      _generateDemoBillingFallback();
+      _initRealBillingFromPatient();
     }
     if (mounted) setState(() => _isLoading = false);
   }
 
-  void _generateDemoBillingFallback() {
-    final patientType = widget.patient['patient_type'] ?? 'IPD';
-    final wardCharge = double.tryParse(widget.patient['wardChargePerDay']?.toString() ?? '2000') ?? 2000;
-    
-    final List<Map<String, dynamic>> items = patientType == 'OPD' 
-      ? [
-          {'name': 'CONSULTATION FEE', 'fee': widget.patient['doctorFees'] ?? 500, 'days': 1},
-          {'name': 'EMERGENCY MEDICINE CHARGE', 'fee': 350, 'days': 1},
-        ]
-      : [
-          {'name': 'DR. FEES (Daily Visitation)', 'fee': 800, 'days': 3},
-          {'name': 'WARD / BED CHARGE', 'fee': wardCharge, 'days': 3},
-          {'name': 'NURSING CHARGE', 'fee': 400, 'days': 3},
-          {'name': 'MONITOR & OXYGEN CHARGE', 'fee': 600, 'days': 2},
-          {'name': 'STORE MEDICINE CHARGE', 'fee': 1450, 'days': 1},
-        ];
-
-    double total = 0;
-    for (var item in items) {
-      double fee = double.tryParse(item['fee'].toString()) ?? 0;
-      double days = double.tryParse(item['days'].toString()) ?? 1;
-      total += (fee * days);
-    }
-
-    final double discount = patientType == 'IPD' ? 500 : 0;
-    final double paid = patientType == 'IPD' ? 3000 : total;
-    final double pending = (total - discount - paid).clamp(0, double.infinity);
+  void _initRealBillingFromPatient() {
+    final doctorFee = double.tryParse(widget.patient['doctorFees']?.toString() ?? '0') ?? 0;
+    final totalBill = double.tryParse(widget.patient['totalBill']?.toString() ?? '0') ?? doctorFee;
+    final pendingAmount = double.tryParse(widget.patient['pending_amount']?.toString() ?? totalBill.toString()) ?? totalBill;
+    final paymentStatus = widget.patient['payment_status'] ?? (pendingAmount <= 0 && totalBill > 0 ? 'Paid' : 'Pending');
 
     _billing = {
-      'totalBill': total.toInt(),
-      'discount': discount.toInt(),
-      'totalPaid': paid.toInt(),
-      'pendingAmount': pending.toInt(),
-      'paymentStatus': pending <= 0 ? 'Paid' : (paid > 0 ? 'Partial' : 'Pending'),
-      'items': items,
-      'payments': [
-        {
-          'amount': paid.toInt(),
-          'mode': 'UPI / Cash',
-          'date': DateTime.now().subtract(const Duration(days: 1)).toIso8601String(),
-          'note': 'Initial Advance Deposit',
-        }
-      ],
+      'totalBill': totalBill.toInt(),
+      'discount': 0,
+      'totalPaid': (totalBill - pendingAmount).clamp(0, double.infinity).toInt(),
+      'pendingAmount': pendingAmount.toInt(),
+      'paymentStatus': paymentStatus,
+      'items': <dynamic>[],
+      'payments': <dynamic>[],
     };
   }
 
@@ -189,7 +161,8 @@ class _BillingScreenState extends State<BillingScreen> {
                         return;
                       }
                       try {
-                        await ApiService.addPayment(widget.patient['_id'] ?? widget.patient['id'] ?? '', {
+                        final pId = (widget.patient['patient_id'] ?? widget.patient['_id'] ?? widget.patient['id'] ?? '').toString();
+                        await ApiService.addPayment(pId, {
                           'amount': amount,
                           'mode': modeController.text,
                           'note': noteController.text.trim(),
