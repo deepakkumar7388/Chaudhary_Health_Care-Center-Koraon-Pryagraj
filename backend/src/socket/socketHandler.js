@@ -20,12 +20,13 @@ function initSocket(httpServer) {
 
     io.on('connection', (socket) => {
         console.log(`[Socket.IO] Client connected: ${socket.id}`);
+        socket.join('all'); // Auto join 'all' room on every connect
 
         // Client joins a role-based room
-        socket.on('join', ({ role, userId }) => {
+        socket.on('join', (data) => {
+            const role = typeof data === 'string' ? data : (data && data.role);
             if (role) {
-                socket.join(role); // e.g., 'admin', 'doctor', 'staff', 'receptionist'
-                socket.join('all'); // everyone
+                socket.join(role.toLowerCase());
                 console.log(`[Socket.IO] ${socket.id} joined room: ${role}`);
             }
         });
@@ -51,7 +52,12 @@ function getIO() {
  */
 function emitEvent(room, event, data) {
     if (!io) return;
-    io.to(room).emit(event, { ...data, timestamp: new Date().toISOString() });
+    const payload = { ...data, timestamp: new Date().toISOString() };
+    if (room === 'all' || !room) {
+        io.emit(event, payload); // Broadcasts to ALL connected sockets
+    } else {
+        io.to(room).emit(event, payload);
+    }
 }
 
 // ==================== HMS EVENT EMITTERS ====================

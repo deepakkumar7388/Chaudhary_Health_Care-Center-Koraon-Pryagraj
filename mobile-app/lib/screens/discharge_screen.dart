@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 import '../services/api_service.dart';
+import '../widgets/app_snackbar.dart';
 import 'billing_screen.dart';
 
 String _fmtDate(DateTime d) =>
@@ -28,7 +29,69 @@ class _DischargeScreenState extends State<DischargeScreen> {
   final TextEditingController _dateCtrl = TextEditingController();
   final TextEditingController _timeCtrl = TextEditingController();
   final TextEditingController _summaryCtrl = TextEditingController();
+  final TextEditingController _symptomsCtrl = TextEditingController();
+  final TextEditingController _diagnosisCtrl = TextEditingController();
+  final TextEditingController _adviceCtrl = TextEditingController();
   final List<Map<String, TextEditingController>> _medicineRows = [];
+  bool _isMedicalCertMode = true;
+
+  final List<String> _symptomTags = [
+    'Fever', 'High Grade Fever', 'Low Grade Fever', 'Chills & Rigor', 
+    'Cough', 'Dry Cough', 'Productive Cough', 'Cold', 'Sore Throat', 
+    'Breathlessness', 'Chest Pain', 'Palpitations', 
+    'Abdominal Pain', 'Nausea', 'Vomiting', 'Loose Motions', 'Constipation', 
+    'Burning Micturition', 'Headache', 'Bodyache', 'Joint Pain', 'Backache', 
+    'Weakness', 'Giddiness', 'Loss of Appetite', 'Weight Loss', 
+    'Trauma', 'Road Traffic Accident (RTA)', 'Swelling', 'Rash', 'Itching', 'Jaundice'
+  ];
+  
+  final List<String> _diagnosisTags = [
+    'Viral Fever', 'Dengue Fever', 'Typhoid Fever', 'Malaria', 'Chikungunya', 
+    'URI', 'LRTI', 'Pneumonia', 'Asthma', 'COPD', 
+    'Hypertension', 'Diabetes Mellitus', 'Hypothyroidism', 
+    'Acute Gastroenteritis', 'Food Poisoning', 'Appendicitis', 'Cholelithiasis (Gallstones)', 
+    'Renal Calculus (Kidney Stones)', 'Urinary Tract Infection (UTI)', 'Anemia', 
+    'Jaundice', 'Hepatitis', 'Tuberculosis (TB)', 
+    'Gynecomastia', 'Hernia', 'Hydrocele', 'Hemorrhoids (Piles)', 'Fissure in Ano', 'Fistula', 
+    'Normal Delivery', 'LSCS (C-Section)', 'Fibroid Uterus', 'Ovarian Cyst', 'PCOD', 
+    'Cataract', 'Conjunctivitis', 'Tonsillitis', 'Sinusitis', 
+    'Cellulitis', 'Abscess', 'Fracture', 'Sprain', 
+    'Osteoarthritis', 'Rheumatoid Arthritis', 'Sciatica', 'Migraine', 'Epilepsy', 
+    'Dermatitis', 'Scabies', 'Eczema'
+  ];
+  
+  final List<String> _adviceTags = [
+    'Bed rest', 'Complete bed rest', 'Soft diet', 'Liquid diet', 'Normal diet', 
+    'Diabetic diet', 'Low salt diet', 'Eat fiber-rich food', 
+    'Drink plenty of fluids', 'Boil water before drinking', 'Avoid cold items & ice cream',
+    'Avoid spicy & oily food', 'Avoid smoking & alcohol',
+    'Maintain hygiene', 'Keep wound clean and dry', 'Dressing change every alternate day', 
+    'Suture removal after 7 days', 'Sitz bath 2 times a day',
+    'Take medicines regularly', 'Continue prescribed medications', 
+    'Warm saline gargles', 'Steam inhalation', 'Deep breathing exercises',
+    'Elevate affected limb', 'Apply ice pack', 'Hot water fomentation',
+    'Avoid lifting heavy weights', 'No strenuous exercise', 'Avoid bending forward',
+    'Regular blood sugar monitoring', 'Regular BP monitoring', 'Physiotherapy advised',
+    'Review in OPD after 3 days', 'Review in OPD after 5 days', 'Review in OPD after 7 days', 
+    'Review with investigations', 'Review immediately if emergency'
+  ];
+
+  final List<Map<String, String>> _medicinePresets = [
+    {'name': 'Tab Paracetamol', 'dose': '500mg', 'freq': '1-1-1', 'dur': '3 Days'},
+    {'name': 'Tab Pantocid (Pantoprazole)', 'dose': '40mg', 'freq': '1-0-0 (Empty Stomach)', 'dur': '5 Days'},
+    {'name': 'Tab Azee (Azithromycin)', 'dose': '500mg', 'freq': '1-0-0', 'dur': '3 Days'},
+    {'name': 'Tab Cefixime', 'dose': '200mg', 'freq': '1-0-1', 'dur': '5 Days'},
+    {'name': 'Cap Amoxicillin', 'dose': '500mg', 'freq': '1-1-1', 'dur': '5 Days'},
+    {'name': 'Tab Diclofenac', 'dose': '50mg', 'freq': '1-0-1 (After Meals)', 'dur': '3 Days'},
+    {'name': 'Tab Cetirizine', 'dose': '10mg', 'freq': '0-0-1 (Night)', 'dur': '5 Days'},
+    {'name': 'Syp Corex / Cofils', 'dose': '10ml', 'freq': '1-1-1', 'dur': '5 Days'},
+    {'name': 'Tab Metformin', 'dose': '500mg', 'freq': '1-0-1', 'dur': '15 Days'},
+    {'name': 'Tab Amlodipine', 'dose': '5mg', 'freq': '1-0-0', 'dur': '15 Days'},
+    {'name': 'Cap Omez', 'dose': '20mg', 'freq': '1-0-0 (Empty Stomach)', 'dur': '5 Days'},
+    {'name': 'Tab B-Complex', 'dose': '1 Tab', 'freq': '1-0-0', 'dur': '10 Days'},
+    {'name': 'Tab Calcium + D3', 'dose': '1 Tab', 'freq': '1-0-0', 'dur': '15 Days'},
+    {'name': 'ORS Sachet', 'dose': '1 pkt in 1L water', 'freq': 'Sip continuously', 'dur': '3 Days'},
+  ];
 
   @override
   void initState() {
@@ -48,17 +111,34 @@ class _DischargeScreenState extends State<DischargeScreen> {
   @override
   void dispose() {
     _doctorCtrl.dispose(); _dateCtrl.dispose(); _timeCtrl.dispose(); _summaryCtrl.dispose();
+    _symptomsCtrl.dispose(); _diagnosisCtrl.dispose(); _adviceCtrl.dispose();
     for (var r in _medicineRows) { r['name']?.dispose(); r['dose']?.dispose(); r['freq']?.dispose(); r['dur']?.dispose(); }
     super.dispose();
   }
 
-  void _addMedicineRow() {
-    setState(() { _medicineRows.add({'name': TextEditingController(), 'dose': TextEditingController(), 'freq': TextEditingController(), 'dur': TextEditingController()}); });
+  void _addMedicineRow({Map<String, String>? preset}) {
+    setState(() {
+      _medicineRows.add({
+        'name': TextEditingController(text: preset != null ? preset['name'] : ''),
+        'dose': TextEditingController(text: preset != null ? preset['dose'] : ''),
+        'freq': TextEditingController(text: preset != null ? preset['freq'] : ''),
+        'dur': TextEditingController(text: preset != null ? preset['dur'] : ''),
+      });
+    });
   }
 
   void _removeMedicineRow(int i) {
     if (_medicineRows.length <= 1) return;
     setState(() { final r = _medicineRows.removeAt(i); r['name']?.dispose(); r['dose']?.dispose(); r['freq']?.dispose(); r['dur']?.dispose(); });
+  }
+
+  void _addTag(TextEditingController ctrl, String tag) {
+    final t = ctrl.text.trim();
+    if (t.isEmpty) {
+      ctrl.text = tag;
+    } else {
+      ctrl.text = '$t, $tag';
+    }
   }
 
   Future<void> _loadPatients() async {
@@ -78,11 +158,15 @@ class _DischargeScreenState extends State<DischargeScreen> {
       return;
     }
     final summary = _summaryCtrl.text.trim();
-    if (summary.isEmpty) {
+    if (!_isMedicalCertMode && summary.isEmpty) {
       _showSnack('Please enter treatment summary / clinical notes', isError: true);
       return;
     }
-    final patientId = _selectedPatient!['patient_id']?.toString() ?? _selectedPatient!['_id']?.toString() ?? '';
+    if (_isMedicalCertMode && (_symptomsCtrl.text.trim().isEmpty || _diagnosisCtrl.text.trim().isEmpty)) {
+      _showSnack('Please enter Symptoms and Diagnosis', isError: true);
+      return;
+    }
+    final patientId = (_selectedPatient!['patient_id'] ?? _selectedPatient!['_id'] ?? '').toString();
 
     setState(() => _isSubmitting = true);
 
@@ -99,17 +183,22 @@ class _DischargeScreenState extends State<DischargeScreen> {
       }
 
       final meds = <Map<String, String>>[];
-      for (var row in _medicineRows) {
-        final nm = row['name']!.text.trim();
-        if (nm.isNotEmpty) {
-          meds.add({
-            'name': nm,
-            'dose': row['dose']!.text.trim(),
-            'freq': row['freq']!.text.trim(),
-            'duration': row['dur']!.text.trim(),
-          });
+      if (!_isMedicalCertMode) {
+        for (var row in _medicineRows) {
+          final nm = row['name']!.text.trim();
+          if (nm.isNotEmpty) {
+            meds.add({
+              'name': nm,
+              'dose': row['dose']!.text.trim(),
+              'freq': row['freq']!.text.trim(),
+              'duration': row['dur']!.text.trim(),
+            });
+          }
         }
       }
+
+      final currentUser = await ApiService.getSavedUser();
+      final userName = currentUser?['name'] ?? 'Mobile User';
 
       final payload = <String, dynamic>{
         'id': 'D${DateTime.now().millisecondsSinceEpoch}',
@@ -117,9 +206,13 @@ class _DischargeScreenState extends State<DischargeScreen> {
         'doctorName': _doctorCtrl.text.trim(),
         'dischargeDate': _dateCtrl.text.trim(),
         'dischargeTime': _timeCtrl.text.trim(),
-        'diagnosis': '',
-        'summary': summary,
+        'diagnosis': _isMedicalCertMode ? _diagnosisCtrl.text.trim() : '',
+        'summary': _isMedicalCertMode ? '' : summary,
         'advisedMedicines': meds,
+        'isMedicalCert': _isMedicalCertMode,
+        'symptoms': _isMedicalCertMode ? _symptomsCtrl.text.trim() : '',
+        'advice': _isMedicalCertMode ? _adviceCtrl.text.trim() : '',
+        'dischargedBy': userName,
       };
 
       await ApiService.dischargePatient(payload);
@@ -192,32 +285,31 @@ class _DischargeScreenState extends State<DischargeScreen> {
       ''';
     }
 
-    final htmlContent = '''
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <style>
-          body { font-family: Arial, sans-serif; padding: 20px; color: #0f172a; line-height: 1.4; }
-          .header { text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 10px; margin-bottom: 15px; position: relative; }
-          .logo-img { position: absolute; left: 10px; top: 0; width: 60px; height: 60px; object-fit: contain; }
-          .h-title { font-size: 20px; font-weight: 900; color: #1e3a8a; margin: 0; }
-          .h-sub { font-size: 11px; color: #475569; margin-top: 4px; }
-          .doc-badge { display: inline-block; background-color: $docColor; color: white; padding: 4px 12px; font-size: 11px; font-weight: 800; border-radius: 4px; margin-top: 8px; }
-          .patient-box { background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; margin-bottom: 15px; }
-          .info-table { width: 100%; border-collapse: collapse; font-size: 11px; }
-          .info-table td { padding: 3px 0; vertical-align: top; }
-          .section-title { font-size: 12px; font-weight: 800; color: #1e3a8a; border-bottom: 1px solid #94a3b8; padding-bottom: 3px; margin-top: 15px; margin-bottom: 8px; }
-          .summary-box { background-color: #f1f5f9; border-left: 4px solid $docColor; padding: 10px; font-size: 11px; white-space: pre-wrap; border-radius: 4px; }
-          .med-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 8px; }
-          .med-table th { background-color: #f1f5f9; padding: 6px; text-align: left; border-bottom: 2px solid #cbd5e1; font-size: 10px; text-transform: uppercase; }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          ${logoDataUrl.isNotEmpty ? '<img src="$logoDataUrl" class="logo-img" />' : ''}
-          <div class="h-title">CHAUDHARY HEALTH CARE CENTER</div>
-          <div class="h-sub">Koraon, Prayagraj, Uttar Pradesh • Ph: +91 9876543210</div>
+    final bool isMedCert = payload['isMedicalCert'] == true;
+    final String medCertHtml = isMedCert ? '''
+      <div style="text-align: center; margin-top: 30px; margin-bottom: 30px;">
+        <span style="font-size: 24px; font-weight: bold; text-decoration: underline; color: #334155; letter-spacing: 1px;">MEDICAL CERTIFICATE</span>
+      </div>
+      <div style="text-align: center; font-size: 18px; line-height: 2.2; color: #1e293b; padding: 0 20px;">
+        This is to certify that <strong>$patientName</strong> Age:-<strong>$age y/$gender</strong><br>
+        Add :- <strong>$address</strong><br>
+        Patient consulted with C/O <strong>${payload['symptoms']}</strong>.<br>
+        All required investigations have been done.<br>
+        Final diagnosis is <u><strong>${payload['diagnosis']}</strong></u>.<br>
+        Treatment in Chaudhary Health Care Center, Koraon, Prayagraj dt.- <strong>${payload['dischargeDate']}</strong>.<br>
+        Further advice to <strong>${payload['advice']}</strong>.
+      </div>
+      <div style="margin-top: 80px; text-align: right;">
+        <div style="display: inline-block; text-align: center; width: 220px; border-top: 1px solid #0f172a; padding-top: 6px; font-size: 13px; font-weight: 800;">
+          ${payload['doctorName']}<br>
+          <span style="font-size: 11px; font-weight: 400; color: #475569;">Signature</span>
+        </div>
+      </div>
+    ''' : '';
+
+    final String fullDischargeHtml = !isMedCert ? '''
+      <div style="padding: 10px 30px;">
+        <div style="text-align: right; margin-bottom: 15px;">
           <div class="doc-badge">$docTitle</div>
         </div>
 
@@ -267,6 +359,59 @@ class _DischargeScreenState extends State<DischargeScreen> {
             <span style="font-size: 9px; font-weight: 400; color: #475569;">Attending Consultant / Authorised Signatory</span>
           </div>
         </div>
+      </div>
+    ''' : '';
+
+    final htmlContent = '''
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: Arial, sans-serif; padding: 20px; color: #0f172a; line-height: 1.4; }
+          .header-table { width: 100%; border-collapse: collapse; }
+          .h-title { font-size: 32px; font-weight: 900; color: #1e3a8a; margin: 0; letter-spacing: -0.5px; line-height: 1.1; white-space: nowrap; }
+          .h-sub { font-size: 13px; font-weight: 700; color: #dc2626; margin-top: 4px; }
+          .doc-badge { display: inline-block; background-color: $docColor; color: white; padding: 4px 12px; font-size: 11px; font-weight: 800; border-radius: 4px; margin-top: 8px; }
+          .patient-box { background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; margin-bottom: 15px; }
+          .info-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+          .info-table td { padding: 3px 0; vertical-align: top; }
+          .section-title { font-size: 12px; font-weight: 800; color: #1e3a8a; border-bottom: 1px solid #94a3b8; padding-bottom: 3px; margin-top: 15px; margin-bottom: 8px; }
+          .summary-box { background-color: #f1f5f9; border-left: 4px solid $docColor; padding: 10px; font-size: 11px; white-space: pre-wrap; border-radius: 4px; }
+          .med-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 8px; }
+          .med-table th { background-color: #f1f5f9; padding: 6px; text-align: left; border-bottom: 2px solid #cbd5e1; font-size: 10px; text-transform: uppercase; }
+        </style>
+      </head>
+      <body>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="width: 90px; text-align: left; vertical-align: middle;">
+              ${logoDataUrl.isNotEmpty ? '<img src="$logoDataUrl" style="width: 80px; height: 80px; border-radius: 50%;" />' : ''}
+            </td>
+            <td style="vertical-align: middle; text-align: center;">
+              <div class="h-title">CHAUDHARY HEALTH CARE CENTER</div>
+              <div style="font-size: 13px; font-weight: 700; color: #dc2626; margin-top: 4px;">GANDHI CHAURAHA, MEJA WALI ROAD, KORAON-PRAYAGRAJ 212306</div>
+            </td>
+            <td style="width: 90px; text-align: right; vertical-align: middle;">
+              <!-- Placeholder for right logo if needed -->
+            </td>
+          </tr>
+        </table>
+        <table style="width: 100%; margin-top: 12px; border-bottom: 1px solid #cbd5e1; padding-bottom: 10px; margin-bottom: 15px;">
+          <tr>
+            <td style="text-align: left; vertical-align: top;">
+              <div style="font-size: 16px; font-weight: 900; color: #1e3a8a;">Dr. B.K. Chaudhary</div>
+              <div style="font-size: 12.5px; font-weight: 700; color: #dc2626; margin-top: 2px;">(M.D. Medicine)</div>
+            </td>
+            <td style="text-align: right; font-size: 11px; color: #475569; line-height: 1.4; vertical-align: top; font-weight: 600;">
+              Consulting Timing : 10:00 am to 2:00 pm<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: 5:00 pm to 8:00 pm
+            </td>
+          </tr>
+        </table>
+        
+        $medCertHtml
+        $fullDischargeHtml
+
       </body>
       </html>
     ''';
@@ -290,7 +435,9 @@ class _DischargeScreenState extends State<DischargeScreen> {
             const Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 48),
             const SizedBox(height: 8),
             Text(
-              _isOpd ? 'OPD Visit Slip Generated' : 'Discharge Summary Generated',
+              payload['isMedicalCert'] == true 
+                  ? 'Medical Certificate Generated' 
+                  : (_isOpd ? 'OPD Visit Slip Generated' : 'Discharge Summary Generated'),
               style: GoogleFonts.inter(fontWeight: FontWeight.w800, fontSize: 16),
               textAlign: TextAlign.center,
             ),
@@ -306,8 +453,15 @@ class _DischargeScreenState extends State<DischargeScreen> {
               Text('Doctor: ${payload['doctorName']}', style: GoogleFonts.inter(fontSize: 12)),
               Text('Date: ${payload['dischargeDate']}  ${payload['dischargeTime']}', style: GoogleFonts.inter(fontSize: 12)),
               const Divider(height: 20),
-              Text(_isOpd ? 'Clinical Notes:' : 'Treatment Summary:', style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 12)),
-              Text(payload['summary'] ?? '', style: GoogleFonts.inter(fontSize: 12)),
+              if (payload['isMedicalCert'] == true) ...[
+                Text('Medical Certificate:', style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 12)),
+                Text('Symptoms: ${payload['symptoms']}', style: GoogleFonts.inter(fontSize: 12)),
+                Text('Diagnosis: ${payload['diagnosis']}', style: GoogleFonts.inter(fontSize: 12)),
+                Text('Advice: ${payload['advice']}', style: GoogleFonts.inter(fontSize: 12)),
+              ] else ...[
+                Text(_isOpd ? 'Clinical Notes:' : 'Treatment Summary:', style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 12)),
+                Text(payload['summary'] ?? '', style: GoogleFonts.inter(fontSize: 12)),
+              ],
               if (meds.isNotEmpty) ...[
                 const SizedBox(height: 10),
                 Text('Advised Medicines:', style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 12)),
@@ -347,18 +501,7 @@ class _DischargeScreenState extends State<DischargeScreen> {
 
   void _showSnack(String msg, {bool isError = false}) {
     if (!mounted) return;
-    final topPadding = MediaQuery.of(context).padding.top + 10;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(msg, style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
-      backgroundColor: isError ? const Color(0xFFEF4444) : const Color(0xFF10B981),
-      behavior: SnackBarBehavior.floating,
-      margin: EdgeInsets.only(
-        bottom: MediaQuery.of(context).size.height - topPadding - 70,
-        left: 16,
-        right: 16,
-      ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-    ));
+    AppSnackBar.showTopSnack(context, msg, isError: isError);
   }
 
   @override
@@ -400,12 +543,30 @@ class _DischargeScreenState extends State<DischargeScreen> {
           child: child,
         );
 
+    Widget _chipList(List<String> tags, TextEditingController ctrl) => SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Row(
+            children: tags.map((t) => Padding(
+              padding: const EdgeInsets.only(right: 6),
+              child: ActionChip(
+                label: Text(t, style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600)),
+                backgroundColor: isDark ? const Color(0xFF334155) : const Color(0xFFE0E7FF),
+                side: BorderSide.none,
+                padding: const EdgeInsets.all(4),
+                onPressed: () => _addTag(ctrl, t),
+              ),
+            )).toList(),
+          ),
+        );
+
     final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: bg,
       appBar: AppBar(
+        systemOverlayStyle: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
         backgroundColor: cardColor,
         elevation: 0,
         leading: IconButton(
@@ -459,6 +620,40 @@ class _DischargeScreenState extends State<DischargeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Mode Toggle
+                    card(Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => setState(() => _isMedicalCertMode = true),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              decoration: BoxDecoration(
+                                color: _isMedicalCertMode ? const Color(0xFF4F46E5) : fillColor,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              alignment: Alignment.center,
+                              child: Text('Medical Certificate', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700, color: _isMedicalCertMode ? Colors.white : Colors.grey)),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => setState(() => _isMedicalCertMode = false),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              decoration: BoxDecoration(
+                                color: !_isMedicalCertMode ? const Color(0xFF4F46E5) : fillColor,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              alignment: Alignment.center,
+                              child: Text(_isOpd ? 'Detailed Prescription' : 'Full Discharge', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700, color: !_isMedicalCertMode ? Colors.white : Colors.grey)),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )),
                     card(Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -555,25 +750,43 @@ class _DischargeScreenState extends State<DischargeScreen> {
                           ),
                         ]),
                         const SizedBox(height: 12),
-                        lbl(_isOpd ? 'Clinical Notes / Diagnosis *' : 'Treatment Summary *'),
-                        const SizedBox(height: 6),
-                        TextField(
-                          controller: _summaryCtrl,
-                          maxLines: 4,
-                          scrollPadding: const EdgeInsets.only(bottom: 150),
-                          style: GoogleFonts.inter(fontSize: 13),
-                          decoration: InputDecoration(
-                            hintText: _isOpd ? 'Enter clinical findings, symptoms, diagnosis...' : 'Enter treatment given, hospital course...',
-                            hintStyle: GoogleFonts.inter(fontSize: 12, color: Colors.grey),
-                            filled: true,
-                            fillColor: fillColor,
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
-                            contentPadding: const EdgeInsets.all(12),
+                        
+                        if (_isMedicalCertMode) ...[
+                          lbl('Symptoms (C/O) *'),
+                          const SizedBox(height: 6),
+                          _chipList(_symptomTags, _symptomsCtrl),
+                          TextField(controller: _symptomsCtrl, style: GoogleFonts.inter(fontSize: 13), decoration: dec(hint: 'e.g. Left side chest pain')),
+                          const SizedBox(height: 12),
+                          lbl('Diagnosis / Treatment *'),
+                          const SizedBox(height: 6),
+                          _chipList(_diagnosisTags, _diagnosisCtrl),
+                          TextField(controller: _diagnosisCtrl, style: GoogleFonts.inter(fontSize: 13), decoration: dec(hint: 'e.g. Operated for Gynecomastia')),
+                          const SizedBox(height: 12),
+                          lbl('Advice / Recommendations'),
+                          const SizedBox(height: 6),
+                          _chipList(_adviceTags, _adviceCtrl),
+                          TextField(controller: _adviceCtrl, style: GoogleFonts.inter(fontSize: 13), decoration: dec(hint: 'e.g. Bed rest')),
+                        ] else ...[
+                          lbl(_isOpd ? 'Clinical Notes / Diagnosis *' : 'Treatment Summary *'),
+                          const SizedBox(height: 6),
+                          TextField(
+                            controller: _summaryCtrl,
+                            maxLines: 4,
+                            scrollPadding: const EdgeInsets.only(bottom: 150),
+                            style: GoogleFonts.inter(fontSize: 13),
+                            decoration: InputDecoration(
+                              hintText: _isOpd ? 'Enter clinical findings, symptoms, diagnosis...' : 'Enter treatment given, hospital course...',
+                              hintStyle: GoogleFonts.inter(fontSize: 12, color: Colors.grey),
+                              filled: true,
+                              fillColor: fillColor,
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                              contentPadding: const EdgeInsets.all(12),
+                            ),
                           ),
-                        ),
+                        ],
                       ],
                     )),
-                    card(Column(
+                    if (!_isMedicalCertMode) card(Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
@@ -581,13 +794,29 @@ class _DischargeScreenState extends State<DischargeScreen> {
                           children: [
                             Text('Advised Medicines', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w800)),
                             TextButton.icon(
-                              onPressed: _addMedicineRow,
+                              onPressed: () => _addMedicineRow(),
                               icon: const Icon(Icons.add, size: 16),
-                              label: Text('Add Row', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700)),
+                              label: Text('Add Blank Row', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700)),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 4),
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Row(
+                            children: _medicinePresets.map((preset) => Padding(
+                              padding: const EdgeInsets.only(right: 6),
+                              child: ActionChip(
+                                avatar: const Icon(Icons.medical_services_outlined, size: 14, color: Color(0xFF16A34A)),
+                                label: Text(preset['name']!, style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600)),
+                                backgroundColor: isDark ? const Color(0xFF14532D) : const Color(0xFFDCFCE7),
+                                side: BorderSide.none,
+                                padding: const EdgeInsets.all(4),
+                                onPressed: () => _addMedicineRow(preset: preset),
+                              ),
+                            )).toList(),
+                          ),
+                        ),
                         ...List.generate(_medicineRows.length, (i) {
                           final row = _medicineRows[i];
                           Widget mCell(TextEditingController c, int fl, String h) => Expanded(
@@ -615,13 +844,11 @@ class _DischargeScreenState extends State<DischargeScreen> {
                               mCell(row['freq']!, 2, 'Freq'),
                               const SizedBox(width: 5),
                               mCell(row['dur']!, 2, 'Days'),
-                              if (_medicineRows.length > 1) ...[
-                                const SizedBox(width: 4),
-                                GestureDetector(
-                                  onTap: () => _removeMedicineRow(i),
-                                  child: const Icon(Icons.remove_circle_outline, color: Color(0xFFEF4444), size: 20),
-                                ),
-                              ],
+                              const SizedBox(width: 4),
+                              GestureDetector(
+                                onTap: () => _removeMedicineRow(i),
+                                child: const Icon(Icons.remove_circle_outline, color: Color(0xFFEF4444), size: 20),
+                              ),
                             ]),
                           );
                         }),

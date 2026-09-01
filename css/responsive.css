@@ -485,30 +485,47 @@
         height: 220px !important;
     }
 
-    /* Stat cards — compact on mobile */
+    /* Stat cards — compact SaaS 3-column on mobile */
     .stat-card {
         flex-direction: column !important;
-        align-items: flex-start !important;
-        gap: 6px !important;
-        padding: 10px !important;
-        border-radius: 10px !important;
+        align-items: center !important;
+        text-align: center !important;
+        justify-content: center !important;
+        gap: 4px !important;
+        padding: 12px 6px 10px 6px !important;
+        border-radius: 14px !important;
     }
 
-    .stat-card-icon,
-    .stat-card i {
-        width: 32px !important;
-        height: 32px !important;
-        font-size: 14px !important;
-        border-radius: 8px !important;
-        margin: 0 !important;
-        display: inline-flex !important;
+    .stat-card::before {
+        display: none !important;
+    }
+
+    .stat-icon-wrap,
+    .stat-card-icon {
+        width: auto !important;
+        height: auto !important;
+        min-width: unset !important;
+        max-width: unset !important;
+        border-radius: 0 !important;
+        font-size: 19px !important;
+        margin: 0 auto 3px auto !important;
+        display: flex !important;
         align-items: center !important;
         justify-content: center !important;
+        color: var(--primary, #4f46e5) !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
     }
 
-    .stat-card-details,
-    .stat-card>div {
+    .stat-val-wrap,
+    .stat-card-details {
         width: 100% !important;
+        text-align: center !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
 
     .stat-card-label,
@@ -517,20 +534,29 @@
         margin: 0 !important;
         text-transform: uppercase !important;
         letter-spacing: 0.3px !important;
+        text-align: center !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        max-width: 100% !important;
+        font-weight: 700 !important;
     }
 
     .stat-card-value,
     .stat-card h3 {
         font-size: 16px !important;
-        margin: 2px 0 !important;
+        margin: 2px 0 1px 0 !important;
         font-weight: 800 !important;
+        text-align: center !important;
+        letter-spacing: -0.2px !important;
     }
 
     .stat-card-subtext {
-        font-size: 9px !important;
+        font-size: 8.5px !important;
         white-space: nowrap !important;
         overflow: hidden;
         text-overflow: ellipsis;
+        text-align: center !important;
     }
 }
 
@@ -1238,31 +1264,7 @@
         min-height: unset !important;
     }
 
-    /* Patient module filter bar */
-    .patients-container .search-filter {
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 8px !important;
-        padding: 10px !important;
-        margin-bottom: 12px !important;
-        border-radius: 10px !important;
-    }
-
-    .patients-container .search-filter input {
-        grid-column: span 2 !important;
-        padding: 8px 12px !important;
-        font-size: 13px !important;
-    }
-
-    .patients-container .search-filter select {
-        padding: 8px 12px !important;
-        font-size: 12px !important;
-        border-radius: 8px !important;
-        height: 36px !important;
-    }
-
-    #patient-sort {
-        grid-column: span 2 !important;
-    }
+    /* Patient module filter bar handled by patient.css */
 
     /* Patient record container search section */
     .patient-record-layout .search-section {

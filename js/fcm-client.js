@@ -94,8 +94,8 @@
         const authToken = getToken();
         if (!authToken) return;
 
-        const apiBase = (window.location.protocol === 'file:' || window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost')
-            ? 'http://127.0.0.1:5000/api/'
+        const apiBase = (typeof API_BASE !== 'undefined' && API_BASE)
+            ? API_BASE
             : 'https://chaudhary-hms-api-h7nl.onrender.com/api/';
 
         try {

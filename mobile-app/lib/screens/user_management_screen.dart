@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/api_service.dart';
 import '../services/role_access.dart';
+import '../widgets/app_snackbar.dart';
 
 class UserManagementScreen extends StatefulWidget {
   const UserManagementScreen({super.key});
@@ -66,20 +68,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
 
   void _showSnack(String msg, {bool isError = false}) {
     if (!mounted) return;
-    final topPadding = MediaQuery.of(context).padding.top + 10;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg, style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
-        backgroundColor: isError ? const Color(0xFFEF4444) : const Color(0xFF10B981),
-        behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.only(
-          bottom: MediaQuery.of(context).size.height - topPadding - 70,
-          left: 16,
-          right: 16,
-        ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
+    AppSnackBar.showTopSnack(context, msg, isError: isError);
   }
 
   Future<void> _toggleBillingAccess(Map<String, dynamic> user, bool grant) async {
@@ -205,9 +194,11 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                       children: [
                         Expanded(
                           child: _DropdownField(
-                            label: 'System Role', value: selectedRole,
-                            items: const ['staff', 'receptionist', 'doctor', 'admin'],
-                            labels: const ['Staff / Nurse', 'Receptionist', 'Doctor', 'Administrator'],
+                            label: 'System Role',
+                            value: selectedRole,
+                            prefixIcon: Icons.admin_panel_settings_outlined,
+                            items: const ['staff', 'receptionist', 'doctor', 'admin', 'developer'],
+                            labels: const ['Staff / Nurse', 'Receptionist', 'Doctor', 'Administrator', 'System Developer'],
                             isDark: isDark,
                             onChanged: (v) => setModal(() => selectedRole = v!),
                           ),
@@ -215,7 +206,9 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: _DropdownField(
-                            label: 'Account Status', value: selectedStatus,
+                            label: 'Account Status',
+                            value: selectedStatus,
+                            prefixIcon: Icons.verified_user_outlined,
                             items: const ['active', 'pending', 'rejected'],
                             labels: const ['Active', 'Pending', 'Rejected'],
                             isDark: isDark,
@@ -224,6 +217,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                         ),
                       ],
                     ),
+
+
                     const SizedBox(height: 24),
                     SizedBox(
                       width: double.infinity, height: 50,
@@ -245,7 +240,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                           };
                           final Map<String, dynamic> result;
                           if (isEdit) {
-                            result = await ApiService.updateUser(user['_id']?.toString() ?? user['id']?.toString() ?? '', data);
+                            final userId = (user['_id'] ?? user['id'] ?? '').toString();
+                            result = await ApiService.updateUser(userId, data);
                           } else {
                             result = await ApiService.createUser(data);
                           }
@@ -285,6 +281,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       appBar: AppBar(
+        systemOverlayStyle: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
         backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
         elevation: 0,
         leading: IconButton(
@@ -536,7 +533,7 @@ class _UserCard extends StatelessWidget {
                         child: Switch(
                           value: billingAccess,
                           onChanged: (v) => onToggleBilling(user, v),
-                          activeColor: const Color(0xFF10B981),
+                          activeThumbColor: const Color(0xFF10B981),
                           activeTrackColor: const Color(0xFF10B981).withValues(alpha: 0.3),
                           inactiveThumbColor: Colors.grey[400],
                           inactiveTrackColor: isDark ? Colors.white12 : Colors.black12,
@@ -630,33 +627,83 @@ class _DropdownField extends StatelessWidget {
   final List<String> labels;
   final bool isDark;
   final void Function(String?) onChanged;
+  final IconData? prefixIcon;
 
-  const _DropdownField({required this.label, required this.value, required this.items, required this.labels, required this.isDark, required this.onChanged});
+  const _DropdownField({
+    required this.label,
+    required this.value,
+    required this.items,
+    required this.labels,
+    required this.isDark,
+    required this.onChanged,
+    this.prefixIcon,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final safeValue = items.contains(value.toLowerCase()) ? value.toLowerCase() : (items.isNotEmpty ? items.first : null);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? Colors.white70 : Colors.black54)),
+        Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+          ),
+        ),
         const SizedBox(height: 6),
         DropdownButtonFormField<String>(
-          value: value,
-          items: List.generate(items.length, (i) => DropdownMenuItem(value: items[i], child: Text(labels[i], style: GoogleFonts.inter(fontSize: 13)))),
-          onChanged: onChanged,
+          initialValue: safeValue,
+          isExpanded: true,
+          icon: const Icon(Icons.unfold_more_rounded, color: Color(0xFF4F46E5), size: 20),
+          dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          elevation: 6,
+          style: GoogleFonts.inter(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: isDark ? Colors.white : const Color(0xFF0F172A),
+          ),
           decoration: InputDecoration(
             filled: true,
             fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: isDark ? Colors.white12 : const Color(0xFFE2E8F0))),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: isDark ? Colors.white12 : const Color(0xFFE2E8F0))),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFF4F46E5), width: 1.5)),
+            prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 18, color: const Color(0xFF4F46E5)) : null,
             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: isDark ? Colors.white12 : const Color(0xFFE2E8F0)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: isDark ? Colors.white12 : const Color(0xFFE2E8F0)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFF4F46E5), width: 1.5),
+            ),
           ),
-          dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
-          style: GoogleFonts.inter(fontSize: 13, color: isDark ? Colors.white : Colors.black87),
+          items: List.generate(
+            items.length,
+            (i) => DropdownMenuItem(
+              value: items[i],
+              child: Text(
+                labels[i],
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                ),
+              ),
+            ),
+          ),
+          onChanged: onChanged,
         ),
       ],
     );
   }
 }
+
+
 

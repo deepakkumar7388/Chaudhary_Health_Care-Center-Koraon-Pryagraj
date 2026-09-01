@@ -357,15 +357,15 @@ function showBillingTab(tab) {
             </thead>
             <tbody>
                 ${list.map(bill => {
-                    const isPaid = bill.status === 'Paid';
-                    const isPartial = bill.status === 'Partial';
-                    const statusClass = isPaid ? 'paid' : (isPartial ? 'partial' : 'pending');
-                    const statusIcon = isPaid ? 'bi-check-circle' : (isPartial ? 'bi-clock-history' : 'bi-clock');
-                    const typeBadge = bill.patient_type === 'OPD'
-                        ? `<span style="background:#ecfdf5;color:#059669;border:1px solid #a7f3d0;font-size:10px;padding:1px 6px;border-radius:4px;margin-left:5px;font-weight:700;">OPD</span>`
-                        : `<span style="background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;font-size:10px;padding:1px 6px;border-radius:4px;margin-left:5px;font-weight:700;">IPD</span>`;
-                    
-                    return `
+        const isPaid = bill.status === 'Paid';
+        const isPartial = bill.status === 'Partial';
+        const statusClass = isPaid ? 'paid' : (isPartial ? 'partial' : 'pending');
+        const statusIcon = isPaid ? 'bi-check-circle' : (isPartial ? 'bi-clock-history' : 'bi-clock');
+        const typeBadge = bill.patient_type === 'OPD'
+            ? `<span style="background:#ecfdf5;color:#059669;border:1px solid #a7f3d0;font-size:10px;padding:1px 6px;border-radius:4px;margin-left:5px;font-weight:700;">OPD</span>`
+            : `<span style="background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;font-size:10px;padding:1px 6px;border-radius:4px;margin-left:5px;font-weight:700;">IPD</span>`;
+
+        return `
                     <tr>
                         <td data-label="Patient"><strong>${bill.patient}</strong>${typeBadge}</td>
                         <td data-label="Invoice ID" style="color:#64748b; font-size:12px; font-weight:700;">INV-${bill.id}</td>
@@ -392,7 +392,7 @@ function showBillingTab(tab) {
                             </button>
                         </td>
                     </tr>`;
-                }).join('')}
+    }).join('')}
             </tbody>
         </table>
     `;
@@ -412,10 +412,10 @@ async function viewBill(patientId) {
         ]);
         const result = await response.json();
         const pResult = await pResponse.json();
-        
+
         currentBillData = result.billing;
         const p = pResult?.patient || window.allPatientsData?.find(x => x.patient_id === patientId);
-        
+
         document.getElementById('b-patient-id').textContent = patientId;
         document.getElementById('b-patient-name').textContent = p?.name || 'Unknown';
         document.getElementById('b-relative').textContent = p?.guardian_name || p?.relative_name || '-';
@@ -423,7 +423,7 @@ async function viewBill(patientId) {
         document.getElementById('b-age').textContent = (p?.age || '-') + ' / ' + (p?.gender || '-');
         const isOpd = p?.patient_type === 'OPD';
         document.getElementById('b-bed').textContent = isOpd ? 'OPD' : (p?.bed_no || '-');
-        
+
         const doaLabel = document.getElementById('b-doa-label');
         if (doaLabel) {
             doaLabel.textContent = isOpd ? 'Registered:' : 'Admitted:';
@@ -441,17 +441,17 @@ async function viewBill(patientId) {
                 dodSpan.textContent = formatBillDate(p?.discharge_date);
             }
         }
-        
+
         // Auto-populate invoice date and time
         const now = new Date();
         document.getElementById('auto-date-field-bill').textContent = now.toLocaleDateString();
         document.getElementById('auto-time-field-bill').textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        
+
         document.getElementById('discount-amt').value = currentBillData?.discount || 0;
-        
+
         initializeBillingTable(currentBillData?.items || [], p?.bedHistory || [], p?.surgeries || [], isOpd);
         renderPaymentHistory(currentBillData?.payments || []);
-        
+
         // OPD ke liye Registration Fee Banner dikhaao
         _renderOpdBanner(isOpd, p);
 
@@ -481,11 +481,11 @@ async function viewBill(patientId) {
         rows.forEach((row) => {
             const itemName = row.getAttribute('data-item-name');
             const savedItem = currentBillData?.items?.find(i => i.name === itemName);
-            
+
             if (savedItem) {
                 // If previously saved, load exactly what was saved unless we need to auto-update
                 let feeVal = savedItem.fee !== undefined ? savedItem.fee : '';
-                
+
                 if (!savedItem.isManualFee) {
                     if (itemName === 'CONSULTATION FEE') {
                         feeVal = defaultConsultFee;
@@ -494,12 +494,12 @@ async function viewBill(patientId) {
                         feeVal = defaultDrFees;
                     }
                 }
-                
+
                 row.querySelector('.fee-input').value = feeVal;
                 if (savedItem.isManualFee) {
                     row.querySelector('.fee-input').setAttribute('data-manual-fee', 'true');
                 }
-                
+
                 const isBedCharge = itemName && itemName.startsWith('Bed Charge');
                 const isPatientAdmitted = p?.status === 'Admitted';
                 if (isBedCharge && isPatientAdmitted) {
@@ -566,9 +566,9 @@ async function viewBill(patientId) {
 function _renderOpdBanner(isOpd, patient) {
     // Existing banner remove karo
     document.getElementById('opd-paid-banner')?.remove();
-    
+
     if (!isOpd) return;
-    
+
     // Settings se consultation fee lo — patient DB ki purani value use na karo
     const settingConsultFee = window.hospitalSettings?.['consultation-fee'];
     const consultFee = (settingConsultFee !== undefined && settingConsultFee !== null && settingConsultFee.toString().trim() !== '')
@@ -576,7 +576,7 @@ function _renderOpdBanner(isOpd, patient) {
         : (patient?.doctorFees > 0 ? patient.doctorFees : 0);
     const currency = window.currencySymbol || '₹';
     const regDate = patient?.admission_date ? new Date(patient.admission_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
-    
+
     const banner = document.createElement('div');
     banner.id = 'opd-paid-banner';
     banner.style.cssText = `
@@ -605,7 +605,7 @@ function _renderOpdBanner(isOpd, patient) {
             ${currency}${consultFee} Paid
         </div>
     `;
-    
+
     // Patient info block ke baad insert karo
     const patientInfoBlock = document.querySelector('.patient-info-summary');
     if (patientInfoBlock && patientInfoBlock.parentNode) {
@@ -630,7 +630,7 @@ function initializeBillingTable(items = [], bedHistory = [], surgeries = [], isO
             sDate.setHours(0, 0, 0, 0);
             eDate.setHours(0, 0, 0, 0);
             let diffDays = Math.round(Math.abs(eDate - sDate) / (1000 * 60 * 60 * 24));
-            
+
             // If it is the last stay (active or discharged), we count the final day (+1)
             const isLastStay = bedIndex === bedHistory.length - 1;
             if (isLastStay) {
@@ -703,7 +703,7 @@ function calculateBillingTotals() {
 
     const discount = parseFloat(document.getElementById('discount-amt').value) || 0;
     const net = Math.max(0, grandTotal - discount);
-    
+
     let paid = 0;
     if (currentBillData?.payments) currentBillData.payments.forEach(p => paid += (parseFloat(p.amount) || 0));
 
@@ -759,9 +759,14 @@ async function addPaymentToBill() {
     const response = await fetch(`${API_BASE}billing/${currentBillPatientId}/payments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + sessionStorage.getItem('token') },
-        body: JSON.stringify({ amount: amt, mode: document.getElementById('pay-mode').value, date: new Date().toISOString().split('T')[0] })
+        body: JSON.stringify({
+            amount: amt,
+            mode: document.getElementById('pay-mode').value,
+            date: new Date().toISOString().split('T')[0],
+            performed_by: window.currentUser ? window.currentUser.name : 'Staff'
+        })
     });
-    
+
     const result = await response.json();
     if (result.success) {
         currentBillData.payments = result.payments;
@@ -784,7 +789,7 @@ async function addPaymentToBill() {
                         showModule('discharge');
                     }, 1500);
                 }
-            } catch(e) {}
+            } catch (e) { }
         }
     }
     hideLoading();
@@ -794,7 +799,10 @@ function renderPaymentHistory(payments = []) {
     const tbody = document.getElementById('payment-history-body');
     tbody.innerHTML = payments.map(p => `
         <tr>
-            <td style="padding: 8px 5px;">${new Date(p.date).toLocaleDateString()}</td>
+            <td style="padding: 8px 5px;">
+                ${new Date(p.date).toLocaleDateString()}<br>
+                <small style="color: #64748b; font-size: 10px;">${p.performed_by || 'Staff'}</small>
+            </td>
             <td style="padding: 8px 5px;">${p.mode}</td>
             <td style="padding: 8px 5px; font-weight: 700;">₹${p.amount}</td>
             <td class="no-print" style="padding: 8px 5px;">
@@ -826,10 +834,28 @@ async function markBillPaid(patientId, remaining) {
         const response = await fetch(`${API_BASE}billing/${patientId}/payments`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + sessionStorage.getItem('token') },
-            body: JSON.stringify({ amount: remaining, mode: 'Cash', date: new Date().toISOString().split('T')[0] })
+            body: JSON.stringify({
+                amount: remaining,
+                mode: 'Cash',
+                date: new Date().toISOString().split('T')[0],
+                performed_by: window.currentUser ? window.currentUser.name : 'Staff'
+            })
         });
         if (response.ok) {
             localStorage.removeItem('billings'); // Cache clear karo
+
+            // Trigger Live Notification
+            if (typeof window.hmsSocket?.pushNotification === 'function') {
+                window.hmsSocket.pushNotification({
+                    id: `bill_${Date.now()}`,
+                    title: `Payment Received: ₹${remaining}`,
+                    message: `₹${remaining} payment collected for patient ID ${patientId}.`,
+                    timestamp: new Date().toISOString(),
+                    category: 'billing',
+                    type: 'success'
+                });
+            }
+
             // Check if there's a discharge draft waiting — redirect back automatically
             const draft = sessionStorage.getItem('dischargeDraft');
             if (draft) {
@@ -842,7 +868,7 @@ async function markBillPaid(patientId, remaining) {
                         }, 1500);
                         return;
                     }
-                } catch(e) {}
+                } catch (e) { }
             }
             loadBillingData();
             if (currentBillPatientId === patientId) viewBill(patientId);

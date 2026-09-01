@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'dart:async';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -9,14 +11,18 @@ import '../services/api_service.dart';
 import '../services/role_access.dart';
 import '../widgets/overview_card.dart';
 import '../widgets/radar_chart_widget.dart';
+import '../widgets/app_snackbar.dart';
 import 'splash_screen.dart';
 import 'add_patient_screen.dart';
 import 'patient_detail_screen.dart';
 import 'daily_notes_screen.dart';
 import 'billing_screen.dart';
-import 'user_management_screen.dart';
 import 'discharge_screen.dart';
 import 'settings_screen.dart';
+import 'notifications_screen.dart';
+import 'user_profile_screen.dart';
+import '../services/notification_service.dart';
+
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -27,6 +33,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
+  final List<int> _tabHistory = [0];
+  DateTime? _lastBackPressTime;
   Map<String, dynamic>? _user;
   Map<String, dynamic> _stats = {};
   List<dynamic> _patients = [];
@@ -38,9 +46,25 @@ class _HomeScreenState extends State<HomeScreen> {
   String _filterType = 'All';
   String _billingTabFilter = 'All'; // 'All', 'Pending', 'Paid'
   final _chartPageController = PageController();
+  final _notesSearchController = TextEditingController();
+  Timer? _notesSearchTimer;
+  String _notesSearchQuery = '';
+
   int _chartPage = 0;
+
   // Cached pages to avoid rebuild-on-tab-switch blink
   List<Widget> _cachedPages = [];
+
+  void _switchTab(int i) {
+    if (_currentIndex != i) {
+      setState(() {
+        _currentIndex = i;
+        _tabHistory.remove(i);
+        _tabHistory.add(i);
+      });
+    }
+  }
+
 
   @override
   void initState() {
@@ -59,8 +83,20 @@ class _HomeScreenState extends State<HomeScreen> {
           billingAccess: _user!['billingAccess'] == true,
         );
       }
-      _stats = await ApiService.getDashboardStats();
       _patients = await ApiService.getPatients();
+      final admitted = _patients.where((p) =>
+          (p['status'] ?? '').toString().toLowerCase() == 'admitted').length;
+      final discharged = _patients.where((p) =>
+          (p['status'] ?? '').toString().toLowerCase() == 'discharged').length;
+      final ipd = _patients.where((p) => p['patient_type'] == 'IPD').length;
+      final opd = _patients.where((p) => p['patient_type'] == 'OPD').length;
+      _stats = {
+        'totalPatients': _patients.length,
+        'admittedPatients': admitted,
+        'dischargedPatients': discharged,
+        'ipdPatients': ipd,
+        'opdPatients': opd,
+      };
       _applyFilter();
     } catch (e) {
       debugPrint('Error loading data: $e');
@@ -70,6 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() => _isLoading = false);
     }
   }
+
 
   void _rebuildPages() {
     _cachedPages = [
@@ -118,6 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     _filteredPatients = list;
+    _rebuildPages();
   }
 
   Future<void> _logout() async {
@@ -149,12 +187,18 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     _searchController.dispose();
+    _billingSearchController.dispose();
+    _notesSearchController.dispose();
+    _notesSearchTimer?.cancel();
     _chartPageController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    // Rebuild pages to ensure state updates (like _chartPage for dots) reflect immediately
+    _rebuildPages();
+
     // ══════════════════════════════════════════════════════════
     // Dynamic Bottom Nav — Mirrors Web App Role-Based Navbar
     // Roles & access:
@@ -197,14 +241,76 @@ class _HomeScreenState extends State<HomeScreen> {
     final currentIndex = _currentIndex >= navItems.length ? 0 : _currentIndex;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : IndexedStack(
-              index: _currentIndex >= _cachedPages.length ? 0 : _currentIndex,
-              children: _cachedPages,
-            ),
-      bottomNavigationBar: Container(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+
+        // Step 1: Clear Search in Patients Hub if active
+        if (_currentIndex == 1 && _searchController.text.isNotEmpty) {
+          setState(() {
+            _searchController.clear();
+            _applyFilter();
+          });
+          return;
+        }
+
+        // Step 2: Reset filter chips in Patients Hub if active
+        if (_currentIndex == 1 && (_filterStatus != 'All' || _filterType != 'All')) {
+          setState(() {
+            _filterStatus = 'All';
+            _filterType = 'All';
+            _applyFilter();
+          });
+          return;
+        }
+
+        // Step 3: Clear search in Billing Hub if active
+        if (_currentIndex == (RoleAccess.canViewDailyNotes ? 3 : 2) && _billingSearchController.text.isNotEmpty) {
+          setState(() {
+            _billingSearchController.clear();
+          });
+          return;
+        }
+
+        // Step 4: Step-by-step back through tab navigation history
+        if (_tabHistory.length > 1) {
+          setState(() {
+            _tabHistory.removeLast();
+            _currentIndex = _tabHistory.last;
+          });
+          return;
+        }
+
+        // Step 5: If currently on another tab, return to Dashboard
+        if (_currentIndex != 0) {
+          setState(() {
+            _currentIndex = 0;
+            _tabHistory.clear();
+            _tabHistory.add(0);
+          });
+          return;
+        }
+
+        // Step 6: Double-tap back within 2 seconds to exit app safely
+        final now = DateTime.now();
+        if (_lastBackPressTime == null || now.difference(_lastBackPressTime!) > const Duration(seconds: 2)) {
+          _lastBackPressTime = now;
+          AppSnackBar.showTopSnack(context, 'Press back again to exit CHC HMS');
+        } else {
+          SystemNavigator.pop();
+        }
+      },
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+        child: Scaffold(
+          body: _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : IndexedStack(
+                  index: _currentIndex >= _cachedPages.length ? 0 : _currentIndex,
+                  children: _cachedPages,
+                ),
+          bottomNavigationBar: Container(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
         color: Colors.transparent,
         child: Container(
@@ -236,11 +342,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
               return Expanded(
                 child: GestureDetector(
-                  onTap: () {
-                    if (_currentIndex != i) {
-                      setState(() => _currentIndex = i);
-                    }
-                  },
+                  onTap: () => _switchTab(i),
                   behavior: HitTestBehavior.opaque,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -279,8 +381,10 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
-    );
-  }
+    ),
+    ),
+  );
+}
 
   // ==================== DASHBOARD TAB ====================
   Widget _buildDashboard() {
@@ -342,118 +446,106 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     // ── REAL-TIME NOTIFICATION BELL ICON (TOP RIGHT) ──
                     GestureDetector(
-                      onTap: () {
-                        showModalBottomSheet(
-                          context: context,
-                          backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
-                          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-                          builder: (ctx) {
-                            return Padding(
-                              padding: const EdgeInsets.all(20),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      const Icon(Icons.notifications_active_rounded, color: Color(0xFF2563EB), size: 22),
-                                      const SizedBox(width: 10),
-                                      Text('Notifications & Alerts', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w800)),
-                                      const Spacer(),
-                                      IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(ctx)),
-                                    ],
-                                  ),
-                                  const Divider(),
-                                  const SizedBox(height: 8),
-                                  ListTile(
-                                    leading: CircleAvatar(backgroundColor: const Color(0xFFEFF6FF), child: const Icon(Icons.info_rounded, color: Color(0xFF2563EB))),
-                                    title: Text('System Status', style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 13)),
-                                    subtitle: Text('Connected to Chaudhary Health Care backend server. Sync active.', style: GoogleFonts.inter(fontSize: 11)),
-                                  ),
-                                  ListTile(
-                                    leading: CircleAvatar(backgroundColor: const Color(0xFFECFDF5), child: const Icon(Icons.check_circle_rounded, color: Color(0xFF059669))),
-                                    title: Text('Data Synchronized', style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 13)),
-                                    subtitle: Text('Patient Directory & IPD records up to date.', style: GoogleFonts.inter(fontSize: 11)),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
+                      onTap: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const NotificationsScreen()),
                         );
+                        NotificationService.refreshUnreadCount();
                       },
-                      child: Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(9),
-                            decoration: BoxDecoration(
-                              color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
-                              shape: BoxShape.circle,
-                              border: Border.all(color: isDark ? Colors.white12 : const Color(0xFFE2E8F0)),
-                            ),
-                            child: Icon(
-                              Icons.notifications_none_rounded,
-                              color: isDark ? Colors.white : const Color(0xFF334155),
-                              size: 22,
-                            ),
-                          ),
-                          Positioned(
-                            top: 2,
-                            right: 2,
-                            child: Container(
-                              width: 9,
-                              height: 9,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFEF4444),
-                                shape: BoxShape.circle,
-                                border: Border.all(color: isDark ? AppColors.surfaceDark : Colors.white, width: 1.5),
+                      child: ValueListenableBuilder<int>(
+                        valueListenable: NotificationService.unreadCountNotifier,
+                        builder: (context, unreadCount, _) {
+                          return Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(9),
+                                decoration: BoxDecoration(
+                                  color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: isDark ? Colors.white12 : const Color(0xFFE2E8F0)),
+                                ),
+                                child: Icon(
+                                  unreadCount > 0 ? Icons.notifications_active_rounded : Icons.notifications_none_rounded,
+                                  color: unreadCount > 0
+                                      ? const Color(0xFF4F46E5)
+                                      : (isDark ? Colors.white : const Color(0xFF334155)),
+                                  size: 22,
+                                ),
                               ),
-                            ),
-                          ),
-                        ],
+                              if (unreadCount > 0)
+                                Positioned(
+                                  top: -2,
+                                  right: -2,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                    constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFEF4444),
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(color: isDark ? AppColors.surfaceDark : Colors.white, width: 1.5),
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        unreadCount > 9 ? '9+' : '$unreadCount',
+                                        style: GoogleFonts.inter(
+                                          color: Colors.white,
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          );
+                        },
                       ),
                     ),
+
                   ],
                 ),
               ),
             ),
 
-            // ── USER PROFILE GREETING SECTION (WITH PHOTO BADGE) ──
+            // ── USER PROFILE GREETING SECTION (ADAPTIVE RESPONSIVE) ──
             SliverToBoxAdapter(
               child: Container(
                 color: isDark ? AppColors.surfaceDark : Colors.white,
-                padding: const EdgeInsets.fromLTRB(20, 6, 20, 20),
+                padding: const EdgeInsets.fromLTRB(20, 6, 20, 16),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
+                      colors: [Color(0xFF1D4ED8), Color(0xFF2563EB), Color(0xFF3B82F6)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(22),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF2563EB).withValues(alpha: 0.3),
-                        blurRadius: 16,
-                        offset: const Offset(0, 6),
+                        color: const Color(0xFF1D4ED8).withValues(alpha: 0.35),
+                        blurRadius: 18,
+                        offset: const Offset(0, 8),
                       ),
                     ],
                   ),
                   child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       // User Photo Badge (Circle Avatar with initials)
                       Container(
-                        width: 50,
-                        height: 50,
+                        width: 48,
+                        height: 48,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: Colors.white,
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withValues(alpha: 0.15),
-                              blurRadius: 6,
-                              offset: const Offset(0, 2),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
                             ),
                           ],
                         ),
@@ -461,7 +553,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Text(
                             name.isNotEmpty ? name[0].toUpperCase() : 'U',
                             style: GoogleFonts.inter(
-                              fontSize: 22,
+                              fontSize: 20,
                               fontWeight: FontWeight.w900,
                               color: const Color(0xFF1D4ED8),
                             ),
@@ -469,9 +561,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       const SizedBox(width: 14),
+
+                      // Greeting & Name (Single Line Auto-Scaling)
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
                               '$greeting,',
@@ -482,43 +577,54 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                             const SizedBox(height: 2),
-                            Text(
-                              name,
-                              style: GoogleFonts.inter(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.white,
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                name,
+                                style: GoogleFonts.inter(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                  letterSpacing: -0.3,
+                                ),
+                                maxLines: 1,
                               ),
                             ),
                           ],
                         ),
                       ),
+
+                      const SizedBox(width: 10),
+
+                      // Role Pill Badge & Date
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
                               color: const Color(0xFFDCFCE7),
-                              borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(16),
                               border: Border.all(color: const Color(0xFF86EFAC), width: 1),
                             ),
                             child: Text(
                               role.toUpperCase(),
                               style: GoogleFonts.inter(
-                                fontSize: 10,
+                                fontSize: 9.5,
                                 fontWeight: FontWeight.w900,
                                 color: const Color(0xFF166534),
-                                letterSpacing: 0.8,
+                                letterSpacing: 0.6,
                               ),
                             ),
                           ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 4),
                           Text(
                             '${now.day}/${now.month}/${now.year}',
                             style: GoogleFonts.inter(
                               fontSize: 10,
-                              color: Colors.white70,
+                              color: Colors.white.withValues(alpha: 0.8),
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -536,7 +642,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // ── OVERVIEW CARDS (Harmonized blue gradient chips with swipe hint) ──
+                    // ── OVERVIEW CARDS (Clean SaaS Style) ──
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Text(
@@ -551,7 +657,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 12),
                     SizedBox(
-                      height: 98,
+                      height: 104,
                       child: ListView(
                         scrollDirection: Axis.horizontal,
                         padding: const EdgeInsets.only(left: 20, right: 8),
@@ -562,34 +668,76 @@ class _HomeScreenState extends State<HomeScreen> {
                             label: 'Total Patients',
                             value: '${_stats['totalPatients'] ?? 0}',
                             iconColor: const Color(0xFF2563EB),
+                            onTap: () {
+                              setState(() {
+                                _filterStatus = 'All';
+                                _filterType = 'All';
+                                _applyFilter();
+                              });
+                              _switchTab(1);
+                            },
                           ),
                           OverviewCard(
                             icon: Icons.hotel_rounded,
                             label: 'Admitted Now',
                             value: '${_stats['admittedPatients'] ?? 0}',
-                            iconColor: const Color(0xFFE11D48),
+                            iconColor: const Color(0xFFEF4444),
+                            onTap: () {
+                              setState(() {
+                                _filterStatus = 'Admitted';
+                                _filterType = 'All';
+                                _applyFilter();
+                              });
+                              _switchTab(1);
+                            },
                           ),
                           OverviewCard(
                             icon: Icons.task_alt_rounded,
                             label: 'Discharged',
                             value: '${_stats['dischargedPatients'] ?? 0}',
-                            iconColor: const Color(0xFF059669),
+                            iconColor: const Color(0xFF10B981),
+                            onTap: () {
+                              setState(() {
+                                _filterStatus = 'Discharged';
+                                _filterType = 'All';
+                                _applyFilter();
+                              });
+                              _switchTab(1);
+                            },
                           ),
                           OverviewCard(
                             icon: Icons.bed_rounded,
                             label: 'IPD Patients',
                             value: '${_stats['ipdPatients'] ?? 0}',
                             iconColor: const Color(0xFFD97706),
+                            onTap: () {
+                              setState(() {
+                                _filterStatus = 'All';
+                                _filterType = 'IPD';
+                                _applyFilter();
+                              });
+                              _switchTab(1);
+                            },
                           ),
                           OverviewCard(
                             icon: Icons.medical_services_rounded,
                             label: 'OPD Patients',
                             value: '${_stats['opdPatients'] ?? 0}',
                             iconColor: const Color(0xFF7C3AED),
+                            onTap: () {
+                              setState(() {
+                                _filterStatus = 'All';
+                                _filterType = 'OPD';
+                                _applyFilter();
+                              });
+                              _switchTab(1);
+                            },
                           ),
                         ],
                       ),
                     ),
+
+
 
                     const SizedBox(height: 20),
 
@@ -640,9 +788,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
                                   ),
-                                  onTap: () {
-                                    setState(() => _currentIndex = 2);
-                                  },
+                                  onTap: () => _switchTab(2),
                                   isDark: isDark,
                                 ),
                               );
@@ -657,9 +803,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
                                   ),
-                                  onTap: () {
-                                    setState(() => _currentIndex = RoleAccess.canViewDailyNotes ? 3 : 2);
-                                  },
+                                  onTap: () => _switchTab(RoleAccess.canViewDailyNotes ? 3 : 2),
                                   isDark: isDark,
                                 ),
                               );
@@ -988,7 +1132,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       GestureDetector(
-                        onTap: () => setState(() => _currentIndex = 1),
+                        onTap: () => _switchTab(1),
                         child: Row(
                           children: [
                             Text(
@@ -1238,156 +1382,214 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // ==================== DAILY NOTES HUB TAB (Doctor / Staff / Admin / Developer) ====================
   Widget _buildDailyNotesHub() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return SafeArea(
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 8),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'Daily Notes',
-                    style: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.w800, letterSpacing: -0.5),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.add_circle, size: 30),
-                  color: AppColors.primary,
-                  tooltip: 'Add Note',
-                  onPressed: () async {
-                    // Navigate to select patient first, then open notes
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => Scaffold(
-                          appBar: AppBar(title: const Text('Select Patient for Notes')),
-                          body: _buildPatientsList(),
-                        ),
-                      ),
-                    );
-                    _loadData();
-                  },
-                ),
-              ],
+            padding: const EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 16),
+            child: Text(
+              'Daily Notes',
+              style: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.w800, letterSpacing: -0.5),
             ),
           ),
+          
+          // Premium Search Bar
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            child: Container(
+              height: 52,
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.04),
+                    blurRadius: 15,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+                border: Border.all(color: isDark ? Colors.white12 : const Color(0xFFE2E8F0)),
+              ),
+              child: TextField(
+                controller: _notesSearchController,
+                onChanged: (val) {
+                  if (_notesSearchTimer?.isActive ?? false) _notesSearchTimer!.cancel();
+                  _notesSearchTimer = Timer(const Duration(milliseconds: 500), () {
+                    setState(() => _notesSearchQuery = val.toLowerCase());
+                    _rebuildPages();
+                  });
+                  // Immediately show suffix icon
+                  setState((){});
+                },
+                style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w500),
+                decoration: InputDecoration(
+                  hintText: 'Search by Patient Name or ID...',
+                  hintStyle: GoogleFonts.inter(fontSize: 14, color: isDark ? Colors.white38 : const Color(0xFF94A3B8)),
+                  prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF0284C7)),
+                  suffixIcon: _notesSearchController.text.isNotEmpty 
+                    ? IconButton(
+                        icon: const Icon(Icons.clear_rounded, size: 20, color: Colors.grey),
+                        onPressed: () {
+                          _notesSearchController.clear();
+                          setState(() => _notesSearchQuery = '');
+                          _rebuildPages();
+                        },
+                      )
+                    : null,
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                ),
+              ),
+            ),
+          ),
+          
           Expanded(
-            child: _patients.isEmpty
-                ? Center(
+            child: Builder(
+              builder: (context) {
+                final notesPatients = _patients.where((p) {
+                  final status = (p['status'] ?? 'Admitted').toString().toUpperCase();
+                  final type = (p['patient_type'] ?? 'IPD').toString().toUpperCase();
+                  if (status != 'ADMITTED' || type != 'IPD') return false;
+                  
+                  if (_notesSearchQuery.isNotEmpty) {
+                    final name = (p['name'] ?? '').toString().toLowerCase();
+                    final id = (p['patient_id'] ?? '').toString().toLowerCase();
+                    return name.contains(_notesSearchQuery) || id.contains(_notesSearchQuery);
+                  }
+                  return true;
+                }).toList();
+
+                if (notesPatients.isEmpty) {
+                  return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.note_alt_outlined, size: 64, color: AppColors.primary.withValues(alpha: 0.3)),
-                        const SizedBox(height: 12),
-                        Text('No patients to show notes for', style: GoogleFonts.inter(fontSize: 14, color: Colors.grey)),
+                        Icon(Icons.folder_off_outlined, size: 64, color: AppColors.primary.withValues(alpha: 0.3)),
+                        const SizedBox(height: 16),
+                        Text('No patients found', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: isDark ? Colors.white60 : const Color(0xFF64748B))),
                       ],
                     ),
-                  )
-                : ListView.separated(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    itemCount: _patients.length,
-                    separatorBuilder: (ctx, idx) => const SizedBox(height: 8),
-                    itemBuilder: (context, i) {
-                      final p = _patients[i];
-                      return _PatientTile(
-                        patient: p,
-                        onTap: () async {
-                          final result = await Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => DailyNotesScreen(patient: p)),
-                          );
-                          if (result == true) _loadData();
-                        },
-                      );
-                    },
-                  ),
+                  );
+                }
+
+                return ListView.separated(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  itemCount: notesPatients.length,
+                  separatorBuilder: (ctx, idx) => const SizedBox(height: 12),
+                  itemBuilder: (context, i) {
+                    final p = notesPatients[i];
+                    return _buildPremiumPatientCard(p, isDark);
+                  },
+                );
+              },
+            ),
           ),
         ],
       ),
     );
   }
 
+  Widget _buildPremiumPatientCard(Map<String, dynamic> patient, bool isDark) {
+    final name = patient['name'] ?? 'Unknown';
+    final id = patient['patient_id'] ?? '--';
+    
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 15,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: Border.all(color: isDark ? Colors.white12 : const Color(0xFFF1F5F9)),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () async {
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => DailyNotesScreen(patient: patient)),
+            );
+            if (result == true) _loadData();
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Hero(
+                  tag: 'patient_avatar_${patient['_id']}',
+                  child: CircleAvatar(
+                    radius: 24,
+                    backgroundColor: const Color(0xFFE0F2FE), // Soft ice blue
+                    child: Text(
+                      name.isNotEmpty ? name[0].toUpperCase() : '?',
+                      style: GoogleFonts.inter(color: const Color(0xFF0284C7), fontWeight: FontWeight.w800, fontSize: 20),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        name,
+                        style: GoogleFonts.inter(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'ID: $id',
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0xFF64748B),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(Icons.chevron_right_rounded, color: Color(0xFFCBD5E1)),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
-  // ==================== PROFILE HUB TAB (Mirrors Web layout) ====================
+
+  // ==================== PROFILE HUB TAB ====================
   Widget _buildProfileHub() {
     final name = _user?['name'] ?? 'User';
     final email = _user?['email'] ?? '';
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final roleString = (_user?['role'] ?? 'staff').toString().toLowerCase();
+    
+    UserRole userRole = UserRole.receptionist;
+    if (roleString == 'admin' || roleString == 'developer') {
+      userRole = UserRole.admin;
+    } else if (roleString == 'doctor') {
+      userRole = UserRole.doctor;
+    }
 
-    return SafeArea(
-      child: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          // Profile Intro
-          Center(
-            child: CircleAvatar(
-              radius: 40,
-              backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-              child: Text(
-                name.isNotEmpty ? name[0].toUpperCase() : 'U',
-                style: GoogleFonts.inter(fontSize: 32, fontWeight: FontWeight.w700, color: AppColors.primary),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Center(child: Text(name, style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w800))),
-          Center(child: Text(email, style: GoogleFonts.inter(fontSize: 13, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight))),
-          const SizedBox(height: 24),
-
-          // Hub Options matching Web page-list
-          if (RoleAccess.isAdminLevel)
-            _HubTile(
-              icon: Icons.supervised_user_circle,
-              title: 'Manage Users',
-              subtitle: 'Add or edit system users',
-              color: AppColors.info,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const UserManagementScreen()),
-                );
-              },
-            ),
-
-          if (RoleAccess.canViewSettings)
-            _HubTile(
-              icon: Icons.settings,
-              title: 'Settings',
-              subtitle: 'Configure system preferences',
-              color: AppColors.accent,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const SettingsScreen()),
-                );
-              },
-            ),
-
-          _HubTile(
-            icon: Icons.info,
-            title: 'About CHC',
-            subtitle: 'System information and logs',
-            color: AppColors.primary,
-            onTap: () {
-              showAboutDialog(
-                context: context,
-                applicationName: 'CHC HMS',
-                applicationVersion: '1.0.0',
-                applicationLegalese: '© 2026 Chaudhary Health Care Center',
-              );
-            },
-          ),
-
-          _HubTile(
-            icon: Icons.logout,
-            title: 'Logout',
-            subtitle: 'Sign out securely from system',
-            color: AppColors.error,
-            onTap: _logout,
-          ),
-        ],
-      ),
+    // Returning the new Premium Role-Based Profile Screen
+    return UserProfileScreen(
+      role: userRole,
+      name: name,
+      email: email,
+      onLogout: _logout,
+      onNavigateToPatients: () => _switchTab(1),
     );
   }
 
@@ -1546,16 +1748,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Exporting ${_filteredPatients.length} patient records to Excel...',
-                              style: GoogleFonts.inter(fontSize: 12),
-                            ),
-                            backgroundColor: const Color(0xFF16A34A),
-                            duration: const Duration(seconds: 2),
-                          ),
-                        );
+                        AppSnackBar.showTopSnack(context, 'Exporting ${_filteredPatients.length} patient records to Excel...');
                       },
                     ),
                   ],
@@ -2138,57 +2331,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// ==================== HUB INTERFACE TILE ====================
-class _HubTile extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _HubTile({required this.icon, required this.title, required this.subtitle, required this.color, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 1,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, color: color, size: 22),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title, style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 2),
-                    Text(subtitle, style: GoogleFonts.inter(fontSize: 12, color: Colors.grey)),
-                  ],
-                ),
-              ),
-              const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.grey),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 // ==================== PATIENT TILE WIDGET ====================
 class _PatientTile extends StatefulWidget {
@@ -2391,7 +2533,7 @@ class _PatientTileState extends State<_PatientTile> {
                               color: const Color(0xFFF59E0B),
                               onTap: () => _showEditPatientModal(context, patient),
                             ),
-                          if (isAdmitted && canWriteNotes)
+                          if (isAdmitted && canWriteNotes && patientType == 'IPD')
                             _NativeActionButton(
                               icon: Icons.notes_rounded,
                               label: 'Notes',
@@ -2592,9 +2734,7 @@ class _PatientTileState extends State<_PatientTile> {
                       child: ElevatedButton.icon(
                         onPressed: () async {
                           if (nameCtrl.text.trim().isEmpty) {
-                            ScaffoldMessenger.of(ctx).showSnackBar(
-                              const SnackBar(content: Text('Please enter patient name'), backgroundColor: AppColors.error),
-                            );
+                            AppSnackBar.showTopSnack(ctx, 'Please enter patient name', isError: true);
                             return;
                           }
                           try {
@@ -2607,7 +2747,8 @@ class _PatientTileState extends State<_PatientTile> {
                               'problem': problemCtrl.text.trim(),
                               'doctor_assigned': doctor,
                             };
-                            await ApiService.updatePatient(patient['_id'] ?? patient['id'] ?? '', updateData);
+                            final patientId = (patient['patient_id'] ?? patient['_id'] ?? patient['id'] ?? '').toString();
+                            await ApiService.updatePatient(patientId, updateData);
                             if (ctx.mounted) Navigator.pop(ctx, true);
                           } catch (e) {
                             if (ctx.mounted) Navigator.pop(ctx, true); // Fallback for local demo state
@@ -2638,12 +2779,7 @@ class _PatientTileState extends State<_PatientTile> {
   // ── DELETE PATIENT MODAL (MATCHING WEB APP 2-STEP CONFIRMATION) ──
   Future<void> _confirmDeletePatient(BuildContext context, dynamic patient) async {
     if (!RoleAccess.canDeletePatient) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Access Denied. Only Admin and Developer can delete patients.'),
-          backgroundColor: Color(0xFFEF4444),
-        ),
-      );
+      AppSnackBar.showTopSnack(context, 'Access Denied. Only Admin and Developer can delete patients.', isError: true);
       return;
     }
 
@@ -2656,9 +2792,6 @@ class _PatientTileState extends State<_PatientTile> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) {
-        int currentStep = 1;
-        final typeController = TextEditingController();
-        bool isMatched = false;
         bool isDeleting = false;
 
         return StatefulBuilder(
@@ -2670,7 +2803,7 @@ class _PatientTileState extends State<_PatientTile> {
                 color: isDark ? const Color(0xFF0F172A) : Colors.white,
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
               ),
-              padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + bottomPadding),
+              padding: EdgeInsets.fromLTRB(20, 20, 20, 24 + bottomPadding),
               child: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -2686,12 +2819,12 @@ class _PatientTileState extends State<_PatientTile> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 18),
 
                     // Danger Icon Header
                     Container(
-                      width: 60,
-                      height: 60,
+                      width: 64,
+                      height: 64,
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
@@ -2707,205 +2840,93 @@ class _PatientTileState extends State<_PatientTile> {
                           ),
                         ],
                       ),
-                      child: const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 32),
+                      child: const Icon(Icons.delete_forever_rounded, color: Colors.white, size: 34),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 14),
 
                     Text(
-                      currentStep == 1 ? 'Delete Patient Record' : 'Final Confirmation',
+                      'Delete Patient Record',
                       style: GoogleFonts.inter(
-                        fontSize: 18,
+                        fontSize: 19,
                         fontWeight: FontWeight.w800,
                         color: const Color(0xFFEF4444),
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      currentStep == 1
-                          ? 'This action cannot be undone'
-                          : 'Type DELETE to permanently remove this record',
+                      'This action is permanent and cannot be undone',
                       style: GoogleFonts.inter(
                         fontSize: 12,
                         color: isDark ? Colors.white70 : const Color(0xFF64748B),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 18),
 
-                    // Step Indicator Dots Bar
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 250),
-                          width: currentStep == 1 ? 24 : 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFEF4444),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
+                    // Patient Info Box
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: isDark ? Colors.white10 : const Color(0xFFE2E8F0),
                         ),
-                        const SizedBox(width: 8),
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 250),
-                          width: currentStep == 2 ? 24 : 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: currentStep == 2
-                                ? const Color(0xFFEF4444)
-                                : (isDark ? Colors.white24 : const Color(0xFFE2E8F0)),
-                            borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 22,
+                            backgroundColor: const Color(0xFFFEE2E2),
+                            child: Text(
+                              patientName.isNotEmpty ? patientName[0].toUpperCase() : 'P',
+                              style: GoogleFonts.inter(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 16,
+                                color: const Color(0xFFDC2626),
+                              ),
+                            ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  patientName,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w800,
+                                    color: isDark ? Colors.white : const Color(0xFF1E293B),
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'ID: $patientId',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: const Color(0xFF0284C7),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 20),
-
-                    // STEP 1 CONTENT
-                    if (currentStep == 1) ...[
-                      // Patient Info Card
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: isDark ? Colors.white10 : const Color(0xFFE2E8F0),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            CircleAvatar(
-                              radius: 20,
-                              backgroundColor: const Color(0xFFE0E7FF),
-                              child: Text(
-                                patientName.isNotEmpty ? patientName[0].toUpperCase() : 'P',
-                                style: GoogleFonts.inter(
-                                  fontWeight: FontWeight.w700,
-                                  color: const Color(0xFF4F46E5),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    patientName,
-                                    style: GoogleFonts.inter(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w700,
-                                      color: isDark ? Colors.white : const Color(0xFF1E293B),
-                                    ),
-                                  ),
-                                  Text(
-                                    'ID: $patientId',
-                                    style: GoogleFonts.inter(
-                                      fontSize: 12,
-                                      color: isDark ? Colors.white60 : const Color(0xFF64748B),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Are you sure you want to permanently delete $patientName?\nAll associated billing, notes, and medical records will be deleted.',
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        color: isDark ? Colors.white70 : const Color(0xFF475569),
+                        height: 1.5,
                       ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'You are about to permanently delete this patient and all associated records including billing, notes, and medical history.\n\nAre you sure you want to proceed?',
-                        style: GoogleFonts.inter(
-                          fontSize: 13,
-                          color: isDark ? Colors.white70 : const Color(0xFF475569),
-                          height: 1.5,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-
-                    // STEP 2 CONTENT (TYPE DELETE CONFIRMATION)
-                    if (currentStep == 2) ...[
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFEF2F2),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFFFECACA)),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.warning_rounded, color: Color(0xFFDC2626), size: 20),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: RichText(
-                                text: TextSpan(
-                                  style: GoogleFonts.inter(fontSize: 12, color: const Color(0xFF991B1B)),
-                                  children: [
-                                    const TextSpan(text: 'Type '),
-                                    TextSpan(
-                                      text: 'DELETE',
-                                      style: GoogleFonts.inter(
-                                        fontWeight: FontWeight.w900,
-                                        color: const Color(0xFFDC2626),
-                                        letterSpacing: 1.2,
-                                      ),
-                                    ),
-                                    const TextSpan(text: ' below to confirm permanent deletion.'),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      TextField(
-                        controller: typeController,
-                        autofocus: true,
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.inter(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 3,
-                          color: isDark ? Colors.white : const Color(0xFF1E293B),
-                        ),
-                        decoration: InputDecoration(
-                          hintText: 'Type DELETE',
-                          hintStyle: GoogleFonts.inter(
-                            fontSize: 14,
-                            letterSpacing: 1,
-                            color: Colors.grey[400],
-                          ),
-                          filled: true,
-                          fillColor: isMatched
-                              ? const Color(0xFFFEF2F2)
-                              : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC)),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: isMatched
-                                  ? const Color(0xFFEF4444)
-                                  : (isDark ? Colors.white24 : const Color(0xFFCBD5E1)),
-                              width: isMatched ? 2 : 1,
-                            ),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: Color(0xFFEF4444), width: 2),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                        ),
-                        onChanged: (val) {
-                          setModalState(() {
-                            isMatched = val.trim().toUpperCase() == 'DELETE';
-                          });
-                        },
-                      ),
-                    ],
-
+                      textAlign: TextAlign.center,
+                    ),
                     const SizedBox(height: 24),
 
-                    // Modal Action Buttons
+                    // Action Buttons: Cancel and Delete Permanently
                     Row(
                       children: [
                         Expanded(
@@ -2928,27 +2949,34 @@ class _PatientTileState extends State<_PatientTile> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: (currentStep == 2 && (!isMatched || isDeleting))
+                            onPressed: isDeleting
                                 ? null
                                 : () async {
-                                    if (currentStep == 1) {
-                                      setModalState(() => currentStep = 2);
-                                    } else if (currentStep == 2 && isMatched) {
-                                      setModalState(() => isDeleting = true);
-                                      try {
-                                        await ApiService.deletePatient(patient['_id'] ?? patient['id'] ?? '');
+                                    setModalState(() => isDeleting = true);
+                                    try {
+                                      final pId = (patient['patient_id'] ?? patient['_id'] ?? patient['id'] ?? '').toString();
+                                      final res = await ApiService.deletePatient(pId);
+                                      if (res['success'] == true) {
                                         if (ctx.mounted) Navigator.pop(ctx, true);
-                                      } catch (e) {
+                                      } else {
                                         setModalState(() => isDeleting = false);
+                                        if (ctx.mounted) {
+                                          AppSnackBar.showTopSnack(ctx, res['message'] ?? 'Failed to delete patient', isError: true);
+                                        }
+                                      }
+                                    } catch (e) {
+                                      setModalState(() => isDeleting = false);
+                                      if (ctx.mounted) {
+                                        AppSnackBar.showTopSnack(ctx, 'Error deleting patient: $e', isError: true);
                                       }
                                     }
                                   },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFFEF4444),
-                              disabledBackgroundColor: const Color(0xFFEF4444).withValues(alpha: 0.4),
+                              disabledBackgroundColor: const Color(0xFFEF4444).withValues(alpha: 0.6),
                               padding: const EdgeInsets.symmetric(vertical: 14),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                              elevation: currentStep == 2 && isMatched ? 4 : 0,
+                              elevation: 3,
                             ),
                             child: isDeleting
                                 ? const SizedBox(
@@ -2959,16 +2987,14 @@ class _PatientTileState extends State<_PatientTile> {
                                 : Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Icon(
-                                        currentStep == 1
-                                            ? Icons.arrow_forward_rounded
-                                            : Icons.delete_forever_rounded,
+                                      const Icon(
+                                        Icons.delete_forever_rounded,
                                         color: Colors.white,
                                         size: 18,
                                       ),
                                       const SizedBox(width: 6),
                                       Text(
-                                        currentStep == 1 ? 'Yes, Proceed' : 'Delete Permanently',
+                                        'Delete Now',
                                         style: GoogleFonts.inter(
                                           fontWeight: FontWeight.w800,
                                           color: Colors.white,
@@ -2989,8 +3015,13 @@ class _PatientTileState extends State<_PatientTile> {
       },
     );
 
-    if (result == true && widget.onRefresh != null) {
-      widget.onRefresh!();
+    if (result == true) {
+      if (widget.onRefresh != null) {
+        widget.onRefresh!();
+      }
+      if (context.mounted) {
+        AppSnackBar.showTopSnack(context, 'Patient deleted successfully');
+      }
     }
   }
 
@@ -3117,7 +3148,8 @@ class _PatientTileState extends State<_PatientTile> {
                             ? null
                             : () async {
                                 try {
-                                  await ApiService.updatePatient(patient['_id'] ?? patient['id'] ?? '', {
+                                  final pId = (patient['patient_id'] ?? patient['_id'] ?? patient['id'] ?? '').toString();
+                                  await ApiService.updatePatient(pId, {
                                     'bed_no': selectedBed,
                                     'wardChargePerDay': double.tryParse(chargeCtrl.text.trim()) ?? 2000,
                                   });
@@ -3269,7 +3301,8 @@ class _PatientTileState extends State<_PatientTile> {
                             ? null
                             : () async {
                                 try {
-                                  await ApiService.updatePatient(patient['_id'] ?? patient['id'] ?? '', {
+                                  final pId = (patient['patient_id'] ?? patient['_id'] ?? patient['id'] ?? '').toString();
+                                  await ApiService.updatePatient(pId, {
                                     'patient_type': 'IPD',
                                     'bed_no': selectedBed,
                                     'wardChargePerDay': double.tryParse(chargeCtrl.text.trim()) ?? 2000,
@@ -3635,9 +3668,7 @@ class _PatientTileState extends State<_PatientTile> {
                                             }
                                           } catch (e) {
                                             if (ctx.mounted) {
-                                              ScaffoldMessenger.of(ctx).showSnackBar(
-                                                SnackBar(content: Text('Camera error: $e'), backgroundColor: Colors.red),
-                                              );
+                                              AppSnackBar.showTopSnack(ctx, 'Camera error: $e', isError: true);
                                             }
                                           }
                                         },
@@ -3666,9 +3697,7 @@ class _PatientTileState extends State<_PatientTile> {
                                             }
                                           } catch (e) {
                                             if (ctx.mounted) {
-                                              ScaffoldMessenger.of(ctx).showSnackBar(
-                                                SnackBar(content: Text('Gallery error: $e'), backgroundColor: Colors.red),
-                                              );
+                                              AppSnackBar.showTopSnack(ctx, 'Gallery error: $e', isError: true);
                                             }
                                           }
                                         },
@@ -3763,9 +3792,7 @@ class _PatientTileState extends State<_PatientTile> {
                                   child: ElevatedButton.icon(
                                     onPressed: () async {
                                       if (surgeryNameCtrl.text.trim().isEmpty) {
-                                        ScaffoldMessenger.of(ctx).showSnackBar(
-                                          const SnackBar(content: Text('Please enter surgery name / procedure'), backgroundColor: AppColors.error),
-                                        );
+                                        AppSnackBar.showTopSnack(ctx, 'Please enter surgery name / procedure', isError: true);
                                         return;
                                       }
                                       try {

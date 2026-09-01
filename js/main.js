@@ -1,11 +1,8 @@
 // ==================== GLOBAL VARIABLES ====================
 let currentUser = null;
 let currentModule = 'dashboard';
-// Use local IP for same-wifi mobile access, or the Render URL for production
-// Point to local backend for testing new features
-let API_BASE = (window.location.protocol === 'file:' || window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost')
-    ? 'http://127.0.0.1:5000/api/'
-    : 'https://chaudhary-hms-api-h7nl.onrender.com/api/';
+// Pointed to Live Render Server for 24/7 Connectivity
+let API_BASE = 'https://chaudhary-hms-api-h7nl.onrender.com/api/';
 
 // =================== GOOGLE AUTHENTICATION & INIT =================== //
 
@@ -616,9 +613,12 @@ async function switchToApp() {
         window.history.replaceState(null, '', '#dashboard');
     }
 
-    // Step 10: Initialize push notifications in background
+    // Step 10: Initialize push notifications & in-app pull-to-refresh
     if (typeof initPushNotifications === 'function') {
         initPushNotifications();
+    }
+    if (typeof initInAppPullToRefresh === 'function') {
+        initInAppPullToRefresh();
     }
 }
 
@@ -781,6 +781,25 @@ function updateUserInfo() {
                 avatarDiv.style.background = 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)';
             } else {
                 avatarDiv.innerHTML = '<i class="bi bi-person"></i>';
+            }
+        }
+
+        // Update Desktop Top Executive Bar User Pill
+        const dtName = document.getElementById('desktop-user-fullname');
+        if (dtName) dtName.textContent = currentUser.name || 'User';
+        const dtRole = document.getElementById('desktop-user-rolepill');
+        if (dtRole) dtRole.textContent = currentUser.role || 'Staff';
+        const dtAvatar = document.getElementById('desktop-user-avatar-wrap');
+        if (dtAvatar) {
+            if (currentUser.avatar) {
+                const baseUrl = API_BASE.replace('/api/', '');
+                const fullUrl = currentUser.avatar.startsWith('http') || currentUser.avatar.startsWith('data:') ? currentUser.avatar : `${baseUrl}${currentUser.avatar}`;
+                dtAvatar.innerHTML = `<img src="${fullUrl}" alt="User" style="width: 30px; height: 30px; object-fit: cover; border-radius: 50%; border: 1px solid var(--border);">`;
+            } else if (currentUser.name && currentUser.name.trim().length > 0) {
+                const initials = currentUser.name.trim().split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                dtAvatar.innerHTML = `<div style="width: 30px; height: 30px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700;">${initials}</div>`;
+            } else {
+                dtAvatar.innerHTML = `<div style="width: 30px; height: 30px; border-radius: 50%; background: #e2e8f0; color: #64748b; display: flex; align-items: center; justify-content: center; font-size: 14px;"><i class="bi bi-person"></i></div>`;
             }
         }
 
@@ -1015,24 +1034,25 @@ function showModule(moduleName, preventHashUpdate = false) {
 
     // Determine which bottom nav item should be active based on the module
     let bottomNavTarget = moduleName;
-    if (['patients', 'add-patient', 'daily-notes'].includes(moduleName)) {
+    if (['patients', 'daily-notes', 'patient-hub'].includes(moduleName)) {
         bottomNavTarget = 'patient-hub';
-    } else if (['billing', 'discharge'].includes(moduleName)) {
+    } else if (moduleName === 'add-patient') {
+        bottomNavTarget = 'add-patient';
+    } else if (['billing', 'discharge', 'billing-hub'].includes(moduleName)) {
         bottomNavTarget = 'billing-hub';
-    } else if (['settings', 'users', 'reports', 'patient-record'].includes(moduleName)) {
+    } else if (['settings', 'users', 'reports', 'patient-record', 'profile-hub'].includes(moduleName)) {
         bottomNavTarget = 'profile-hub';
     }
 
     const activeBottomItem = document.querySelector(`.bottom-nav-item[onclick*="${bottomNavTarget}"]`);
     if (activeBottomItem) {
         activeBottomItem.classList.add('active');
-        const iconEl = activeBottomItem.querySelector('i');
-        // If it's a hub, we might not have a direct iconMap fill for 'patient-hub', but let's try
+        const iconEl = activeBottomItem.querySelector('i:not(.nav-center-bubble i)');
         const hubIconMap = {
             'dashboard': { fill: 'bi-house-fill' },
             'patient-hub': { fill: 'bi-people-fill' },
             'billing-hub': { fill: 'bi-credit-card-fill' },
-            'profile-hub': { fill: 'bi-person-circle' } // Assume person-circle is filled enough
+            'profile-hub': { fill: 'bi-person-circle' }
         };
         if (iconEl && hubIconMap[bottomNavTarget]) {
             iconEl.className = `bi ${hubIconMap[bottomNavTarget].fill}`;
@@ -1094,21 +1114,36 @@ function loadModule(moduleName) {
     if (moduleEl) {
         moduleEl.classList.add('active');
 
-        const titles = {
-            'patient-record': 'In-Patient Record Registry',
-            'dashboard': '',
-            'patients': 'Patient Management',
-            'add-patient': 'Add New Patient',
-            'daily-notes': 'Daily Treatment Notes',
-            'billing': 'Billing & Payments',
-            'discharge': 'Patient Discharge',
-            'users': 'User Management',
-            'reports': 'Reports & Analytics',
-            'settings': 'System Settings'
+        const pageMeta = {
+            'dashboard': { title: 'Dashboard', subtitle: 'Hospital Overview & Real-Time Performance' },
+            'patients': { title: 'Patient Directory', subtitle: 'Active & Registered Hospital Patients' },
+            'add-patient': { title: 'New Admission', subtitle: 'Admit or Register OPD / IPD Patient' },
+            'daily-notes': { title: 'Clinical Notes', subtitle: 'Daily Progress & Nurse Observations' },
+            'billing': { title: 'Billing & Invoices', subtitle: 'Payments, Settlement & Financial Records' },
+            'discharge': { title: 'Discharge Summary', subtitle: 'Discharge Summaries & Medical Certificates' },
+            'users': { title: 'User Management', subtitle: 'Staff Accounts & System Access Control' },
+            'reports': { title: 'Analytics & Reports', subtitle: 'Hospital Insights & Operational Data' },
+            'patient-record': { title: 'Medical Records', subtitle: 'Historical Patient Files & Case History' },
+            'settings': { title: 'System Settings', subtitle: 'Hospital Preferences & Bed Configurations' }
         };
 
-        const pageTitle = titles[moduleName] !== undefined ? titles[moduleName] : moduleName;
-        document.getElementById('page-title').textContent = pageTitle;
+        const meta = pageMeta[moduleName] || { title: moduleName.toUpperCase(), subtitle: '' };
+        const dtTitle = document.getElementById('desktop-page-title');
+        if (dtTitle) dtTitle.textContent = meta.title;
+        const dtSub = document.getElementById('desktop-page-subtitle');
+        if (dtSub) dtSub.textContent = meta.subtitle;
+
+        // Header only visible on dashboard; hidden on other modules to shift content to the top
+        const topHeader = document.getElementById('desktop-top-header');
+        if (topHeader) {
+            if (moduleName === 'dashboard') {
+                topHeader.style.display = 'flex';
+            } else {
+                topHeader.style.display = 'none';
+            }
+        }
+
+        document.getElementById('page-title').textContent = meta.title;
 
         const contentHeader = document.querySelector('.content-header');
         if (contentHeader) {
@@ -2397,6 +2432,139 @@ setInterval(() => {
 // Initial run for static content
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.form-group, .input-group, .surgery-form-grid > div, .surgery-consent-grid div > div').forEach(updateGroupFloatingState);
+    initInAppPullToRefresh();
 });
+
+// ==================== IN-APP PULL TO REFRESH (SPA MODULE-LEVEL) ====================
+function initInAppPullToRefresh() {
+    let startY = 0;
+    let currentY = 0;
+    let isPulling = false;
+    let isRefreshing = false;
+    const threshold = 65;
+
+    const indicator = document.getElementById('inapp-ptr-indicator');
+    const iconWrap = document.getElementById('ptr-icon-wrap');
+    const textEl = document.getElementById('ptr-text');
+
+    if (!indicator) return;
+
+    window.addEventListener('touchstart', (e) => {
+        // Only allow PTR when at the very top of page
+        const scrollContainer = document.querySelector('.main-content') || window;
+        const scrollTop = window.scrollY || document.documentElement.scrollTop || (scrollContainer.scrollTop || 0);
+
+        // Do not trigger inside active modals or drawer
+        const hasOpenModal = document.querySelector('.modal.active, .notification-drawer.active, #sidebar-overlay.active');
+        if (hasOpenModal || scrollTop > 5 || isRefreshing) {
+            isPulling = false;
+            return;
+        }
+
+        startY = e.touches[0].clientY;
+        isPulling = true;
+    }, { passive: true });
+
+    window.addEventListener('touchmove', (e) => {
+        if (!isPulling || isRefreshing) return;
+
+        currentY = e.touches[0].clientY;
+        const deltaY = currentY - startY;
+
+        if (deltaY > 8) {
+            // Apply rubber-band damping curve
+            const pullDistance = Math.min(85, deltaY * 0.45);
+            indicator.style.transform = `translateX(-50%) translateY(${pullDistance + 10}px)`;
+            indicator.style.opacity = Math.min(1, pullDistance / 35);
+
+            const rotation = (pullDistance / threshold) * 360;
+            if (iconWrap) iconWrap.style.transform = `rotate(${rotation}deg)`;
+
+            if (pullDistance >= threshold) {
+                if (textEl) textEl.textContent = 'Release to refresh';
+                indicator.classList.add('ready');
+            } else {
+                if (textEl) textEl.textContent = 'Pull to refresh';
+                indicator.classList.remove('ready');
+            }
+        }
+    }, { passive: true });
+
+    window.addEventListener('touchend', async () => {
+        if (!isPulling || isRefreshing) return;
+        isPulling = false;
+
+        const deltaY = currentY - startY;
+        const pullDistance = Math.min(85, deltaY * 0.45);
+
+        if (pullDistance >= threshold) {
+            // Trigger refresh on active module
+            isRefreshing = true;
+            indicator.style.transform = `translateX(-50%) translateY(65px)`;
+            indicator.style.opacity = '1';
+            indicator.classList.add('refreshing');
+            if (textEl) textEl.textContent = 'Refreshing data...';
+            if (iconWrap) iconWrap.classList.add('ptr-spin');
+
+            try {
+                await refreshActiveModuleData();
+            } catch (err) {
+                console.warn('Module refresh error:', err);
+            }
+
+            // Success feedback
+            if (textEl) textEl.textContent = 'Updated!';
+            if (iconWrap) iconWrap.classList.remove('ptr-spin');
+
+            setTimeout(() => {
+                indicator.style.transform = `translateX(-50%) translateY(-100px)`;
+                indicator.style.opacity = '0';
+                indicator.classList.remove('refreshing', 'ready');
+                isRefreshing = false;
+            }, 500);
+        } else {
+            // Cancel pull
+            indicator.style.transform = `translateX(-50%) translateY(-100px)`;
+            indicator.style.opacity = '0';
+            indicator.classList.remove('ready');
+        }
+    });
+}
+
+async function refreshActiveModuleData() {
+    const mod = currentModule || 'dashboard';
+
+    // Clear caches for this module so fresh data is fetched
+    if (mod === 'patients') {
+        localStorage.removeItem('patients');
+        localStorage.removeItem('cache_available_beds');
+    }
+    if (mod === 'billing') {
+        localStorage.removeItem('billings');
+    }
+
+    const refreshMap = {
+        'dashboard': async () => typeof renderDashboard === 'function' && renderDashboard(),
+        'patients': async () => typeof loadPatients === 'function' && loadPatients(),
+        'add-patient': async () => typeof renderAddPatient === 'function' && renderAddPatient(),
+        'daily-notes': async () => typeof loadDailyNotes === 'function' && loadDailyNotes(),
+        'billing': async () => typeof loadBillingData === 'function' && loadBillingData(),
+        'discharge': async () => typeof loadDischargeData === 'function' && loadDischargeData(),
+        'users': async () => typeof loadUsers === 'function' && loadUsers(),
+        'reports': async () => typeof window.updateReportsDashboard === 'function' && window.updateReportsDashboard(),
+        'patient-record': async () => typeof loadPatientRecords === 'function' && loadPatientRecords(),
+        'settings': async () => typeof loadSettings === 'function' && loadSettings()
+    };
+
+    const fn = refreshMap[mod];
+    if (fn) {
+        await fn();
+    }
+    // Small delay to ensure smooth UX
+    await new Promise(r => setTimeout(r, 450));
+}
+
+window.initInAppPullToRefresh = initInAppPullToRefresh;
+window.refreshActiveModuleData = refreshActiveModuleData;
 
 

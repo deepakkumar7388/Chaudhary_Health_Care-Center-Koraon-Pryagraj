@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme.dart';
 import '../services/api_service.dart';
+import '../widgets/app_snackbar.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -90,9 +92,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       );
       if (!mounted) return;
       if (result['success'] == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Password reset successfully!'), backgroundColor: AppColors.success),
-        );
+        AppSnackBar.showTopSnack(context, 'Password reset successfully!');
         Navigator.pop(context);
       } else {
         setState(() { _message = result['message'] ?? 'Failed to reset password'; _isError = true; });
@@ -118,7 +118,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Forgot Password')),
+      appBar: AppBar(
+        systemOverlayStyle: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+        title: const Text('Forgot Password'),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(28),
         child: Column(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/api_service.dart';
 
@@ -164,6 +165,7 @@ class _EditBillLineItemsScreenState extends State<EditBillLineItemsScreen> {
     return Scaffold(
       backgroundColor: bgColor,
       appBar: AppBar(
+        systemOverlayStyle: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
         title: Text(
           'Edit Bill Line Items',
           style: GoogleFonts.inter(fontWeight: FontWeight.w800, fontSize: 18, color: textColor),

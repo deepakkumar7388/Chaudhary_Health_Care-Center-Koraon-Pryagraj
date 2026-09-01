@@ -16,7 +16,7 @@ exports.signup = async (req, res) => {
 
         // Check if this is the first user
         const userCount = await User.countDocuments();
-        
+
         let status = 'pending';
         let finalRole = role || 'staff';
 
@@ -95,7 +95,7 @@ exports.signup = async (req, res) => {
 
                         // Send welcome email non-blocking
                         const { sendWelcomeEmail } = require('../config/emailService');
-                        sendWelcomeEmail(email, name, finalRole).catch(() => {});
+                        sendWelcomeEmail(email, name, finalRole).catch(() => { });
 
                         return res.status(201).json({
                             success: true,
@@ -111,10 +111,10 @@ exports.signup = async (req, res) => {
         }
 
         // --- PUBLIC SIGNUP (OTP REQUIRED) --- //
-        
+
         // Generate 6-digit OTP
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        
+
         // Store in cache for 10 minutes
         signupOtpCache.set(email, {
             otp,
@@ -126,10 +126,10 @@ exports.signup = async (req, res) => {
         const { sendOtpEmail } = require('../config/emailService');
         await sendOtpEmail(email, otp, name);
 
-        res.status(200).json({ 
-            success: true, 
-            requiresOtp: true, 
-            message: 'OTP sent to your email. Please verify to complete signup.' 
+        res.status(200).json({
+            success: true,
+            requiresOtp: true,
+            message: 'OTP sent to your email. Please verify to complete signup.'
         });
 
     } catch (error) {
@@ -157,7 +157,7 @@ exports.verifySignupOtp = async (req, res) => {
 
         // OTP is valid. Create the user.
         const { name, mobile, username, password, role, status } = cached.userData;
-        
+
         const newUser = new User({ name, email, mobile, username, password, role, status });
         await newUser.save();
 
@@ -438,7 +438,7 @@ exports.updateUser = async (req, res) => {
         if (password) {
             updateData.password = await require('bcryptjs').hash(password, 10);
         }
-        
+
         const user = await User.findByIdAndUpdate(targetId, updateData, { new: true }).select('-password');
         if (!user) return res.status(404).json({ success: false, message: 'User not found' });
         res.status(200).json({ success: true, user });

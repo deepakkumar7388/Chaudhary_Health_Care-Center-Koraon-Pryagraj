@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme.dart';
 import '../services/api_service.dart';
+import '../widgets/app_snackbar.dart';
 
 class AddPatientScreen extends StatefulWidget {
   const AddPatientScreen({super.key});
@@ -193,25 +195,11 @@ class _AddPatientScreenState extends State<AddPatientScreen>
 
       if (!isOpd) {
         if (_gender == null || _gender!.isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Please select Gender first', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
-              backgroundColor: AppColors.error,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-          );
+          AppSnackBar.showTopSnack(context, 'Please select Gender first', isError: true);
           return;
         }
         if (_bedNumber == null || _bedNumber!.isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Please select a Bed Number for IPD Admission', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
-              backgroundColor: AppColors.error,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-          );
+          AppSnackBar.showTopSnack(context, 'Please select a Bed Number for IPD Admission', isError: true);
           return;
         }
       }
@@ -250,40 +238,19 @@ class _AddPatientScreenState extends State<AddPatientScreen>
       final result = await ApiService.createPatient(data);
       if (!mounted) return;
       if (result['success'] == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              isOpd
-                  ? 'OPD Patient Registered! ID: ${result['patient']?['patient_id'] ?? ''}'
-                  : 'IPD Patient Admitted! ID: ${result['patient']?['patient_id'] ?? ''}',
-              style: GoogleFonts.inter(fontWeight: FontWeight.w600),
-            ),
-            backgroundColor: _primary,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
+        AppSnackBar.showTopSnack(
+          context,
+          isOpd
+              ? 'OPD Patient Registered! ID: ${result['patient']?['patient_id'] ?? ''}'
+              : 'IPD Patient Admitted! ID: ${result['patient']?['patient_id'] ?? ''}',
         );
         Navigator.pop(context, true);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result['message'] ?? 'Failed to register patient'),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-        );
+        AppSnackBar.showTopSnack(context, result['message'] ?? 'Failed to register patient', isError: true);
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Error: Cannot connect to server'),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-      );
+      AppSnackBar.showTopSnack(context, 'Error: Cannot connect to server', isError: true);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -294,8 +261,10 @@ class _AddPatientScreenState extends State<AddPatientScreen>
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = isDark ? AppColors.backgroundDark : _bg;
 
-    return Scaffold(
-      backgroundColor: bg,
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+      child: Scaffold(
+        backgroundColor: bg,
       body: SafeArea(
         child: GestureDetector(
           onTap: () => FocusScope.of(context).unfocus(),
@@ -321,7 +290,8 @@ class _AddPatientScreenState extends State<AddPatientScreen>
               _buildBottomBar(isDark),
             ],
           ),
-        ),
+          ),
+      ),
       ),
     );
   }

@@ -7,6 +7,15 @@ import 'role_access.dart';
 
 class ApiService {
   static String? _token;
+  static VoidCallback? onSessionExpired;
+
+  static void _checkAuthError(http.Response response) {
+    if (response.statusCode == 401) {
+      debugPrint('[ApiService] 401 Unauthorized - Session expired: ${response.body}');
+      logout();
+      onSessionExpired?.call();
+    }
+  }
 
   static Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
@@ -29,21 +38,6 @@ class ApiService {
         'Content-Type': 'application/json',
         if (_token != null) 'Authorization': 'Bearer $_token',
       };
-
-  // ==================== MOCK AUTH BYPASS ====================
-  static Future<void> saveMockLogin(Map<String, dynamic> mockResponse) async {
-    _token = mockResponse['token'];
-    final userObj = mockResponse['user'];
-    
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('token', _token!);
-    await prefs.setString('user', jsonEncode(userObj));
-
-    RoleAccess.setRole(
-      userObj['role'] as String,
-      billingAccess: userObj['billingAccess'] == true,
-    );
-  }
 
   // ==================== AUTH ====================
   static Future<Map<String, dynamic>> login(String email, String password) async {
@@ -105,7 +99,6 @@ class ApiService {
     return null;
   }
 
-
   static Future<Map<String, dynamic>> forgotPassword(String email) async {
     final response = await http.post(
       Uri.parse('${apiBaseUrl}auth/forgot-password'),
@@ -124,13 +117,30 @@ class ApiService {
     return jsonDecode(response.body);
   }
 
+  static Future<Map<String, dynamic>> verifyPassword(String password) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${apiBaseUrl}auth/verify-password'),
+        headers: _headers,
+        body: jsonEncode({'password': password}),
+      ).timeout(const Duration(seconds: 10));
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Connection failed: $e'};
+    }
+  }
+
   static Future<Map<String, dynamic>> resetPassword(String email, String otp, String newPassword) async {
-    final response = await http.post(
-      Uri.parse('${apiBaseUrl}auth/reset-password'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'email': email, 'otp': otp, 'newPassword': newPassword}),
-    );
-    return jsonDecode(response.body);
+    try {
+      final response = await http.post(
+        Uri.parse('${apiBaseUrl}auth/reset-password'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'otp': otp, 'newPassword': newPassword}),
+      ).timeout(const Duration(seconds: 10));
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Connection failed: $e'};
+    }
   }
 
   // ==================== PATIENTS ====================
@@ -140,12 +150,20 @@ class ApiService {
         Uri.parse('${apiBaseUrl}patients'),
         headers: _headers,
       ).timeout(const Duration(seconds: 10));
-      final data = jsonDecode(response.body);
-      if (data['success'] == true) {
-        return List<dynamic>.from(data['patients'] ?? []);
+      debugPrint('[getPatients] Status: ${response.statusCode}');
+      _checkAuthError(response);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          final list = List<dynamic>.from(data['patients'] ?? []);
+          debugPrint('[getPatients] Fetched ${list.length} patients successfully');
+          return list;
+        }
+      } else {
+        debugPrint('[getPatients] Server returned error ${response.statusCode}: ${response.body}');
       }
     } catch (e) {
-      debugPrint('getPatients network error: $e');
+      debugPrint('[getPatients] Network error: $e');
     }
     return [];
   }
@@ -158,11 +176,11 @@ class ApiService {
     return jsonDecode(response.body);
   }
 
-  static Future<Map<String, dynamic>> createPatient(Map<String, dynamic> patientData) async {
+  static Future<Map<String, dynamic>> createPatient(Map<String, dynamic> data) async {
     final response = await http.post(
       Uri.parse('${apiBaseUrl}patients'),
       headers: _headers,
-      body: jsonEncode(patientData),
+      body: jsonEncode(data),
     );
     return jsonDecode(response.body);
   }
@@ -204,7 +222,7 @@ class ApiService {
         return List<dynamic>.from(data['notes'] ?? []);
       }
     } catch (e) {
-      debugPrint('getDailyNotes network error: $e');
+      debugPrint('getDailyNotes error: $e');
     }
     return [];
   }
@@ -228,6 +246,14 @@ class ApiService {
   }
 
   // ==================== BILLING ====================
+  static Future<Map<String, dynamic>> getAllBillings() async {
+    final response = await http.get(
+      Uri.parse('${apiBaseUrl}billing/'),
+      headers: _headers,
+    );
+    return jsonDecode(response.body);
+  }
+
   static Future<Map<String, dynamic>> getBilling(String patientId) async {
     final response = await http.get(
       Uri.parse('${apiBaseUrl}billing/$patientId'),
@@ -412,6 +438,19 @@ class ApiService {
       return jsonDecode(response.body);
     } catch (e) {
       return {'success': false, 'message': e.toString()};
+    }
+  }
+
+  // ==================== NOTIFICATIONS ====================
+  static Future<Map<String, dynamic>> getNotifications() async {
+    try {
+      final response = await http.get(
+        Uri.parse('${apiBaseUrl}notifications'),
+        headers: _headers,
+      ).timeout(const Duration(seconds: 10));
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Connection failed: $e', 'notifications': []};
     }
   }
 

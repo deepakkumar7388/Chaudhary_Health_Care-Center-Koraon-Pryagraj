@@ -2,9 +2,86 @@ const express = require('express');
 const router = express.Router();
 const { authenticate } = require('../middleware/auth');
 const FCMToken = require('../models/FCMToken');
+const Patient = require('../models/Patient');
+const User = require('../models/User');
 const { admin } = require('../config/firebase');
 
+// ==================== GET LIVE NOTIFICATIONS ====================
+// Returns live hospital notifications from real MongoDB patient & system events
+router.get('/', authenticate, async (req, res) => {
+    try {
+        const notifications = [];
+
+        // 1. Recent Patient Admissions & Discharges
+        const recentPatients = await Patient.find({ isDeleted: false })
+            .sort({ createdAt: -1 })
+            .limit(12)
+            .lean();
+
+        recentPatients.forEach(p => {
+            const isDischarged = p.status === 'Discharged';
+            if (isDischarged && p.discharge_date) {
+                notifications.push({
+                    id: `discharge_${p._id}`,
+                    title: `Patient Discharged: ${p.name}`,
+                    message: `${p.patient_type || 'IPD'} Patient ${p.name} (ID: ${p.patient_id}) was discharged. Pending balance: ₹${p.pending_amount || 0}.`,
+                    timestamp: p.discharge_date || p.createdAt,
+                    type: 'success',
+                    category: 'discharge'
+                });
+            }
+
+            notifications.push({
+                id: `admission_${p._id}`,
+                title: `New ${p.patient_type || 'IPD'} Admission: ${p.name}`,
+                message: `${p.name} (ID: ${p.patient_id}) admitted with "${p.problem || 'General Checkup'}". Assigned to ${p.doctor_assigned || 'Duty Doctor'}${p.bed_no ? ` on Bed ${p.bed_no}` : ''}.`,
+                timestamp: p.createdAt || p.admission_date,
+                type: p.patient_type === 'IPD' ? 'info' : 'success',
+                category: 'admission'
+            });
+        });
+
+        // 2. Pending User Approvals (for Admin & Developer)
+        if (req.user?.role === 'admin' || req.user?.role === 'developer') {
+            const pendingUsers = await User.find({ status: 'pending' }).lean();
+            pendingUsers.forEach(u => {
+                notifications.push({
+                    id: `user_pending_${u._id}`,
+                    title: `Pending User Approval: ${u.name}`,
+                    message: `${u.name} (${u.email}) registered as ${u.role}. Needs administrator verification.`,
+                    timestamp: u.createdAt || new Date(),
+                    type: 'warning',
+                    category: 'security'
+                });
+            });
+        }
+
+        // 3. System Connection Status
+        notifications.push({
+            id: 'sys_online',
+            title: 'Database Synchronized',
+            message: 'HMS Core v2.0 is actively connected to MongoDB Cloud Atlas database.',
+            timestamp: new Date(Date.now() - 3600000),
+            type: 'info',
+            category: 'system'
+        });
+
+        // Sort by timestamp descending
+        notifications.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+        res.json({
+            success: true,
+            total: notifications.length,
+            notifications: notifications.slice(0, 20)
+        });
+    } catch (err) {
+        console.error('[Notifications] Fetch error:', err.message);
+        res.status(500).json({ success: false, message: 'Failed to fetch notifications' });
+    }
+});
+
 // ==================== SUBSCRIBE ====================
+
 // Save or update FCM token for a user
 router.post('/subscribe', authenticate, async (req, res) => {
     try {

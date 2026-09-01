@@ -1,14 +1,14 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
-import '../theme.dart';
 import '../services/api_service.dart';
 import '../services/role_access.dart';
+import '../widgets/app_snackbar.dart';
 import 'edit_bill_line_items_screen.dart';
 import 'discharge_screen.dart';
 
@@ -155,24 +155,23 @@ class _BillingScreenState extends State<BillingScreen> {
                     onPressed: () async {
                       final amount = double.tryParse(amountController.text.trim());
                       if (amount == null || amount <= 0) {
-                        ScaffoldMessenger.of(ctx).showSnackBar(
-                          const SnackBar(content: Text('Please enter a valid amount'), backgroundColor: AppColors.error),
-                        );
+                        AppSnackBar.showTopSnack(ctx, 'Please enter a valid amount', isError: true);
                         return;
                       }
                       try {
+                        final currentUser = await ApiService.getSavedUser();
+                        final userName = currentUser?['name'] ?? 'Mobile User';
                         final pId = (widget.patient['patient_id'] ?? widget.patient['_id'] ?? widget.patient['id'] ?? '').toString();
                         await ApiService.addPayment(pId, {
                           'amount': amount,
                           'mode': modeController.text,
                           'note': noteController.text.trim(),
+                          'performed_by': userName,
                         });
                         if (ctx.mounted) Navigator.pop(ctx, true);
                       } catch (e) {
                         if (ctx.mounted) {
-                          ScaffoldMessenger.of(ctx).showSnackBar(
-                            const SnackBar(content: Text('Failed to add payment'), backgroundColor: AppColors.error),
-                          );
+                          AppSnackBar.showTopSnack(ctx, 'Failed to add payment', isError: true);
                         }
                       }
                     },
@@ -288,23 +287,36 @@ class _BillingScreenState extends State<BillingScreen> {
         </style>
       </head>
       <body>
-        <table class="header-table">
+        <table style="width: 100%; border-collapse: collapse;">
           <tr>
-            <td style="width: 60px; vertical-align: middle;">
-              ${logoDataUrl.isNotEmpty ? '<img src="$logoDataUrl" style="width: 50px; height: 50px; border-radius: 8px;" />' : ''}
+            <td style="width: 90px; text-align: left; vertical-align: middle;">
+              ${logoDataUrl.isNotEmpty ? '<img src="$logoDataUrl" style="width: 80px; height: 80px; border-radius: 50%;" />' : ''}
             </td>
-            <td style="vertical-align: middle; padding-left: 8px;">
-              <div style="font-size: 16px; font-weight: 900; color: #0f172a; letter-spacing: -0.3px;">CHAUDHARY HEALTH CARE CENTER</div>
-              <div style="font-size: 9.5px; color: #475569; margin-top: 2px;">GANDHI CHAURAHA, MEJA WALI ROAD, KORAON-PRAYAGRAJ 212306</div>
-              <div style="font-size: 9.5px; color: #0284c7; font-weight: 700; margin-top: 2px;">Helpline: +91 9935100000 | Email: contact@chchealth.com</div>
+            <td style="vertical-align: middle; text-align: center;">
+              <div style="font-size: 38px; font-weight: 900; color: #1e3a8a; letter-spacing: -0.5px; margin: 0; line-height: 1.1; white-space: nowrap;">CHAUDHARY HEALTH CARE CENTER</div>
+              <div style="font-size: 13px; font-weight: 700; color: #dc2626; margin-top: 4px;">GANDHI CHAURAHA, MEJA WALI ROAD, KORAON-PRAYAGRAJ 212306</div>
             </td>
-            <td style="text-align: right; vertical-align: middle;">
-              <div style="font-size: 13px; font-weight: 900; color: #0284c7;">TAX INVOICE / MEDICAL BILL</div>
-              <div style="font-size: 9.5px; font-weight: 700; color: #475569; margin-top: 3px;">Date: $dateStr</div>
-              <div style="font-size: 9px; color: #64748b;">Time: $timeStr</div>
+            <td style="width: 90px; text-align: right; vertical-align: middle;">
+              <!-- Placeholder for right logo if needed -->
             </td>
           </tr>
         </table>
+        <table style="width: 100%; margin-top: 12px; border-bottom: 1px solid #cbd5e1; padding-bottom: 10px; margin-bottom: 15px;">
+          <tr>
+            <td style="text-align: left; vertical-align: top;">
+              <div style="font-size: 16px; font-weight: 900; color: #1e3a8a;">Dr. B.K. Chaudhary</div>
+              <div style="font-size: 12.5px; font-weight: 700; color: #dc2626; margin-top: 2px;">(M.D. Medicine)</div>
+            </td>
+            <td style="text-align: right; font-size: 11px; color: #475569; line-height: 1.4; vertical-align: top; font-weight: 600;">
+              Consulting Timing : 10:00 am to 2:00 pm<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: 5:00 pm to 8:00 pm
+            </td>
+          </tr>
+        </table>
+        
+        <div style="text-align: right; margin-bottom: 15px;">
+          <div style="font-size: 13px; font-weight: 900; color: #0284c7;">TAX INVOICE / MEDICAL BILL</div>
+          <div style="font-size: 9.5px; font-weight: 700; color: #475569; margin-top: 3px;">Date: $dateStr</div>
+        </div>
 
         <div class="patient-box">
           <table style="width: 100%; border-collapse: collapse; font-size: 10.5px;">
@@ -402,6 +414,7 @@ class _BillingScreenState extends State<BillingScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       appBar: AppBar(
+        systemOverlayStyle: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
         title: Text(
           'Tax Invoice & Ledger',
           style: GoogleFonts.inter(fontWeight: FontWeight.w800, fontSize: 18),

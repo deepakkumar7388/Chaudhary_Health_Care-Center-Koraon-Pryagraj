@@ -59,4 +59,20 @@ const patientSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 });
 
+// Automatic Real-Time Database Event Trigger
+patientSchema.post('save', function(doc) {
+    try {
+        const { emitPatientAdmitted, emitPatientDischarged, emitPatientUpdated } = require('../socket/socketHandler');
+        if (doc.status === 'Discharged') {
+            emitPatientDischarged(doc);
+        } else if (doc.isNew || (Date.now() - new Date(doc.createdAt).getTime()) < 10000) {
+            emitPatientAdmitted(doc);
+        } else {
+            emitPatientUpdated(doc);
+        }
+    } catch (err) {
+        console.error('[Patient Hook] Error emitting realtime event:', err.message);
+    }
+});
+
 module.exports = mongoose.model('Patient', patientSchema);

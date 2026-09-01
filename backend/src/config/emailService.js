@@ -98,6 +98,7 @@ async function getTransporter() {
  * If HTTP API (Google Apps Script) is configured, use ONLY that.
  * SMTP is used ONLY when no HTTP API URL is configured.
  */
+
 async function sendEmail({ to, subject, html }) {
   const { transporter, fromLine, emailApiUrl, systemName } = await getTransporter();
 

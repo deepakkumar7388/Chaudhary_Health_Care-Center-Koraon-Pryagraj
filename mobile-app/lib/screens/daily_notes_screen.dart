@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../theme.dart';
 import '../services/api_service.dart';
+import '../widgets/app_snackbar.dart';
 import '../services/role_access.dart';
+import '../theme.dart';
 
 class DailyNotesScreen extends StatefulWidget {
   final Map<String, dynamic>? patient;
@@ -17,14 +19,10 @@ class _DailyNotesScreenState extends State<DailyNotesScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   Map<String, dynamic>? _selectedPatient;
-  List<dynamic> _patients = [];
-  List<dynamic> _filteredPatients = [];
   bool _isLoadingNotes = false;
 
   List<dynamic> _vitalsNotes = [];
   List<dynamic> _medicationNotes = [];
-
-  final _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -32,37 +30,15 @@ class _DailyNotesScreenState extends State<DailyNotesScreen>
     _tabController = TabController(length: 2, vsync: this);
     _selectedPatient = widget.patient;
 
-    _loadPatients().then((_) {
-      if (_selectedPatient != null) {
-        _loadNotesForPatient(_selectedPatient!['_id']);
-      }
-    });
+    if (_selectedPatient != null) {
+      _loadNotesForPatient(_selectedPatient!['_id']);
+    }
   }
 
   @override
   void dispose() {
     _tabController.dispose();
-    _searchController.dispose();
     super.dispose();
-  }
-
-  Future<void> _loadPatients() async {
-    try {
-      final list = await ApiService.getPatients();
-      // Filter out discharged patients matching web logic
-      _patients = list.where((p) {
-        final status = (p['status'] ?? 'Admitted').toString().toUpperCase();
-        return status != 'DISCHARGED';
-      }).toList();
-      _filteredPatients = _patients;
-
-      // If no patient passed via constructor, default select first patient
-      if (_selectedPatient == null && _patients.isNotEmpty) {
-        _selectedPatient = _patients.first;
-      }
-    } catch (e) {
-      debugPrint('Error loading patients: $e');
-    }
   }
 
   Future<void> _loadNotesForPatient(String patientId) async {
@@ -87,21 +63,6 @@ class _DailyNotesScreenState extends State<DailyNotesScreen>
       debugPrint('Error loading notes: $e');
     }
     if (mounted) setState(() => _isLoadingNotes = false);
-  }
-
-  void _filterPatients(String query) {
-    final q = query.toLowerCase().trim();
-    setState(() {
-      if (q.isEmpty) {
-        _filteredPatients = _patients;
-      } else {
-        _filteredPatients = _patients.where((p) {
-          final name = (p['name'] ?? '').toString().toLowerCase();
-          final id = (p['patient_id'] ?? '').toString().toLowerCase();
-          return name.contains(q) || id.contains(q);
-        }).toList();
-      }
-    });
   }
 
   // ── ADD VITALS / OBSERVATION MODAL ──
@@ -281,9 +242,7 @@ class _DailyNotesScreenState extends State<DailyNotesScreen>
                             if (ctx.mounted) Navigator.pop(ctx, true);
                           } catch (e) {
                             if (ctx.mounted) {
-                              ScaffoldMessenger.of(ctx).showSnackBar(
-                                const SnackBar(content: Text('Failed to add observation'), backgroundColor: AppColors.error),
-                              );
+                              AppSnackBar.showTopSnack(ctx, 'Failed to add observation', isError: true);
                             }
                           }
                         },
@@ -452,9 +411,7 @@ class _DailyNotesScreenState extends State<DailyNotesScreen>
                       child: ElevatedButton.icon(
                         onPressed: () async {
                           if (nameCtrl.text.trim().isEmpty || doseCtrl.text.trim().isEmpty) {
-                            ScaffoldMessenger.of(ctx).showSnackBar(
-                              const SnackBar(content: Text('Please enter drug name and dose'), backgroundColor: AppColors.error),
-                            );
+                            AppSnackBar.showTopSnack(ctx, 'Please enter drug name and dose', isError: true);
                             return;
                           }
                           try {
@@ -471,9 +428,7 @@ class _DailyNotesScreenState extends State<DailyNotesScreen>
                             if (ctx.mounted) Navigator.pop(ctx, true);
                           } catch (e) {
                             if (ctx.mounted) {
-                              ScaffoldMessenger.of(ctx).showSnackBar(
-                                const SnackBar(content: Text('Failed to prescribe medication'), backgroundColor: AppColors.error),
-                              );
+                              AppSnackBar.showTopSnack(ctx, 'Failed to prescribe medication', isError: true);
                             }
                           }
                         },
@@ -538,9 +493,7 @@ class _DailyNotesScreenState extends State<DailyNotesScreen>
       _loadNotesForPatient(_selectedPatient!['_id']);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to update dose status'), backgroundColor: AppColors.error),
-        );
+        AppSnackBar.showTopSnack(context, 'Failed to update dose status', isError: true);
       }
     }
   }
@@ -570,6 +523,7 @@ class _DailyNotesScreenState extends State<DailyNotesScreen>
     return Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : const Color(0xFFF8FAFC),
       appBar: AppBar(
+        systemOverlayStyle: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
         backgroundColor: isDark ? AppColors.surfaceDark : Colors.white,
         title: Text(
           'Clinical Patient Register',
@@ -590,60 +544,83 @@ class _DailyNotesScreenState extends State<DailyNotesScreen>
       ),
       body: Column(
         children: [
-          // ── PATIENT SELECTOR HEADER ──
-          Container(
-            color: isDark ? AppColors.surfaceDark : Colors.white,
-            padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: _showPatientSearchSheet,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: const Color(0xFF0284C7).withValues(alpha: 0.3)),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.person_search_rounded, size: 20, color: Color(0xFF0284C7)),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  _selectedPatient != null
-                                      ? '${_selectedPatient!['name']} | ID: ${_selectedPatient!['patient_id']}'
-                                      : 'Select Patient for Register',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w700,
-                                    color: isDark ? Colors.white : const Color(0xFF0F172A),
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
-                          ),
-                          const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF0284C7)),
-                        ],
+          // ── STATIC PATIENT PROFILE HEADER ──
+          if (_selectedPatient != null)
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                border: Border(bottom: BorderSide(color: isDark ? Colors.white12 : const Color(0xFFE2E8F0))),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Hero(
+                    tag: 'patient_avatar_${_selectedPatient!['_id']}',
+                    child: CircleAvatar(
+                      radius: 28,
+                      backgroundColor: const Color(0xFFE0F2FE),
+                      child: Text(
+                        (_selectedPatient!['name'] ?? '?').toString().isNotEmpty ? (_selectedPatient!['name'] ?? '?').toString()[0].toUpperCase() : '?',
+                        style: GoogleFonts.inter(color: const Color(0xFF0284C7), fontWeight: FontWeight.w800, fontSize: 24),
                       ),
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _selectedPatient!['name'] ?? 'Unknown',
+                          style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w700, color: isDark ? Colors.white : const Color(0xFF0F172A)),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Text(
+                              'ID: ${_selectedPatient!['patient_id'] ?? '--'}',
+                              style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500, color: const Color(0xFF64748B)),
+                            ),
+                            const SizedBox(width: 12),
+                            Container(width: 4, height: 4, decoration: const BoxDecoration(color: Color(0xFFCBD5E1), shape: BoxShape.circle)),
+                            const SizedBox(width: 12),
+                            Text(
+                              '${_selectedPatient!['age'] ?? '-'} ${_selectedPatient!['gender'] ?? '-'}',
+                              style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500, color: const Color(0xFF64748B)),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.2)),
+                    ),
+                    child: Text(
+                      'ADMITTED',
+                      style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: const Color(0xFF059669)),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
 
           // ── ACTION BAR (ADD VITALS & PRESCRIBE) ──
           if (_selectedPatient != null)
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF0F9FF),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              color: isDark ? AppColors.surfaceDark : Colors.white,
               child: Row(
                 children: [
                   Expanded(
@@ -651,8 +628,9 @@ class _DailyNotesScreenState extends State<DailyNotesScreen>
                       onPressed: _showAddVitalsModal,
                       style: OutlinedButton.styleFrom(
                         foregroundColor: const Color(0xFF0284C7),
-                        side: const BorderSide(color: Color(0xFF0284C7)),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        side: const BorderSide(color: Color(0xFF0284C7), width: 1.5),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       ),
                       icon: const Icon(Icons.add_circle_outline_rounded, size: 18),
                       label: Text('Add Vitals', style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 13)),
@@ -923,79 +901,4 @@ class _DailyNotesScreenState extends State<DailyNotesScreen>
     );
   }
 
-  // ── PATIENT SEARCH BOTTOM SHEET ──
-  void _showPatientSearchSheet() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        final isDark = Theme.of(ctx).brightness == Brightness.dark;
-        return StatefulBuilder(
-          builder: (context, setSheetState) {
-            return Container(
-              height: MediaQuery.of(ctx).size.height * 0.7,
-              decoration: BoxDecoration(
-                color: isDark ? AppColors.surfaceDark : Colors.white,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-              ),
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  Container(
-                    width: 38,
-                    height: 4,
-                    decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2)),
-                  ),
-                  const SizedBox(height: 14),
-                  Text('Select Patient for Register', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w800)),
-                  const SizedBox(height: 12),
-
-                  TextField(
-                    onChanged: (q) {
-                      _filterPatients(q);
-                      setSheetState(() {});
-                    },
-                    decoration: InputDecoration(
-                      hintText: 'Search patient by name or ID...',
-                      prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  Expanded(
-                    child: _filteredPatients.isEmpty
-                        ? const Center(child: Text('No admitted patient found'))
-                        : ListView.builder(
-                            itemCount: _filteredPatients.length,
-                            itemBuilder: (ctx, index) {
-                              final p = _filteredPatients[index];
-                              final isSelected = _selectedPatient?['_id'] == p['_id'];
-                              return ListTile(
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                tileColor: isSelected ? const Color(0xFF0284C7).withValues(alpha: 0.1) : null,
-                                title: Text(p['name'] ?? '', style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 14)),
-                                subtitle: Text('ID: ${p['patient_id']} | Type: ${p['patient_type'] ?? 'IPD'}', style: GoogleFonts.inter(fontSize: 12)),
-                                trailing: isSelected ? const Icon(Icons.check_circle, color: Color(0xFF0284C7)) : null,
-                                onTap: () {
-                                  setState(() {
-                                    _selectedPatient = p;
-                                    _loadNotesForPatient(p['_id']);
-                                  });
-                                  Navigator.pop(ctx);
-                                },
-                              );
-                            },
-                          ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
 }

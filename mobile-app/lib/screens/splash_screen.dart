@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme.dart';
@@ -41,8 +42,10 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Scaffold(
+        body: Container(
         decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
         child: Center(
           child: Column(
@@ -119,7 +122,8 @@ class _SplashScreenState extends State<SplashScreen> {
               ).animate().fadeIn(delay: 800.ms, duration: 400.ms),
             ],
           ),
-        ),
+          ),
+      ),
       ),
     );
   }
@@ -127,7 +131,8 @@ class _SplashScreenState extends State<SplashScreen> {
 
 // ==================== LOGIN SCREEN ====================
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final bool sessionExpired;
+  const LoginScreen({super.key, this.sessionExpired = false});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -140,6 +145,14 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscurePassword = true;
   String? _errorMessage;
 
+  @override
+  void initState() {
+    super.initState();
+    if (widget.sessionExpired) {
+      _errorMessage = 'Session expired. Your account was logged in from another device. Please sign in again.';
+    }
+  }
+
   Future<void> _login() async {
     if (_isLoading) return;
 
@@ -147,7 +160,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final password = _passwordController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
-      setState(() => _errorMessage = 'Please fill all fields');
+      setState(() => _errorMessage = 'Please fill in both email and password');
       return;
     }
 
@@ -156,7 +169,6 @@ class _LoginScreenState extends State<LoginScreen> {
       _errorMessage = null;
     });
 
-    // Connect directly to real API
     try {
       final result = await ApiService.login(email, password);
       if (!mounted) return;
@@ -168,10 +180,10 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       } else {
         setState(
-            () => _errorMessage = result['message'] ?? 'Login failed');
+            () => _errorMessage = result['message'] ?? 'Login failed. Please verify your credentials.');
       }
     } catch (e) {
-      setState(() => _errorMessage = 'Cannot connect to server: $e');
+      setState(() => _errorMessage = 'Unable to connect to server ($e). Please check your network.');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -188,217 +200,235 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 28),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 60),
-
-              // Logo & Header
-              Center(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+      child: Scaffold(
+        body: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 450),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        gradient: AppColors.primaryGradient,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.3),
-                            blurRadius: 20,
-                            offset: const Offset(0, 8),
+                    const SizedBox(height: 20),
+
+                    // Logo & Header
+                    Center(
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              gradient: AppColors.primaryGradient,
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.primary.withValues(alpha: 0.3),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 8),
+                                ),
+                              ],
+                            ),
+                            child: Image.asset(
+                              'assets/logo.png',
+                              width: 56,
+                              height: 56,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            'Welcome Back',
+                            style: GoogleFonts.inter(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Sign in to your HMS account',
+                            style: GoogleFonts.inter(
+                              fontSize: 15,
+                              color: isDark
+                                  ? AppColors.textSecondaryDark
+                                  : AppColors.textSecondaryLight,
+                            ),
                           ),
                         ],
                       ),
-                      child: Image.asset(
-                        'assets/logo.png',
-                        width: 56,
-                        height: 56,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
+                    )
+                        .animate()
+                        .fadeIn(duration: 500.ms)
+                        .slideY(begin: -0.1, end: 0),
+
+                    const SizedBox(height: 40),
+
+                    // Email Field
                     Text(
-                      'Welcome Back',
+                      'Email Address',
                       style: GoogleFonts.inter(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Sign in to your HMS account',
-                      style: GoogleFonts.inter(
-                        fontSize: 15,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
                         color: isDark
                             ? AppColors.textSecondaryDark
                             : AppColors.textSecondaryLight,
                       ),
                     ),
-                  ],
-                ),
-              )
-                  .animate()
-                  .fadeIn(duration: 500.ms)
-                  .slideY(begin: -0.1, end: 0),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: const InputDecoration(
+                        hintText: 'your@email.com',
+                        prefixIcon: Icon(Icons.email_outlined, size: 20),
+                      ),
+                    ).animate().fadeIn(delay: 200.ms, duration: 400.ms),
 
-              const SizedBox(height: 48),
+                    const SizedBox(height: 20),
 
-              // Email Field
-              Text(
-                'Email Address',
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: isDark
-                      ? AppColors.textSecondaryDark
-                      : AppColors.textSecondaryLight,
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(
-                  hintText: 'your@email.com',
-                  prefixIcon: Icon(Icons.email_outlined, size: 20),
-                ),
-              ).animate().fadeIn(delay: 200.ms, duration: 400.ms),
-
-              const SizedBox(height: 20),
-
-              // Password Field
-              Text(
-                'Password',
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: isDark
-                      ? AppColors.textSecondaryDark
-                      : AppColors.textSecondaryLight,
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _passwordController,
-                obscureText: _obscurePassword,
-                onSubmitted: (_) => _login(),
-                decoration: InputDecoration(
-                  hintText: '••••••••',
-                  prefixIcon: const Icon(Icons.lock_outline, size: 20),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscurePassword
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined,
-                      size: 20,
+                    // Password Field
+                    Text(
+                      'Password',
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondaryLight,
+                      ),
                     ),
-                    onPressed: () =>
-                        setState(() => _obscurePassword = !_obscurePassword),
-                  ),
-                ),
-              ).animate().fadeIn(delay: 300.ms, duration: 400.ms),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _passwordController,
+                      obscureText: _obscurePassword,
+                      onSubmitted: (_) => _login(),
+                      decoration: InputDecoration(
+                        hintText: '••••••••',
+                        prefixIcon: const Icon(Icons.lock_outline, size: 20),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined,
+                            size: 20,
+                          ),
+                          onPressed: () =>
+                              setState(() => _obscurePassword = !_obscurePassword),
+                        ),
+                      ),
+                    ).animate().fadeIn(delay: 300.ms, duration: 400.ms),
 
-              const SizedBox(height: 12),
+                    const SizedBox(height: 12),
 
-              // Forgot Password
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()));
-                  },
-                  child: Text(
-                    'Forgot Password?',
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                ),
-              ),
-
-              // Error Message
-              if (_errorMessage != null)
-                Container(
-                  margin: const EdgeInsets.only(bottom: 16),
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.error.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                        color: AppColors.error.withValues(alpha: 0.3)),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.error_outline,
-                          color: AppColors.error, size: 18),
-                      const SizedBox(width: 10),
-                      Expanded(
+                    // Forgot Password
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const ForgotPasswordScreen(),
+                            ),
+                          );
+                        },
                         child: Text(
-                          _errorMessage!,
+                          'Forgot Password?',
                           style: GoogleFonts.inter(
                             fontSize: 13,
-                            color: AppColors.error,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.primary,
                           ),
                         ),
                       ),
-                    ],
-                  ),
-                ).animate().shake(duration: 400.ms),
+                    ),
 
-              const SizedBox(height: 8),
-
-              // Login Button
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _login,
-                  child: _isLoading
-                      ? const SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.5,
-                            color: Colors.white,
-                          ),
-                        )
-                      : Text(
-                          'Sign In',
-                          style: GoogleFonts.inter(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
+                    // Error Message
+                    if (_errorMessage != null)
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.error.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: AppColors.error.withValues(alpha: 0.3),
                           ),
                         ),
-                ),
-              ).animate().fadeIn(delay: 400.ms, duration: 400.ms),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.error_outline,
+                              color: AppColors.error,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                _errorMessage!,
+                                style: GoogleFonts.inter(
+                                  fontSize: 13,
+                                  color: AppColors.error,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ).animate().shake(duration: 400.ms),
 
-              const SizedBox(height: 36),
+                    const SizedBox(height: 8),
 
-              // Footer
-              Center(
-                child: Text(
-                  '© 2026 Chaudhary Health Care Center',
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    color: isDark
-                        ? AppColors.textSecondaryDark
-                        : AppColors.textSecondaryLight,
-                  ),
+                    // Login Button
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _login,
+                        child: _isLoading
+                            ? const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : Text(
+                                'Sign In',
+                                style: GoogleFonts.inter(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                      ),
+                    ).animate().fadeIn(delay: 400.ms, duration: 400.ms),
+
+                    const SizedBox(height: 48),
+
+                    // Footer
+                    Center(
+                      child: Text(
+                        '© 2026 Chaudhary Health Care Center',
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: isDark
+                              ? AppColors.textSecondaryDark
+                              : AppColors.textSecondaryLight,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
 }
+
 

@@ -24,44 +24,56 @@ function renderPatients() {
             </div>
             
             <div class="search-filter">
-                <input type="text" placeholder="🔍 Search patients by name or ID..." class="search-input" id="patient-search" onkeyup="filterPatients()" style="flex:2 1 220px;max-width:300px;">
-                <select class="filter-select" id="patient-filter" onchange="filterPatients()">
-                    <option value="all">All Status</option>
-                    <option value="Admitted">Admitted</option>
-                    <option value="Discharged">Discharged</option>
-                </select>
-                <select class="filter-select" id="type-filter" onchange="filterPatients()">
-                    <option value="all">All Types</option>
-                    <option value="IPD">IPD Only</option>
-                    <option value="OPD">OPD Only</option>
-                </select>
-                ${canViewPayments() ? `
-                <select class="filter-select" id="payment-filter" onchange="filterPatients()">
-                    <option value="all">All Payments</option>
-                    <option value="Paid">Paid</option>
-                    <option value="Pending">Pending</option>
-                </select>` : ''}
-                <select class="filter-select" id="surgery-filter" onchange="filterPatients()">
-                    <option value="all">All Cases (Surgery & Normal)</option>
-                    <option value="surgery">Show Surgery Patients Only</option>
-                </select>
-                <select class="filter-select" id="patient-sort" onchange="filterPatients()">
-                    <option value="date-desc">Sort by: Newest First</option>
-                    <option value="date-asc">Sort by: Oldest First</option>
-                    <option value="payment">Sort by: Payment (Pending First)</option>
-                    <option value="status">Sort by: Status (Admitted First)</option>
-                </select>
-                <div style="display:flex;align-items:center;gap:6px;">
-                    <label style="font-size:12px;color:#64748b;font-weight:600;white-space:nowrap;">From:</label>
-                    <input type="date" id="patient-date-from" class="search-input" style="height:38px;padding:5px 10px;font-size:13px;width:145px;" onchange="filterPatients()">
+                <div class="search-primary-row" style="display:flex; width:100%; gap:8px; align-items:center;">
+                    <div class="search-input-wrap" style="position:relative; flex:1;">
+                        <i class="bi bi-search" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#94a3b8; font-size:14px; pointer-events:none;"></i>
+                        <input type="text" placeholder="Search by name, phone or ID..." class="search-input" id="patient-search" onkeyup="filterPatients()" style="width:100%; padding-left:36px; height:40px; border-radius:10px;">
+                    </div>
+                    <button type="button" class="btn-filter-toggle" id="btn-filter-toggle" onclick="toggleMobilePatientFilters()">
+                        <i class="bi bi-sliders2"></i>
+                        <span>Filters</span>
+                    </button>
                 </div>
-                <div style="display:flex;align-items:center;gap:6px;">
-                    <label style="font-size:12px;color:#64748b;font-weight:600;white-space:nowrap;">To:</label>
-                    <input type="date" id="patient-date-to" class="search-input" style="height:38px;padding:5px 10px;font-size:13px;width:145px;" onchange="filterPatients()">
+
+                <div class="patient-advanced-filters" id="patient-advanced-filters">
+                    <select class="filter-select" id="patient-filter" onchange="filterPatients()">
+                        <option value="all">All Status</option>
+                        <option value="Admitted">Admitted</option>
+                        <option value="Discharged">Discharged</option>
+                    </select>
+                    <select class="filter-select" id="type-filter" onchange="filterPatients()">
+                        <option value="all">All Types</option>
+                        <option value="IPD">IPD Only</option>
+                        <option value="OPD">OPD Only</option>
+                    </select>
+                    ${canViewPayments() ? `
+                    <select class="filter-select" id="payment-filter" onchange="filterPatients()">
+                        <option value="all">All Payments</option>
+                        <option value="Paid">Paid</option>
+                        <option value="Pending">Pending</option>
+                    </select>` : ''}
+                    <select class="filter-select" id="surgery-filter" onchange="filterPatients()">
+                        <option value="all">All Cases (Surgery & Normal)</option>
+                        <option value="surgery">Show Surgery Only</option>
+                    </select>
+                    <select class="filter-select" id="patient-sort" onchange="filterPatients()">
+                        <option value="date-desc">Sort: Newest First</option>
+                        <option value="date-asc">Sort: Oldest First</option>
+                        <option value="payment">Sort: Payment Due</option>
+                        <option value="status">Sort: Admitted First</option>
+                    </select>
+                    <div class="date-filter-box" style="display:flex; align-items:center; gap:6px;">
+                        <label style="font-size:12px; color:var(--text-muted); font-weight:600; white-space:nowrap;">From:</label>
+                        <input type="date" id="patient-date-from" class="search-input" style="height:38px; padding:5px 10px; font-size:12px; border-radius:8px;" onchange="filterPatients()">
+                    </div>
+                    <div class="date-filter-box" style="display:flex; align-items:center; gap:6px;">
+                        <label style="font-size:12px; color:var(--text-muted); font-weight:600; white-space:nowrap;">To:</label>
+                        <input type="date" id="patient-date-to" class="search-input" style="height:38px; padding:5px 10px; font-size:12px; border-radius:8px;" onchange="filterPatients()">
+                    </div>
+                    <button onclick="exportPatientsToExcel()" id="btn-export-excel" class="btn-export-excel" style="display:flex; align-items:center; justify-content:center; gap:6px; background:var(--card-bg); color:var(--text-main); border:1px solid var(--border); padding:8px 14px; border-radius:9px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap; box-shadow:var(--shadow);">
+                        <i class="bi bi-file-earmark-excel-fill" style="font-size:15px; color:#10b981;"></i> Export Excel
+                    </button>
                 </div>
-                <button onclick="exportPatientsToExcel()" id="btn-export-excel" style="display:flex;align-items:center;gap:7px;background:var(--card-bg);color:var(--text-main);border:1px solid var(--border);padding:9px 18px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;box-shadow:var(--shadow);transition:all 0.2s;" onmouseover="this.style.background='var(--primary-light)';this.style.borderColor='rgba(79,70,229,0.3)';this.style.color='var(--primary)';this.style.transform='translateY(-1px)';" onmouseout="this.style.background='var(--card-bg)';this.style.borderColor='var(--border)';this.style.color='var(--text-main)';this.style.transform=''">
-                    <i class="bi bi-file-earmark-excel-fill" style="font-size:16px;color:#10b981;"></i> Export Excel
-                </button>
             </div>
             
             <div class="patients-table">
@@ -106,6 +118,20 @@ function renderPatients() {
         if (dateFromEl) dateFromEl.addEventListener('change', filterPatients);
         if (dateToEl) dateToEl.addEventListener('change', filterPatients);
     }, 100);
+}
+
+function toggleMobilePatientFilters() {
+    const panel = document.getElementById('patient-advanced-filters');
+    const btn = document.getElementById('btn-filter-toggle');
+    if (!panel) return;
+    const isShowing = panel.classList.contains('mobile-show');
+    if (isShowing) {
+        panel.classList.remove('mobile-show');
+        if (btn) btn.classList.remove('active');
+    } else {
+        panel.classList.add('mobile-show');
+        if (btn) btn.classList.add('active');
+    }
 }
 
 async function loadPatients() {
@@ -244,7 +270,7 @@ function renderPatientsTable(patientsList) {
                 ${(currentUser && (currentUser.role === 'admin' || currentUser.role === 'developer')) ?
                 `<button class="action-btn-pro delete-btn" onclick="deletePatient('${patient.patient_id}')" title="Delete Patient"><i class="fas fa-trash"></i></button>` : ''}
                 
-                ${(currentUser && currentUser.role !== 'receptionist' && !isDischarged) ?
+                ${(currentUser && currentUser.role !== 'receptionist' && !isDischarged && pType === 'IPD') ?
                 `<button class="action-btn-pro notes-btn" onclick="addNoteForPatient('${patient.patient_id}')" title="Daily Notes"><i class="fas fa-notes-medical"></i></button>` : ''}
                 
                 ${(!isDischarged && pType === 'IPD') ? `<button class="action-btn-pro surgery-btn" onclick="openSurgeryModal('${patient.patient_id}')" title="Add Surgery Event"><i class="fas fa-procedures"></i></button>` : ''}

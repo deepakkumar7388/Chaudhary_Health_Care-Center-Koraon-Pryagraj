@@ -428,7 +428,8 @@ function executeDischarge(patientId, summary, dischargeDate, dischargeTime) {
         dischargeTime,
         diagnosis: "",
         summary,
-        advisedMedicines
+        advisedMedicines,
+        dischargedBy: window.currentUser ? window.currentUser.name : 'Staff'
     };
 
     fetch(`${API_BASE}discharge`, {
@@ -444,6 +445,20 @@ function executeDischarge(patientId, summary, dischargeDate, dischargeTime) {
         hideLoading();
         if (result.success) {
             sessionStorage.removeItem('dischargeDraft');
+            
+            // Trigger Live Notification
+            if (typeof window.hmsSocket?.pushNotification === 'function') {
+                const patientObj = dischargePatientsList?.find(p => String(p.patient_id) === String(patientId) || String(p._id) === String(patientId));
+                window.hmsSocket.pushNotification({
+                    id: `disch_${Date.now()}`,
+                    title: `Patient Discharged: ${patientObj?.name || patientId}`,
+                    message: `Patient ${patientObj?.name || patientId} (ID: ${patientId}) has been discharged.`,
+                    timestamp: new Date().toISOString(),
+                    category: 'discharge',
+                    type: 'success'
+                });
+            }
+
             showNotification('Patient discharged successfully!', 'success');
             displayDischargeReport(dischargeData);
         } else {

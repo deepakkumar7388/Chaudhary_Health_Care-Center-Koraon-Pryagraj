@@ -6,28 +6,81 @@ function renderDailyNotes() {
     const moduleEl = document.getElementById('module-daily-notes');
     if (!moduleEl) return;
 
-    // The entire UI is built as a realistic patient register
+    // Daily Notes Layout with Top Search Bar & Patient Grid
     moduleEl.innerHTML = `
-        <div class="register-container">
-            <!-- Header & Search -->
-            <div class="register-header">
-                <div class="header-left">
-                    <h2><i class="bi bi-journal-medical"></i> Clinical Patient Register</h2>
+        <div class="daily-notes-wrapper">
+            <!-- Top Search & Header Bar -->
+            <div class="dn-top-bar">
+                <div>
+                    <h2 style="font-size:18px; font-weight:800; color:var(--text-main); margin:0; display:flex; align-items:center; gap:8px;">
+                        <i class="bi bi-journal-medical" style="color:var(--primary);"></i> Clinical Patient Register
+                    </h2>
                 </div>
-                <div class="header-controls">
-                    <div class="patient-selector">
-                        <input type="text" id="patient-search-input" class="hms-select" placeholder="Search Patient by Name or ID" autocomplete="off" oninput="filterNotesPatients(this.value)" onclick="filterNotesPatients(this.value)">
-                        <input type="hidden" id="register-patient">
-                        <div id="patient-dropdown" class="autocomplete-dropdown" style="display:none;"></div>
-                    </div>
-                    <button id="btn-add-vitals" class="btn-add-observation" style="display:none;" onclick="openVitalsModal()">
-                        <i class="bi bi-plus-lg"></i> Add New Observation
-                    </button>
+
+                <!-- Top Search Input -->
+                <div class="dn-search-wrapper">
+                    <i class="bi bi-search dn-search-icon"></i>
+                    <input type="text" id="daily-notes-search" class="dn-search-input" placeholder="Search patient by Name, ID, Bed, Ward..." oninput="onSearchDailyNotesPatients(this.value)">
+                    <button id="dn-clear-search-btn" class="dn-clear-btn" onclick="clearDailyNotesSearch()" style="display:none;">&times;</button>
+                </div>
+
+                <div>
+                    <span id="dn-patient-count-badge" style="background:rgba(79,70,229,0.08); color:var(--primary); font-size:12px; font-weight:700; padding:6px 14px; border-radius:20px; border:1px solid rgba(79,70,229,0.15);">0 Admitted Patients</span>
                 </div>
             </div>
 
-            <!-- Content Area (Hidden until patient selected) -->
-            <div id="register-content" style="display:none;">
+            <!-- VIEW 1: Visible Admitted Patients Grid -->
+            <div id="dn-patient-grid-view">
+                <!-- Empty State when no IPD patients admitted -->
+                <div id="register-empty-ipd" style="display:none; text-align:center; padding:60px 20px; background:var(--card-bg); border-radius:18px; border:1px solid var(--border);">
+                    <div style="width:56px; height:56px; border-radius:50%; background:rgba(79,70,229,0.08); color:var(--primary); display:flex; align-items:center; justify-content:center; font-size:26px; margin:0 auto 12px auto;">
+                        <i class="bi bi-hospital"></i>
+                    </div>
+                    <h3 style="font-size:16px; font-weight:800; color:var(--text-main); margin-bottom:4px;">No Admitted In-Patients</h3>
+                    <p style="font-size:12.5px; color:var(--text-muted); max-width:400px; margin:0 auto 16px auto;">Daily clinical notes and medication charts are maintained for active admitted patients.</p>
+                    <button class="btn btn-primary btn-sm" onclick="showModule('add-patient')">
+                        <i class="bi bi-person-plus-fill"></i> New IPD Admission
+                    </button>
+                </div>
+
+                <div id="dn-patients-list" class="dn-patients-list">
+                    <!-- Populated dynamically with patient list items -->
+                </div>
+            </div>
+
+            <!-- VIEW 2: Selected Patient Detail & Treatment Chart -->
+            <div id="dn-patient-chart-view" class="dn-chart-container" style="display:none;">
+                <!-- Header with Back Button & Details -->
+                <div class="dn-chart-header">
+                    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                        <button class="btn-back-to-patients" onclick="backToDailyNotesPatientsList()">
+                            <i class="bi bi-arrow-left"></i> All Patients List
+                        </button>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <div id="chart-patient-avatar" class="dn-patient-avatar" style="width:38px; height:38px; font-size:14px;">P</div>
+                            <div>
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <h3 id="chart-patient-name" style="margin:0; font-size:16px; font-weight:800; color:var(--text-main);">Patient Name</h3>
+                                    <span class="badge-ipd">● IPD Admitted</span>
+                                </div>
+                                <div id="chart-patient-meta" style="font-size:11.5px; color:var(--text-muted); margin-top:2px; font-weight:500;">
+                                    ID: CHC-001 | Male, 45 yrs | Bed: 04
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <button id="btn-add-vitals" class="btn btn-primary" style="background:var(--primary); color:#fff; border:none; padding:8px 16px; border-radius:10px; font-weight:700; font-size:12.5px; cursor:pointer; display:flex; align-items:center; gap:6px;" onclick="openVitalsModal()">
+                            <i class="bi bi-plus-lg"></i> Add Observation
+                        </button>
+                    </div>
+                </div>
+
+                <input type="hidden" id="register-patient">
+
+                <!-- Content Area -->
+                <div id="register-content">
                 
                 <!-- 1. VITALS REGISTER SECTION -->
                 <div class="register-section">
@@ -202,6 +255,7 @@ function renderDailyNotes() {
                     <button class="btn-confirm-dose" id="btn-confirm-dose-yes">Yes, Mark as Given</button>
                     <button class="btn-cancel" onclick="closeDoseConfirmModal()">Cancel</button>
                 </div>
+                </div>
             </div>
         </div>
     `;
@@ -212,18 +266,6 @@ function renderDailyNotes() {
     });
     applyRoleBasedUI();
     setDefaultDateTimes();
-
-    // Close dropdown on outside click
-    if (!window.vitalsDropdownListenerAdded) {
-        document.addEventListener('click', function (e) {
-            const dropdown = document.getElementById('patient-dropdown');
-            const input = document.getElementById('patient-search-input');
-            if (dropdown && input && e.target !== input && !dropdown.contains(e.target)) {
-                dropdown.style.display = 'none';
-            }
-        });
-        window.vitalsDropdownListenerAdded = true;
-    }
 }
 
 /**
@@ -261,13 +303,14 @@ function applyRoleBasedUI() {
 }
 
 /**
- * Data Loading: Load patients from local storage for autocomplete
+ * Data Loading: Load patients from local storage or API and render patient directory grid
  */
 async function loadPatientsForRegister() {
-    // Step 1: Memory se instant load (patients.js ne pehle se load kar rakha hai)
+    // Step 1: Memory se instant load
     if (window.allPatientsData && window.allPatientsData.length > 0) {
         registerPatientsList = window.allPatientsData;
-        return; // No API call needed!
+        renderDailyNotesPatientGrid(activeDailyNotesSearchQuery);
+        return;
     }
 
     // Step 2: localStorage cache se load karo
@@ -277,13 +320,14 @@ async function loadPatientsForRegister() {
             const list = JSON.parse(cached);
             if (list.length > 0) {
                 registerPatientsList = list;
-                window.allPatientsData = list; // global memory mein bhi daal do
+                window.allPatientsData = list;
+                renderDailyNotesPatientGrid(activeDailyNotesSearchQuery);
                 return;
             }
         } catch (e) { /* cache invalid */ }
     }
 
-    // Step 3: Pehli baar hi server se fetch karo
+    // Step 3: Server API se fetch karo
     try {
         const response = await fetch(`${API_BASE}patients`, {
             headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('token') },
@@ -299,56 +343,207 @@ async function loadPatientsForRegister() {
         console.error("Error loading patients from API", e);
         registerPatientsList = JSON.parse(localStorage.getItem('patients') || '[]');
     }
+
+    renderDailyNotesPatientGrid(activeDailyNotesSearchQuery);
 }
 
+let activeDailyNotesSearchQuery = '';
+
 /**
- * Filter autocomplete suggestions based on input
+ * Render all admitted patients in a clean visible card grid
  */
-function filterNotesPatients(query) {
-    const dropdown = document.getElementById('patient-dropdown');
-    if (!dropdown) return;
+function renderDailyNotesPatientGrid(query = '') {
+    const gridEl = document.getElementById('dn-patients-list');
+    const badgeEl = document.getElementById('dn-patient-count-badge');
+    const emptyBox = document.getElementById('register-empty-ipd');
+    if (!gridEl) return;
 
-    const lowerQuery = (query || '').toLowerCase();
+    // Filter active admitted IPD patients strictly (exclude OPD and Discharged)
+    const allAdmitted = registerPatientsList.filter(p => {
+        const type = (p.patient_type || '').toUpperCase();
+        const status = (p.status || '').toUpperCase();
+        const isNotOpd = type !== 'OPD';
+        const isAdmitted = status === 'ADMITTED';
+        return isNotOpd && isAdmitted;
+    });
+    if (badgeEl) badgeEl.textContent = `${allAdmitted.length} Admitted Patients`;
 
-    // Filter by name or ID
-    const filtered = registerPatientsList.filter(p => {
-        // Exclude already discharged patients
-        const status = (p.status || 'Admitted').toUpperCase();
-        if (status === 'DISCHARGED') return false;
+    if (allAdmitted.length === 0) {
+        gridEl.innerHTML = '';
+        if (emptyBox) emptyBox.style.display = 'block';
+        return;
+    }
 
-        const id = (p.patient_id || '').toLowerCase();
+    if (emptyBox) emptyBox.style.display = 'none';
+
+    const q = (query || '').trim().toLowerCase();
+    const filtered = allAdmitted.filter(p => {
+        if (!q) return true;
         const name = (p.name || '').toLowerCase();
-        return id.includes(lowerQuery) || name.includes(lowerQuery);
+        const id = (p.patient_id || '').toLowerCase();
+        const bed = (p.bed_number || '').toString().toLowerCase();
+        const ward = (p.ward || '').toLowerCase();
+        const phone = (p.phone || '').toLowerCase();
+        const doc = (p.doctor || '').toLowerCase();
+        return name.includes(q) || id.includes(q) || bed.includes(q) || ward.includes(q) || phone.includes(q) || doc.includes(q);
     });
 
     if (filtered.length === 0) {
-        dropdown.innerHTML = '<div class="autocomplete-item empty">No patient found</div>';
-    } else {
-        dropdown.innerHTML = filtered.map(p => {
-            const id = p.patient_id;
-            return `<div class="autocomplete-item" onclick="selectPatientForRegister('${id}', '${p.name.replace(/'/g, "\\'")}')">
-                        <div class="patient-name">${p.name}</div>
-                        <div class="patient-id">${id}</div>
-                    </div>`;
-        }).join('');
+        gridEl.innerHTML = `
+            <div style="text-align:center; padding:50px 20px; background:var(--card-bg); border-radius:16px; border:1px dashed var(--border);">
+                <i class="bi bi-search" style="font-size:24px; color:var(--text-muted); display:block; margin-bottom:8px;"></i>
+                <h4 style="font-size:15px; font-weight:700; color:var(--text-main); margin-bottom:4px;">No Matching Patients</h4>
+                <p style="font-size:12px; color:var(--text-muted); margin:0;">No admitted patients match "<strong>${escapeHtml(query)}</strong>"</p>
+            </div>
+        `;
+        return;
     }
 
-    dropdown.style.display = 'block';
+    gridEl.innerHTML = `
+        <div class="dn-table-card">
+            <table class="dn-patients-table">
+                <thead>
+                    <tr>
+                        <th>Patient</th>
+                        <th>Age / Gender</th>
+                        <th>Ward & Bed</th>
+                        <th>Doctor</th>
+                        <th>Status</th>
+                        <th style="text-align:right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${filtered.map(p => {
+                        const bedInfo = p.bed_number ? `Bed: ${p.bed_number}` : (p.ward ? p.ward : 'General Ward');
+                        const ageGen = [p.age ? `${p.age} yrs` : '', p.gender].filter(Boolean).join(' / ');
+                        const docName = p.doctor || 'Duty Doctor';
+
+                        return `
+                        <tr onclick="openPatientRegister('${p.patient_id}')" style="cursor:pointer;">
+                            <td data-label="Patient">
+                                <div style="display:flex; align-items:center; gap:6px;">
+                                    <strong style="font-size:14px; color:var(--text-main); font-weight:700;">${escapeHtml(p.name)}</strong>
+                                    <span style="background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; font-size:10px; padding:1px 6px; border-radius:4px; font-weight:700;">IPD</span>
+                                </div>
+                                <div style="font-size:11.5px; color:#64748b; font-weight:600; margin-top:2px;">${p.patient_id}</div>
+                            </td>
+                            <td data-label="Age / Gender" style="font-weight:600; color:var(--text-main); font-size:13px;">
+                                ${ageGen || '—'}
+                            </td>
+                            <td data-label="Ward & Bed">
+                                <span style="display:inline-flex; align-items:center; gap:6px; font-weight:600; font-size:13px; color:var(--text-main);">
+                                    <i class="bi bi-hospital" style="color:var(--primary); font-size:13px;"></i> ${escapeHtml(bedInfo)}
+                                </span>
+                            </td>
+                            <td data-label="Doctor" style="font-size:13px; font-weight:600; color:var(--text-main);">
+                                ${escapeHtml(docName)}
+                            </td>
+                            <td data-label="Status">
+                                <span style="display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; padding:3px 9px; border-radius:6px; background:#ecfdf5; color:#059669; border:1px solid #a7f3d0;">
+                                    <span style="width:6px; height:6px; border-radius:50%; background:#10b981;"></span> Admitted
+                                </span>
+                            </td>
+                            <td data-label="Actions" style="text-align:right;">
+                                <button class="btn btn-sm btn-primary" type="button" style="padding:6px 14px; font-size:12px; border-radius:8px; gap:6px;" onclick="event.stopPropagation(); openPatientRegister('${p.patient_id}')">
+                                    <i class="bi bi-journal-text"></i> Open Notes
+                                </button>
+                            </td>
+                        </tr>`;
+                    }).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
 }
 
 /**
- * Handle making a selection from autocomplete
+ * Handle live search typing on top bar
  */
-function selectPatientForRegister(id, name) {
-    const searchInput = document.getElementById('patient-search-input');
+function onSearchDailyNotesPatients(val) {
+    activeDailyNotesSearchQuery = val;
+    const clearBtn = document.getElementById('dn-clear-search-btn');
+    if (clearBtn) clearBtn.style.display = val ? 'block' : 'none';
+
+    // If currently inside chart view, switch back to grid view so user sees filtered search results
+    const gridView = document.getElementById('dn-patient-grid-view');
+    const chartView = document.getElementById('dn-patient-chart-view');
+    if (gridView && chartView && chartView.style.display !== 'none') {
+        chartView.style.display = 'none';
+        gridView.style.display = 'block';
+    }
+
+    renderDailyNotesPatientGrid(val);
+}
+
+/**
+ * Clear top search box
+ */
+function clearDailyNotesSearch() {
+    const input = document.getElementById('daily-notes-search');
+    if (input) input.value = '';
+    activeDailyNotesSearchQuery = '';
+    const clearBtn = document.getElementById('dn-clear-search-btn');
+    if (clearBtn) clearBtn.style.display = 'none';
+    renderDailyNotesPatientGrid('');
+}
+
+/**
+ * Open Clinical Register and Treatment Chart for a selected patient
+ */
+function openPatientRegister(patientId) {
+    const gridView = document.getElementById('dn-patient-grid-view');
+    const chartView = document.getElementById('dn-patient-chart-view');
     const hiddenInput = document.getElementById('register-patient');
-    const dropdown = document.getElementById('patient-dropdown');
 
-    searchInput.value = `${name} | ${id}`;
-    hiddenInput.value = id;
-    dropdown.style.display = 'none';
+    if (hiddenInput) hiddenInput.value = patientId;
 
-    loadPatientRegister(); // Load actual records
+    if (gridView && chartView) {
+        gridView.style.display = 'none';
+        chartView.style.display = 'block';
+    }
+
+    const patient = registerPatientsList.find(p => p.patient_id === patientId);
+    if (patient) {
+        const pName = document.getElementById('chart-patient-name');
+        const pMeta = document.getElementById('chart-patient-meta');
+        const pAvatar = document.getElementById('chart-patient-avatar');
+
+        if (pName) pName.textContent = patient.name;
+        if (pMeta) {
+            const ageGen = [patient.gender, patient.age ? `${patient.age} yrs` : ''].filter(Boolean).join(', ');
+            const bed = patient.bed_number ? `Bed: ${patient.bed_number}` : (patient.ward ? `Ward: ${patient.ward}` : 'General Ward');
+            pMeta.textContent = `ID: ${patient.patient_id} | ${ageGen || 'IPD'} | ${bed}`;
+        }
+        if (pAvatar) pAvatar.textContent = (patient.name || 'P').trim()[0].toUpperCase();
+    }
+
+    setDefaultDateTimes();
+    loadPatientHistory(patientId);
+}
+
+/**
+ * Back from chart view to all patients grid list
+ */
+function backToDailyNotesPatientsList() {
+    const gridView = document.getElementById('dn-patient-grid-view');
+    const chartView = document.getElementById('dn-patient-chart-view');
+    if (gridView && chartView) {
+        chartView.style.display = 'none';
+        gridView.style.display = 'block';
+    }
+}
+
+/**
+ * Helper to escape HTML strings
+ */
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
 }
 
 /**

@@ -243,10 +243,15 @@
     }
     
     label[id^="type-btn-"] {
-        border: none !important;
-        border-radius: 6px !important;
+        border-radius: 8px !important;
         font-size: 13px !important;
-        padding: 8px 10px !important;
+        padding: 9px 12px !important;
+        transition: all 0.2s ease;
+    }
+
+    label[id^="type-btn-"] span,
+    label[id^="type-btn-"] i {
+        color: inherit !important;
     }
 
     /* Form Sections as App Cards */

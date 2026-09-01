@@ -12,8 +12,8 @@
     <link rel="icon" type="image/png" sizes="512x512" href="./hlogo-512.png">
     <link rel="apple-touch-icon" href="./hlogo-192.png">
     <!-- SEO Meta Tags -->
-    <meta name="description" content="Chaudhary Health Care Center Koraon, Prayagraj - Best hospital near Gandhi Chauraha, Meja Link Road. Get 24/7 emergency care, expert doctors, OPD, medical store & lab reports. Koraon me sabse accha hospital. Contact: 7947144090.">
-    <meta name="keywords" content="Chaudhary Health Care Center Koraon, best hospital in Koraon Prayagraj, top doctor in Koraon, emergency hospital near me, Koraon hospital contact number, Meja Link Road hospital, Gandhi Chauraha clinic, Koraon me sabse accha hospital, best physician in Koraon, medical store Koraon, OPD services Koraon, maternity hospital Koraon, health care center near me, Prayagraj top hospital, CHC Koraon, Chaudhary hospital Koraon, koraon doctor clinic, 24 hours hospital in koraon">
+    <meta name="description" content="Chaudhary Health Care Center Koraon, Prayagraj - Best hospital near Gandhi Chauraha, Meja Wali Road. Get 24/7 emergency care, expert doctors, OPD, medical store & lab reports. Koraon me sabse accha hospital. Contact: 7947144090.">
+    <meta name="keywords" content="Chaudhary Health Care Center Koraon, best hospital in Koraon Prayagraj, top doctor in Koraon, emergency hospital near me, Koraon hospital contact number, Meja Wali Road hospital, Gandhi Chauraha clinic, Koraon me sabse accha hospital, best physician in Koraon, medical store Koraon, OPD services Koraon, maternity hospital Koraon, health care center near me, Prayagraj top hospital, CHC Koraon, Chaudhary hospital Koraon, koraon doctor clinic, 24 hours hospital in koraon">
     <meta name="author" content="Chaudhary Health Care Center Koraon">
     <link rel="canonical" href="https://deepakkumar7388.github.io/Chaudhary_Health_Care-Center-Koraon-Pryagraj/">
     <meta name="robots" content="index, follow">
@@ -28,7 +28,7 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://deepakkumar7388.github.io/Chaudhary_Health_Care-Center-Koraon-Pryagraj/">
     <meta property="og:title" content="Chaudhary Health Care Center Koraon, Prayagraj | Hospital & Healthcare Services">
-    <meta property="og:description" content="Chaudhary Health Care Center Koraon, Prayagraj - Best hospital near Gandhi Chauraha, Meja Link Road. Expert doctors, 24/7 emergency, OPD, medical records, lab reports.">
+    <meta property="og:description" content="Chaudhary Health Care Center Koraon, Prayagraj - Best hospital near Gandhi Chauraha, Meja Wali Road. Expert doctors, 24/7 emergency, OPD, medical records, lab reports.">
     <meta property="og:image" content="https://deepakkumar7388.github.io/Chaudhary_Health_Care-Center-Koraon-Pryagraj/hlogo.png">
     <meta property="og:locale" content="en_IN">
     <meta property="og:site_name" content="Chaudhary Health Care Center Koraon">
@@ -60,10 +60,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
-    <!-- Google Fonts - Outfit -->
+    <!-- Google Fonts - Plus Jakarta Sans & Outfit -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/style.css?v=1782591000000">
@@ -89,7 +89,7 @@
         "telephone": "+91-7947144090",
         "address": {
             "@type": "PostalAddress",
-            "streetAddress": "Govind Nagar, Meja Link Road, near Gandhi Chauraha",
+            "streetAddress": "Govind Nagar, Meja Wali Road, near Gandhi Chauraha",
             "addressLocality": "Koraon",
             "addressRegion": "Uttar Pradesh",
             "postalCode": "212306",
@@ -305,13 +305,19 @@
 
     <!-- ==================== ROLE GUARD OVERLAY ==================== -->
     <!-- Shown briefly after login to prevent unauthorized menu flash before role is applied -->
-    <div id="role-guard-overlay">
+    <div id="role-guard-overlay" style="display:none;">
         <div class="rg-spinner"></div>
         <p>Setting up your workspace...</p>
     </div>
 
     <!-- ==================== MAIN APP ==================== -->
     <div id="app-container" class="app-container" style="display:none;">
+        <!-- In-App Pull to Refresh Indicator -->
+        <div id="inapp-ptr-indicator" class="inapp-ptr-indicator">
+            <div id="ptr-icon-wrap" class="ptr-icon-wrap"><i class="bi bi-arrow-clockwise"></i></div>
+            <span id="ptr-text">Pull to refresh</span>
+        </div>
+
         <!-- Mobile Header -->
         <div class="mobile-header">
             <button id="sidebar-toggle" class="sidebar-toggle" onclick="toggleSidebar()">
@@ -321,7 +327,12 @@
                 <img src="hlogo.png" alt="Logo">
                 <span>CHC Center</span>
             </div>
-            <div class="mobile-actions" style="display: none;"></div>
+            <div class="mobile-actions" style="display: flex; align-items: center; gap: 8px;">
+                <button id="mobile-notification-btn" class="header-notification-btn" onclick="toggleNotificationDrawer()" title="Live Notifications">
+                    <i class="bi bi-bell"></i>
+                    <span id="notification-badge" class="notification-badge" style="display: none;">0</span>
+                </button>
+            </div>
         </div>
 
         <!-- Sidebar -->
@@ -369,6 +380,10 @@
                     </div>
                     <div class="menu-item" onclick="showModule('patient-record')"><i class="bi bi-file-earmark-medical"></i>
                         <span>Patient Records</span>
+                    </div>
+                    <div class="menu-item" onclick="toggleNotificationDrawer()"><i class="bi bi-bell"></i>
+                        <span>Notifications</span>
+                        <span class="notification-badge" style="display: none; position: static; margin-left: auto; margin-right: 4px;">0</span>
                     </div>
                     <div class="menu-item" onclick="showModule('settings')"><i class="bi bi-gear"></i>
                         <span>Settings</span>
@@ -627,11 +642,6 @@
 
         <!-- Main Content -->
         <div class="main-content">
-            <!-- Global Theme Toggle Button (Top Right) -->
-            <button class="theme-toggle-btn main-theme-toggle" onclick="toggleTheme()" title="Toggle Light/Dark Theme">
-                <i class="bi bi-moon-fill" style="color: #64748b;"></i>
-            </button>
-
             <div class="content-header" style="display: none;">
                 <h1 id="page-title"></h1>
                 <div class="header-actions" id="header-actions"></div>
@@ -654,42 +664,48 @@
                     <div class="container-fluid mt-4">
                         <h2 class="mb-4 fw-bold text-dark">Patient Management</h2>
                         <div class="row g-3">
-                            <div class="col-12" data-role-access="add-patient" onclick="showModule('add-patient')">
-                                <div class="card shadow-sm border-0" style="border-radius: 12px; cursor: pointer;">
-                                    <div class="card-body p-2 px-3 d-flex align-items-center">
-                                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-1 me-3 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
-                                            <i class="bi bi-person-plus fs-5"></i>
-                                        </div>
-                                        <div>
-                                            <h5 class="card-title fw-bold mb-0" style="font-size: 15px;">Add Patient</h5>
-                                            <p class="card-text text-muted mb-0" style="font-size: 11px; margin-top: 2px;">Register a new patient to the system</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
                             <div class="col-12" data-role-access="daily-notes" onclick="showModule('daily-notes')">
-                                <div class="card shadow-sm border-0" style="border-radius: 12px; cursor: pointer;">
-                                    <div class="card-body p-2 px-3 d-flex align-items-center">
-                                        <div class="bg-success bg-opacity-10 text-success rounded-circle p-1 me-3 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
-                                            <i class="bi bi-file-earmark-text fs-5"></i>
+                                <div class="card shadow-sm border-0" style="border-radius: 14px; cursor: pointer;">
+                                    <div class="card-body p-3 d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-success bg-opacity-10 text-success rounded-3 p-2 me-3 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                                                <i class="bi bi-journal-medical fs-5"></i>
+                                            </div>
+                                            <div>
+                                                <h5 class="card-title fw-bold mb-0" style="font-size: 16px;">Daily Notes</h5>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h5 class="card-title fw-bold mb-0" style="font-size: 15px;">Daily Notes</h5>
-                                            <p class="card-text text-muted mb-0" style="font-size: 11px; margin-top: 2px;">Record and view daily observations</p>
-                                        </div>
+                                        <i class="bi bi-chevron-right text-muted"></i>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-12" data-role-access="patients" onclick="showModule('patients')">
-                                <div class="card shadow-sm border-0" style="border-radius: 12px; cursor: pointer;">
-                                    <div class="card-body p-2 px-3 d-flex align-items-center">
-                                        <div class="bg-purple bg-opacity-10 text-purple rounded-circle p-1 me-3 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
-                                            <i class="bi bi-people fs-5" style="color: #8b5cf6;"></i>
+                                <div class="card shadow-sm border-0" style="border-radius: 14px; cursor: pointer;">
+                                    <div class="card-body p-3 d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-purple bg-opacity-10 text-purple rounded-3 p-2 me-3 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; background: rgba(139, 92, 246, 0.1);">
+                                                <i class="bi bi-people fs-5" style="color: #8b5cf6;"></i>
+                                            </div>
+                                            <div>
+                                                <h5 class="card-title fw-bold mb-0" style="font-size: 16px;">Patient Directory</h5>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h5 class="card-title fw-bold mb-0" style="font-size: 15px;">Patient List</h5>
-                                            <p class="card-text text-muted mb-0" style="font-size: 11px; margin-top: 2px;">View and manage all registered patients</p>
+                                        <i class="bi bi-chevron-right text-muted"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12" data-role-access="add-patient" onclick="showModule('add-patient')">
+                                <div class="card shadow-sm border-0" style="border-radius: 14px; cursor: pointer;">
+                                    <div class="card-body p-3 d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-primary bg-opacity-10 text-primary rounded-3 p-2 me-3 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                                                <i class="bi bi-person-plus fs-5"></i>
+                                            </div>
+                                            <div>
+                                                <h5 class="card-title fw-bold mb-0" style="font-size: 16px;">New Admission</h5>
+                                            </div>
                                         </div>
+                                        <i class="bi bi-chevron-right text-muted"></i>
                                     </div>
                                 </div>
                             </div>
@@ -702,28 +718,32 @@
                         <h2 class="mb-4 fw-bold text-dark">Billing & Discharge</h2>
                         <div class="row g-3">
                             <div class="col-12" data-role-access="billing" onclick="showModule('billing')">
-                                <div class="card shadow-sm border-0" style="border-radius: 12px; cursor: pointer;">
-                                    <div class="card-body p-2 px-3 d-flex align-items-center">
-                                        <div class="bg-warning bg-opacity-10 text-warning rounded-circle p-1 me-3 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
-                                            <i class="bi bi-cash-stack fs-5"></i>
+                                <div class="card shadow-sm border-0" style="border-radius: 14px; cursor: pointer;">
+                                    <div class="card-body p-3 d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-warning bg-opacity-10 text-warning rounded-3 p-2 me-3 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                                                <i class="bi bi-cash-stack fs-5"></i>
+                                            </div>
+                                            <div>
+                                                <h5 class="card-title fw-bold mb-0" style="font-size: 16px;">Billing & Invoices</h5>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h5 class="card-title fw-bold mb-0" style="font-size: 15px;">Billing</h5>
-                                            <p class="card-text text-muted mb-0" style="font-size: 11px; margin-top: 2px;">Manage payments and invoices</p>
-                                        </div>
+                                        <i class="bi bi-chevron-right text-muted"></i>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-12" data-role-access="discharge" onclick="showModule('discharge')">
-                                <div class="card shadow-sm border-0" style="border-radius: 12px; cursor: pointer;">
-                                    <div class="card-body p-2 px-3 d-flex align-items-center">
-                                        <div class="bg-danger bg-opacity-10 text-danger rounded-circle p-1 me-3 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
-                                            <i class="bi bi-box-arrow-right fs-5"></i>
+                                <div class="card shadow-sm border-0" style="border-radius: 14px; cursor: pointer;">
+                                    <div class="card-body p-3 d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-danger bg-opacity-10 text-danger rounded-3 p-2 me-3 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                                                <i class="bi bi-box-arrow-right fs-5"></i>
+                                            </div>
+                                            <div>
+                                                <h5 class="card-title fw-bold mb-0" style="font-size: 16px;">Discharge Summary</h5>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h5 class="card-title fw-bold mb-0" style="font-size: 15px;">Discharge</h5>
-                                            <p class="card-text text-muted mb-0" style="font-size: 11px; margin-top: 2px;">Process patient discharge</p>
-                                        </div>
+                                        <i class="bi bi-chevron-right text-muted"></i>
                                     </div>
                                 </div>
                             </div>
@@ -839,7 +859,13 @@
             </div>
             <div class="bottom-nav-item" onclick="showModule('patient-hub')">
                 <i class="bi bi-people"></i>
-                <span>Patient</span>
+                <span>Patients</span>
+            </div>
+            <div class="bottom-nav-item bottom-nav-center-action" onclick="showModule('add-patient')">
+                <div class="nav-center-bubble">
+                    <i class="bi bi-person-plus-fill"></i>
+                </div>
+                <span>Admit</span>
             </div>
             <div class="bottom-nav-item" onclick="showModule('billing-hub')" data-role-access="billing">
                 <i class="bi bi-credit-card"></i>
@@ -1282,6 +1308,43 @@
         });
       }
     </script>
+    <!-- ==================== NOTIFICATION DRAWER / PANEL ==================== -->
+    <div id="notification-drawer-overlay" class="notification-drawer-overlay" onclick="toggleNotificationDrawer(false)"></div>
+    <div id="notification-drawer" class="notification-drawer">
+        <div class="notification-drawer-header">
+            <div class="d-flex align-items-center gap-2">
+                <div class="notif-icon-bubble"><i class="bi bi-bell-fill"></i></div>
+                <div>
+                    <h4 class="m-0 fw-bold" style="font-size: 15px; color: var(--text-main);">Notifications</h4>
+                    <span id="notif-subtitle" style="font-size: 11px; color: #64748b;">Live hospital stream</span>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <button class="notif-clear-btn" onclick="markAllNotificationsRead()" title="Mark all read">
+                    <i class="bi bi-check2-all"></i> Clear
+                </button>
+                <button class="notif-close-btn" onclick="toggleNotificationDrawer(false)" title="Close">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Filter tabs -->
+        <div class="notif-filter-tabs">
+            <button class="notif-tab active" data-filter="all" onclick="filterNotifications('all')">All</button>
+            <button class="notif-tab" data-filter="admission" onclick="filterNotifications('admission')">Admissions</button>
+            <button class="notif-tab" data-filter="discharge" onclick="filterNotifications('discharge')">Discharges</button>
+            <button class="notif-tab" data-filter="security" onclick="filterNotifications('security')">Approvals</button>
+        </div>
+
+        <!-- Notification list -->
+        <div id="notification-items-container" class="notification-items-container">
+            <div style="text-align:center; padding: 40px 20px; color: #94a3b8;">
+                <div class="spinner-border spinner-border-sm text-primary mb-2" role="status"></div>
+                <div style="font-size: 13px;">Loading notifications...</div>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>

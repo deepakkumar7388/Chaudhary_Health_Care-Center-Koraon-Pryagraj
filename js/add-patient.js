@@ -20,15 +20,15 @@ function renderAddPatient() {
                 <!-- ── PATIENT TYPE TOGGLE ── -->
                 <div class="form-section" style="padding-bottom: 0;">
                     <div style="display: flex; gap: 8px; align-items: stretch;">
-                        <label id="type-btn-ipd" onclick="selectPatientType('IPD')" style="flex:1; display:flex; align-items:center; justify-content:center; gap:7px; padding:11px 12px; border-radius:10px; cursor:pointer; border:1px solid #047857; background:linear-gradient(135deg,#059669,#047857); color:#fff; font-weight:600; font-size:13px; transition:all 0.2s; user-select:none; box-shadow:0 4px 6px -1px rgba(5, 150, 105, 0.2);">
+                        <label id="type-btn-ipd" onclick="selectPatientType('IPD')" style="flex:1; display:flex; align-items:center; justify-content:center; gap:7px; padding:11px 12px; border-radius:10px; cursor:pointer; border:1px solid var(--primary, #4f46e5); background:linear-gradient(135deg,#4f46e5,#4338ca); color:#ffffff !important; font-weight:700; font-size:13.5px; transition:all 0.2s; user-select:none; box-shadow:0 4px 10px rgba(79, 70, 229, 0.25);">
                             <input type="radio" name="p-type" value="IPD" checked style="display:none;">
-                            <i class="fas fa-bed" style="font-size:15px;"></i>
-                            <span>IPD</span>
+                            <i class="fas fa-bed" style="font-size:15px; color:#ffffff !important;"></i>
+                            <span style="color:#ffffff !important;">IPD</span>
                         </label>
-                        <label id="type-btn-opd" onclick="selectPatientType('OPD')" style="flex:1; display:flex; align-items:center; justify-content:center; gap:7px; padding:11px 12px; border-radius:10px; cursor:pointer; border:1px solid var(--border, #e2e8f0); background:var(--card-bg, #ffffff); color:var(--text-muted, #64748b); font-weight:600; font-size:13px; transition:all 0.2s; user-select:none; box-shadow:0 1px 3px rgba(0, 0, 0, 0.05);">
+                        <label id="type-btn-opd" onclick="selectPatientType('OPD')" style="flex:1; display:flex; align-items:center; justify-content:center; gap:7px; padding:11px 12px; border-radius:10px; cursor:pointer; border:1px solid var(--border, #e2e8f0); background:var(--card-bg, #ffffff); color:var(--text-muted, #64748b) !important; font-weight:600; font-size:13.5px; transition:all 0.2s; user-select:none; box-shadow:0 1px 3px rgba(0, 0, 0, 0.05);">
                             <input type="radio" name="p-type" value="OPD" style="display:none;">
-                            <i class="bi bi-person-check" style="font-size:15px;"></i>
-                            <span>OPD</span>
+                            <i class="bi bi-person-check" style="font-size:15px; color:var(--text-muted, #64748b) !important;"></i>
+                            <span style="color:var(--text-muted, #64748b) !important;">OPD</span>
                         </label>
                     </div>
                 </div>
@@ -98,10 +98,10 @@ function renderAddPatient() {
                     </div>
 
                     <div class="form-actions">
-                        <button type="submit" class="btn-primary" style="background: linear-gradient(135deg,#059669,#047857); border:none; padding:8px 18px; font-size:13px;">
+                        <button type="submit" class="btn btn-primary" style="padding:9px 20px; font-size:13.5px; font-weight:600;">
                             <i class="bi bi-person-plus"></i> Register OPD
                         </button>
-                        <button type="button" class="btn" style="padding:8px 14px; font-size:13px;" onclick="document.getElementById('patient-form').reset(); selectPatientType('OPD');">
+                        <button type="button" class="btn" style="padding:9px 16px; font-size:13.5px;" onclick="document.getElementById('patient-form').reset(); selectPatientType('OPD');">
                             <i class="bi bi-arrow-repeat"></i> Reset
                         </button>
                     </div>
@@ -219,16 +219,26 @@ window.selectPatientType = function(type) {
 
         // Buttons style
         if (opdBtn) { 
-            opdBtn.style.background = 'linear-gradient(135deg,#059669,#047857)'; 
-            opdBtn.style.color = '#fff'; 
-            opdBtn.style.borderColor = '#047857';
-            opdBtn.style.boxShadow = '0 4px 6px -1px rgba(5, 150, 105, 0.2)';
+            opdBtn.style.background = 'linear-gradient(135deg, #4f46e5, #4338ca)'; 
+            opdBtn.style.color = '#ffffff'; 
+            opdBtn.style.borderColor = 'var(--primary, #4f46e5)'; 
+            opdBtn.style.boxShadow = '0 4px 10px rgba(79, 70, 229, 0.25)';
+            opdBtn.style.fontWeight = '700';
+            const icon = opdBtn.querySelector('i');
+            const span = opdBtn.querySelector('span');
+            if (icon) icon.style.color = '#ffffff';
+            if (span) span.style.color = '#ffffff';
         }
         if (ipdBtn) { 
             ipdBtn.style.background = 'var(--card-bg, #ffffff)'; 
             ipdBtn.style.color = 'var(--text-muted, #64748b)'; 
             ipdBtn.style.borderColor = 'var(--border, #e2e8f0)'; 
             ipdBtn.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.05)';
+            ipdBtn.style.fontWeight = '600';
+            const icon = ipdBtn.querySelector('i');
+            const span = ipdBtn.querySelector('span');
+            if (icon) icon.style.color = 'var(--text-muted, #64748b)';
+            if (span) span.style.color = 'var(--text-muted, #64748b)';
         }
 
         // Show/hide sections
@@ -256,16 +266,26 @@ window.selectPatientType = function(type) {
 
         // Buttons style
         if (ipdBtn) { 
-            ipdBtn.style.background = 'linear-gradient(135deg,#059669,#047857)'; 
-            ipdBtn.style.color = '#fff'; 
-            ipdBtn.style.borderColor = '#047857';
-            ipdBtn.style.boxShadow = '0 4px 6px -1px rgba(5, 150, 105, 0.2)';
+            ipdBtn.style.background = 'linear-gradient(135deg, #4f46e5, #4338ca)'; 
+            ipdBtn.style.color = '#ffffff'; 
+            ipdBtn.style.borderColor = 'var(--primary, #4f46e5)'; 
+            ipdBtn.style.boxShadow = '0 4px 10px rgba(79, 70, 229, 0.25)';
+            ipdBtn.style.fontWeight = '700';
+            const icon = ipdBtn.querySelector('i');
+            const span = ipdBtn.querySelector('span');
+            if (icon) icon.style.color = '#ffffff';
+            if (span) span.style.color = '#ffffff';
         }
         if (opdBtn) { 
             opdBtn.style.background = 'var(--card-bg, #ffffff)'; 
             opdBtn.style.color = 'var(--text-muted, #64748b)'; 
             opdBtn.style.borderColor = 'var(--border, #e2e8f0)'; 
             opdBtn.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.05)';
+            opdBtn.style.fontWeight = '600';
+            const icon = opdBtn.querySelector('i');
+            const span = opdBtn.querySelector('span');
+            if (icon) icon.style.color = 'var(--text-muted, #64748b)';
+            if (span) span.style.color = 'var(--text-muted, #64748b)';
         }
 
         // Show/hide sections
@@ -460,6 +480,19 @@ async function addOpdPatient() {
             // Cache invalidate karo
             localStorage.removeItem('patients');
             localStorage.removeItem('cache_available_beds'); // beds cache clear
+            
+            // Trigger Live Notification
+            if (typeof window.hmsSocket?.pushNotification === 'function') {
+                window.hmsSocket.pushNotification({
+                    id: `admit_${result.patient?._id || Date.now()}`,
+                    title: `New OPD Admission: ${name}`,
+                    message: `OPD Patient ${name} registered for ${doctor || 'consultation'}.`,
+                    timestamp: new Date().toISOString(),
+                    category: 'admission',
+                    type: 'info'
+                });
+            }
+
             showNotification(`OPD Patient Registered! ID: ${result.patient.patient_id} — ${name}`, 'success');
             document.getElementById('patient-form').reset();
             selectPatientType('OPD'); // OPD form ready for next patient
@@ -535,6 +568,19 @@ async function addIpdPatient() {
             sessionStorage.removeItem('addPatientDraft');
             localStorage.removeItem('patients');
             localStorage.removeItem('cache_available_beds'); // beds cache clear — bed ab occupied hai
+            
+            // Trigger Live Notification
+            if (typeof window.hmsSocket?.pushNotification === 'function') {
+                window.hmsSocket.pushNotification({
+                    id: `admit_${result.patient?._id || Date.now()}`,
+                    title: `New IPD Admission: ${name}`,
+                    message: `IPD Patient ${name} admitted on Bed ${bed} under ${doctor || 'Duty Doctor'}.`,
+                    timestamp: new Date().toISOString(),
+                    category: 'admission',
+                    type: 'info'
+                });
+            }
+
             showNotification(`Patient ${name} admitted successfully! ID: ${result.patient.patient_id}`, 'success');
             document.getElementById('patient-form').reset();
             showModule('patients');
