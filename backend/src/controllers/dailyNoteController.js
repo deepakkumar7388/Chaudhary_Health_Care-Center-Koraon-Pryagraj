@@ -1,5 +1,6 @@
 const DailyNote = require('../models/DailyNote');
 const Patient = require('../models/Patient');
+const { emitDailyNoteAdded } = require('../socket/socketHandler');
 
 exports.getNotesByPatient = async (req, res) => {
     try {
@@ -17,8 +18,14 @@ exports.addNote = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Cannot add clinical notes for a discharged patient' });
         }
 
-        const newNote = new DailyNote({ ...req.body, patient_id: req.params.patientId });
+        const author = req.user?.name || req.body.addedBy || 'Staff';
+        const newNote = new DailyNote({ ...req.body, patient_id: req.params.patientId, addedBy: author });
         await newNote.save();
+
+        if (typeof emitDailyNoteAdded === 'function') {
+            emitDailyNoteAdded(newNote, patient?.name || req.params.patientId, author);
+        }
+
         res.status(201).json({ success: true, note: newNote });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });

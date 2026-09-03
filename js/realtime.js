@@ -149,6 +149,29 @@
             console.log('[Socket] bed:updated', data);
             refreshCurrentPage('dashboard');
         });
+
+        // Daily Clinical note added (Doctor, Staff, Admin, Developer)
+        socket.on('note:added', (data) => {
+            console.log('[Socket] note:added', data);
+            const userRole = getUserRole();
+            if (['doctor', 'staff', 'admin', 'developer'].includes(userRole)) {
+                const title = data.title || (data.note_type === 'medication' ? `💊 Medicine Scheduled: ${data.patient_name || data.patient_id}` : `🩺 Observation Added: ${data.patient_name || data.patient_id}`);
+                const message = data.message || `${data.addedBy || 'Staff'} recorded ${data.note_type || 'clinical note'} for ${data.patient_name || data.patient_id}.`;
+                
+                const notif = {
+                    id: `note_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+                    title: title,
+                    message: message,
+                    timestamp: new Date().toISOString(),
+                    category: 'clinical',
+                    type: 'info'
+                };
+                pushLiveNotification(notif);
+                showRealtimeToast(title, 'info');
+                ringNotificationBell();
+                refreshCurrentPage('daily-notes');
+            }
+        });
     }
 
     // ==================== LIVE NOTIFICATIONS LOGIC ====================
@@ -201,9 +224,55 @@
 
     let _lastSeenDbEventTime = Date.now();
 
+    async function fetchLiveNotifications() {
+        const token = getAuthToken();
+        if (!token) return;
+
+        try {
+            const apiEndpoint = `${getBaseUrl()}/api/notifications`;
+            const res = await fetch(apiEndpoint, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                if (data.success && Array.isArray(data.notifications)) {
+                    if (_notificationsList.length === 0) {
+                        _notificationsList = data.notifications;
+                    } else {
+                        const existingMap = new Map(_notificationsList.map(n => [n.id, n]));
+                        data.notifications.forEach(n => {
+                            if (!existingMap.has(n.id)) {
+                                _notificationsList.push(n);
+                            }
+                        });
+                        _notificationsList.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                    }
+                    if (_notificationsList.length > 50) _notificationsList = _notificationsList.slice(0, 50);
+                    saveLiveSessionNotifications(_notificationsList);
+
+                    if (data.notifications.length > 0) {
+                        _lastSeenDbEventTime = new Date(data.notifications[0].timestamp).getTime();
+                    }
+                    updateNotificationUI();
+                }
+            }
+        } catch (err) {
+            console.warn('[Notifications] Fetch error:', err);
+        }
+    }
+
     async function syncDatabaseChanges() {
         const token = getAuthToken();
         if (!token) return;
+
+        if (_notificationsList.length === 0) {
+            await fetchLiveNotifications();
+            return;
+        }
 
         try {
             const apiEndpoint = `${getBaseUrl()}/api/notifications`;
@@ -252,11 +321,11 @@
         const unreadCount = _notificationsList.filter(n => !readIds.includes(n.id)).length;
 
         // Update badge with exact number (0 = hidden)
-        const badges = document.querySelectorAll('#notification-badge, .notification-badge');
+        const badges = document.querySelectorAll('#notification-badge, #desktop-notification-badge, .notification-badge');
         badges.forEach(b => {
             if (unreadCount > 0) {
-                b.textContent = unreadCount; // Exact count (1, 2, 3...)
-                b.style.display = 'flex';
+                b.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                b.style.display = 'inline-flex';
             } else {
                 b.textContent = '0';
                 b.style.display = 'none';
@@ -293,6 +362,7 @@
             discharge: 'bi-box-arrow-right',
             billing: 'bi-coin',
             security: 'bi-shield-exclamation',
+            clinical: 'bi-file-earmark-medical',
             system: 'bi-hdd-network'
         };
 
@@ -404,6 +474,9 @@
             } else if (category === 'discharge') {
                 window.toggleNotificationDrawer(false);
                 showModule('discharge');
+            } else if (category === 'clinical' || category === 'daily-notes') {
+                window.toggleNotificationDrawer(false);
+                showModule('daily-notes');
             } else if (category === 'billing') {
                 window.toggleNotificationDrawer(false);
                 showModule('billing');
@@ -422,6 +495,7 @@
         const refreshFunctions = {
             'patients': () => typeof loadPatients === 'function' && loadPatients(),
             'dashboard': () => typeof renderDashboard === 'function' && renderDashboard(),
+            'daily-notes': () => typeof renderDailyNotes === 'function' && renderDailyNotes(),
             'billing': () => typeof loadBillingData === 'function' && loadBillingData(),
             'reports': () => typeof window.updateReportsDashboard === 'function' && window.updateReportsDashboard()
         };
@@ -478,17 +552,17 @@
         pushNotification: pushLiveNotification
     };
 
-    // Auto-connect on DOM ready
+    function initRealtime() {
+        connectSocket();
+        fetchLiveNotifications();
+        updateNotificationUI();
+    }
+
+    // Auto-connect and fetch on DOM ready
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => {
-            connectSocket();
-            updateNotificationUI();
-        });
+        document.addEventListener('DOMContentLoaded', initRealtime);
     } else {
-        setTimeout(() => {
-            connectSocket();
-            updateNotificationUI();
-        }, 100);
+        setTimeout(initRealtime, 100);
     }
 
 })();

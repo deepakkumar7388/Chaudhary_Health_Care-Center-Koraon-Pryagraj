@@ -208,6 +208,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         iconColor = const Color(0xFF3B82F6); // Blue
         iconData = Icons.personal_injury_outlined;
         break;
+      case 'clinical':
+        iconColor = const Color(0xFF8B5CF6); // Purple
+        iconData = Icons.medical_information_outlined;
+        break;
       case 'discharge':
         iconColor = const Color(0xFF10B981); // Green
         iconData = Icons.assignment_turned_in_outlined;

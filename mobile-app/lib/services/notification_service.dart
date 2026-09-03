@@ -114,6 +114,21 @@ class NotificationService {
         unreadCountNotifier.value++;
       });
 
+      // ── Event: Clinical Daily Note Added ──
+      _socket!.on('note:added', (data) {
+        debugPrint('[Socket.IO] Event: note:added $data');
+        final name = data['patient_name'] ?? data['patient_id'] ?? 'Patient';
+        final author = data['addedBy'] ?? 'Clinical Staff';
+        final type = data['note_type'] ?? 'clinical note';
+
+        showSystemNotification(
+          id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+          title: '📝 Daily Note: $name',
+          body: '$author recorded $type.',
+        );
+        unreadCountNotifier.value++;
+      });
+
       _socket!.onDisconnect((_) {
         debugPrint('[Socket.IO] Disconnected from hospital server');
       });

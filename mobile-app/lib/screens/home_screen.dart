@@ -98,6 +98,10 @@ class _HomeScreenState extends State<HomeScreen> {
         'opdPatients': opd,
       };
       _applyFilter();
+
+      // Sync unread notification bell badge and real-time socket
+      NotificationService.refreshUnreadCount();
+      NotificationService.connectSocket();
     } catch (e) {
       debugPrint('Error loading data: $e');
     }

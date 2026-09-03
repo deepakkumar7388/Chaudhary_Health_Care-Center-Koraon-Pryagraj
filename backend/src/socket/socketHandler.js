@@ -106,6 +106,38 @@ function emitBedUpdated(bedInfo) {
     });
 }
 
+function emitDailyNoteAdded(note, patientName, addedBy) {
+    let title = `📝 Clinical Note: ${patientName}`;
+    let message = `${addedBy || note.addedBy || 'Staff'} recorded note for ${patientName}.`;
+
+    if (note.type === 'vitals') {
+        title = `🩺 Observation Added: ${patientName}`;
+        const parts = [];
+        if (note.bp) parts.push(`BP: ${note.bp}`);
+        if (note.pulse) parts.push(`Pulse: ${note.pulse}`);
+        if (note.temp) parts.push(`Temp: ${note.temp}`);
+        if (note.spo2) parts.push(`SpO2: ${note.spo2}%`);
+        const vitalsStr = parts.length > 0 ? ` (${parts.join(', ')})` : '';
+        message = `${addedBy || note.addedBy || 'Staff'} recorded vitals${vitalsStr}.`;
+    } else if (note.type === 'medication') {
+        title = `💊 Medicine Scheduled: ${patientName}`;
+        message = `${addedBy || note.addedBy || 'Doctor'} scheduled ${note.drugName || 'Medicine'} (${note.dose || '1 dose'}, ${note.medType || 'Oral'}) for ${note.time || 'Prescribed time'}.`;
+    }
+
+    const payload = {
+        patient_id: note.patient_id,
+        patient_name: patientName,
+        note_type: note.type,
+        title,
+        message,
+        addedBy: addedBy || note.addedBy
+    };
+    emitEvent('doctor', 'note:added', payload);
+    emitEvent('staff', 'note:added', payload);
+    emitEvent('admin', 'note:added', payload);
+    emitEvent('developer', 'note:added', payload);
+}
+
 module.exports = {
     initSocket,
     getIO,
@@ -114,5 +146,6 @@ module.exports = {
     emitPatientDischarged,
     emitPatientUpdated,
     emitBillingPaid,
-    emitBedUpdated
+    emitBedUpdated,
+    emitDailyNoteAdded
 };

@@ -3,6 +3,7 @@ const router = express.Router();
 const { authenticate } = require('../middleware/auth');
 const FCMToken = require('../models/FCMToken');
 const Patient = require('../models/Patient');
+const DailyNote = require('../models/DailyNote');
 const User = require('../models/User');
 const { admin } = require('../config/firebase');
 
@@ -11,6 +12,7 @@ const { admin } = require('../config/firebase');
 router.get('/', authenticate, async (req, res) => {
     try {
         const notifications = [];
+        const userRole = (req.user?.role || 'staff').toLowerCase();
 
         // 1. Recent Patient Admissions & Discharges
         const recentPatients = await Patient.find({ isDeleted: false })
@@ -41,8 +43,48 @@ router.get('/', authenticate, async (req, res) => {
             });
         });
 
-        // 2. Pending User Approvals (for Admin & Developer)
-        if (req.user?.role === 'admin' || req.user?.role === 'developer') {
+        // 2. Recent Clinical Daily Notes (for Doctor, Staff, Admin, Developer)
+        if (['doctor', 'staff', 'admin', 'developer'].includes(userRole)) {
+            const recentNotes = await DailyNote.find({})
+                .sort({ createdAt: -1 })
+                .limit(10)
+                .lean();
+
+            for (const n of recentNotes) {
+                const pat = await Patient.findOne({ patient_id: n.patient_id }).select('name bed_no').lean();
+                const pName = pat?.name || `Patient ${n.patient_id}`;
+                const bedStr = pat?.bed_no ? ` on Bed ${pat.bed_no}` : '';
+
+                let title = `📝 Clinical Note: ${pName}`;
+                let message = `${n.addedBy || 'Staff'} recorded note for ${pName}${bedStr}.`;
+
+                if (n.type === 'vitals') {
+                    title = `🩺 Observation Added: ${pName}`;
+                    const parts = [];
+                    if (n.bp) parts.push(`BP: ${n.bp}`);
+                    if (n.pulse) parts.push(`Pulse: ${n.pulse}`);
+                    if (n.temp) parts.push(`Temp: ${n.temp}`);
+                    if (n.spo2) parts.push(`SpO2: ${n.spo2}%`);
+                    const vitalsStr = parts.length > 0 ? ` (${parts.join(', ')})` : '';
+                    message = `${n.addedBy || 'Staff'} recorded vitals${vitalsStr}${bedStr}.`;
+                } else if (n.type === 'medication') {
+                    title = `💊 Medicine Scheduled: ${pName}`;
+                    message = `${n.addedBy || 'Doctor'} scheduled ${n.drugName || 'Medicine'} (${n.dose || '1 dose'}) for ${n.time || 'Prescribed time'}${bedStr}.`;
+                }
+
+                notifications.push({
+                    id: `note_${n._id}`,
+                    title,
+                    message,
+                    timestamp: n.createdAt || new Date(),
+                    type: 'info',
+                    category: 'clinical'
+                });
+            }
+        }
+
+        // 3. Pending User Approvals (for Admin & Developer)
+        if (userRole === 'admin' || userRole === 'developer') {
             const pendingUsers = await User.find({ status: 'pending' }).lean();
             pendingUsers.forEach(u => {
                 notifications.push({
@@ -56,7 +98,7 @@ router.get('/', authenticate, async (req, res) => {
             });
         }
 
-        // 3. System Connection Status
+        // 4. System Connection Status
         notifications.push({
             id: 'sys_online',
             title: 'Database Synchronized',
