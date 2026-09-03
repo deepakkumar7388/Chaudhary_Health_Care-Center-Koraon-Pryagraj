@@ -132,10 +132,7 @@ function emitDailyNoteAdded(note, patientName, addedBy) {
         message,
         addedBy: addedBy || note.addedBy
     };
-    emitEvent('doctor', 'note:added', payload);
-    emitEvent('staff', 'note:added', payload);
-    emitEvent('admin', 'note:added', payload);
-    emitEvent('developer', 'note:added', payload);
+    emitEvent('all', 'note:added', payload);
 }
 
 module.exports = {
