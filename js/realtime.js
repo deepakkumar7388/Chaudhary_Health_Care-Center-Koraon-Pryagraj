@@ -222,6 +222,19 @@
         updateNotificationUI();
     }
 
+    function getClearedTimestamp() {
+        try {
+            return parseInt(localStorage.getItem('hms_cleared_time') || sessionStorage.getItem('hms_cleared_time') || '0', 10);
+        } catch { return 0; }
+    }
+
+    function saveClearedTimestamp(ts) {
+        try {
+            sessionStorage.setItem('hms_cleared_time', String(ts));
+            localStorage.setItem('hms_cleared_time', String(ts));
+        } catch (e) {}
+    }
+
     let _lastSeenDbEventTime = Date.now();
 
     async function fetchLiveNotifications() {
@@ -240,11 +253,17 @@
             if (res.ok) {
                 const data = await res.json();
                 if (data.success && Array.isArray(data.notifications)) {
+                    const clearedTime = getClearedTimestamp();
+                    const validNotifs = data.notifications.filter(n => {
+                        const t = new Date(n.timestamp || 0).getTime();
+                        return t > clearedTime;
+                    });
+
                     if (_notificationsList.length === 0) {
-                        _notificationsList = data.notifications;
+                        _notificationsList = validNotifs;
                     } else {
                         const existingMap = new Map(_notificationsList.map(n => [n.id, n]));
-                        data.notifications.forEach(n => {
+                        validNotifs.forEach(n => {
                             if (!existingMap.has(n.id)) {
                                 _notificationsList.push(n);
                             }
@@ -269,11 +288,6 @@
         const token = getAuthToken();
         if (!token) return;
 
-        if (_notificationsList.length === 0) {
-            await fetchLiveNotifications();
-            return;
-        }
-
         try {
             const apiEndpoint = `${getBaseUrl()}/api/notifications`;
             const res = await fetch(apiEndpoint, {
@@ -286,10 +300,12 @@
             if (res.ok) {
                 const data = await res.json();
                 if (data.success && Array.isArray(data.notifications)) {
-                    // Check for new notifications created after _lastSeenDbEventTime
+                    const clearedTime = getClearedTimestamp();
+
+                    // Check for new notifications created after _lastSeenDbEventTime and after clearedTime
                     const newEvents = data.notifications.filter(n => {
                         const t = new Date(n.timestamp).getTime();
-                        return t > _lastSeenDbEventTime;
+                        return t > _lastSeenDbEventTime && t > clearedTime;
                     });
 
                     if (newEvents.length > 0) {
@@ -455,10 +471,11 @@
     };
 
     window.markAllNotificationsRead = function() {
+        _notificationsList.forEach(n => saveReadId(n.id));
         _notificationsList = [];
         saveLiveSessionNotifications([]);
-        sessionStorage.removeItem('hms_read_notifs');
-        localStorage.removeItem('hms_read_notifs');
+        saveClearedTimestamp(Date.now());
+        _lastSeenDbEventTime = Date.now();
         updateNotificationUI();
     };
 
